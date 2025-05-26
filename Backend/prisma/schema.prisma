@@ -8,9 +8,11 @@ datasource db {
 }
 
 model Menu {
-  id         Int         @id @default(autoincrement())
-  createdAt  DateTime    @default(now())
-  menuItems  MenuItem[]  // Relation to menu items
+  id             Int               @id @default(autoincrement())
+  createdAt      DateTime          @default(now())
+  menuItems      MenuItem[]
+  pastaTypes     MenuToPastaType[]
+  pastaSauces    MenuToPastaSauce[]
 }
 
 model MenuItem {
@@ -19,4 +21,40 @@ model MenuItem {
   price     Float
   menuId    Int
   menu      Menu     @relation(fields: [menuId], references: [id])
+}
+
+model PastaType {
+  id        Int               @id @default(autoincrement())
+  name      String
+  imageUrl  String
+  menus     MenuToPastaType[]
+}
+
+model PastaSauce {
+  id        Int               @id @default(autoincrement())
+  name      String
+  imageUrl  String
+  menus     MenuToPastaSauce[]
+}
+
+
+model MenuToPastaType {
+  id          Int       @id @default(autoincrement())
+  menu        Menu      @relation(fields: [menuId], references: [id])
+  menuId      Int
+  pastaType   PastaType @relation(fields: [pastaTypeId], references: [id])
+  pastaTypeId Int
+
+  @@unique([menuId, pastaTypeId])
+}
+
+// Join table for Menu and PastaSauce
+model MenuToPastaSauce {
+  id          Int        @id @default(autoincrement())
+  menu        Menu       @relation(fields: [menuId], references: [id])
+  menuId      Int
+  pastaSauce  PastaSauce @relation(fields: [pastaSauceId], references: [id])
+  pastaSauceId Int
+
+  @@unique([menuId, pastaSauceId])
 }

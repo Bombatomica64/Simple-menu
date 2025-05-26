@@ -1,1 +1,13 @@
-<p>home works!</p>
+<div *ngIf="menuConnection">
+  @if (menuConnection.connected()) {
+    <div class="connection-status connected">Connected to menu updates</div>
+  } @else {
+    <div class="connection-status disconnected">Connecting to menu updates...</div>
+  }
+
+  @if (menuConnection.resource(); as menuResource) {
+    <app-pasta [menu]="menuResource"></app-pasta>
+  } @else {
+    <div class="loading">Loading menu...</div>
+  }
+</div>
