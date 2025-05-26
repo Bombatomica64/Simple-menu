@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Menu {
+  id         Int         @id @default(autoincrement())
+  createdAt  DateTime    @default(now())
+  menuItems  MenuItem[]  // Relation to menu items
+}
+
+model MenuItem {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Float
+  menuId    Int
+  menu      Menu     @relation(fields: [menuId], references: [id])
+}
