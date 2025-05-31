@@ -9,12 +9,14 @@ export interface PastaType {
     id: number;
     name: string;
     imageUrl?: string;
+    availableImages?: string;
 }
 
 export interface PastaSauce {
     id: number;
     name: string;
     imageUrl?: string;
+    availableImages?: string;
 }
 
 // Represents the structure from MenuToPastaType include

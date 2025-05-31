@@ -1,0 +1,18 @@
+{
+  "pastaTypes": [
+    "Maltagliati",
+    "Pici",
+    "Gnocchi",
+    "Trofie",
+    "Penne",
+    "Mezze Maniche"
+  ],
+  "pastaSauces": [
+    "Pancetta, Porro e Funghi",
+    "Provola e Speck",
+    "Puttanesca",
+    "Ragù",
+    "Arrabbiata",
+    "Pomodoro"
+  ]
+}

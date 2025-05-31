@@ -8,13 +8,15 @@ import {
 	Injector,
 	runInInjectionContext,
 } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http'; // Import HttpClient & HttpClientModule
 import {
 	menuConnection,
 	MenuConnection,
 	MenuUpdateMessage,
+	AddItemMessage,
+	RemoveItemMessage,
 	AddPastaTypeMessage,
 	RemovePastaTypeMessage,
 	AddPastaSauceMessage,
@@ -32,27 +34,35 @@ import { PickListModule } from 'primeng/picklist'; // Import PickListModule
 import { ButtonModule } from 'primeng/button'; // For pButton
 import { InputTextModule } from 'primeng/inputtext'; // For pInputText
 import { DialogModule } from 'primeng/dialog'; // For modal dialogs
+import { FileUploadModule } from 'primeng/fileupload'; // For file upload
+import { GalleriaModule } from 'primeng/galleria'; // For image gallery
+import { ConfirmDialogModule } from 'primeng/confirmdialog'; // For confirmation dialogs
+import { ConfirmationService } from 'primeng/api'; // For confirmation service
 
 @Component({
 	selector: 'app-submit',
 	standalone: true,
 	imports: [
-		CommonModule,
-		FormsModule,
-		PickListModule,
-		ButtonModule,
-		InputTextModule,
-		DialogModule,
-	],
+    FormsModule,
+    PickListModule,
+    ButtonModule,
+    InputTextModule,
+    DialogModule,
+    FileUploadModule,
+    GalleriaModule,
+    ConfirmDialogModule
+],
 	templateUrl: './submit.component.html',
 	styleUrls: ['./submit.component.scss'],
+	providers: [ConfirmationService]
 })
 export class SubmitComponent implements OnInit {
 	private platformId = inject(PLATFORM_ID);
 	private http = inject(HttpClient);
 	private injector = inject(Injector);
+	private confirmationService = inject(ConfirmationService);
 	private apiUrl = 'http://localhost:3000';
-	menuWsConnection!: MenuConnection;
+	menuWsConnection: MenuConnection | null = null;
 
 	// For adding new item
 	newItemName: string = '';
@@ -65,7 +75,6 @@ export class SubmitComponent implements OnInit {
 	showNewPastaTypeDialog = signal(false);
 	newPastaTypeName = signal('');
 	newPastaTypeImageUrl = signal('');
-
 	// Computed signals for Pasta Type PickList
 	pastaTypesSource = computed(() => {
 		const currentMenu = this.menuWsConnection?.resource.value();
@@ -82,12 +91,15 @@ export class SubmitComponent implements OnInit {
 	});
 
 	// --- Pasta Sauces Management ---
-	allPastaSauces = signal<AppPastaSauce[]>([]);
-	// For creating new pasta sauce
+	allPastaSauces = signal<AppPastaSauce[]>([]);	// For creating new pasta sauce
 	showNewPastaSauceDialog = signal(false);
 	newPastaSauceName = signal('');
 	newPastaSauceImageUrl = signal('');
-
+	
+	// Image management
+	showImageManagerDialog = signal(false);
+	selectedItemForImages = signal<{type: 'pastaType' | 'pastaSauce', id: number, name: string, availableImages: string[], currentImage: string} | null>(null);
+	uploadingImage = signal(false);
 	// Computed signals for Pasta Sauce PickList
 	pastaSaucesSource = computed(() => {
 		const currentMenu = this.menuWsConnection?.resource.value();
@@ -129,13 +141,41 @@ export class SubmitComponent implements OnInit {
 			error: (err) => console.error('Failed to load pasta sauces', err),
 		});
 	}
-
 	// --- Menu Item Actions ---
 	addItem() {
-		/* ... existing logic ... */
+		if (!this.newItemName.trim() || this.newItemPrice === null || this.newItemPrice <= 0) {
+			alert('Please provide a valid item name and price.');
+			return;
+		}
+		
+		const message: AddItemMessage = {
+			type: 'addItem',
+			item: {
+				name: this.newItemName.trim(),
+				price: this.newItemPrice
+			}
+		};
+		this.menuWsConnection?.sendUpdate(message);
+		
+		// Clear the form
+		this.newItemName = '';
+		this.newItemPrice = null;
 	}
+	
 	removeItem() {
-		/* ... existing logic ... */
+		if (this.itemIdToRemove === null || this.itemIdToRemove <= 0) {
+			alert('Please provide a valid item ID to remove.');
+			return;
+		}
+		
+		const message: RemoveItemMessage = {
+			type: 'removeItem',
+			itemId: this.itemIdToRemove
+		};
+		this.menuWsConnection?.sendUpdate(message);
+		
+		// Clear the form
+		this.itemIdToRemove = null;
 	}
 
 	// --- Pasta Type PickList Actions ---
@@ -234,10 +274,116 @@ export class SubmitComponent implements OnInit {
 					);
 				},
 			});
-	}
-
-	get currentMenuItemsForDisplay(): MenuItem[] {
+	}	get currentMenuItemsForDisplay(): MenuItem[] {
 		const menu = this.menuWsConnection?.resource.value();
 		return menu?.menuItems || [];
+	}
+
+	// --- Image Management ---
+	openImageManager(type: 'pastaType' | 'pastaSauce', item: AppPastaType | AppPastaSauce) {
+		this.selectedItemForImages.set({
+			type,
+			id: item.id,
+			name: item.name,
+			availableImages: JSON.parse((item as any).availableImages || '[]'),
+			currentImage: item.imageUrl || ''
+		});
+		this.showImageManagerDialog.set(true);
+	}
+
+	onImageUpload(event: any) {
+		const file = event.files[0];
+		if (!file || !this.selectedItemForImages()) return;
+
+		this.uploadingImage.set(true);
+		const selectedItem = this.selectedItemForImages()!;
+		const formData = new FormData();
+		formData.append('image', file);
+
+		const endpoint = selectedItem.type === 'pastaType' 
+			? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/upload`
+			: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/upload`;
+
+		this.http.post<any>(endpoint, formData).subscribe({
+			next: (response) => {
+				console.log('Image uploaded successfully:', response);
+				// Refresh the data
+				this.loadAllPastaTypes();
+				this.loadAllPastaSauces();
+				// Update the selected item
+				const updatedItem = response.pastaType || response.pastaSauce;
+				this.selectedItemForImages.set({
+					...selectedItem,
+					availableImages: JSON.parse(updatedItem.availableImages || '[]'),
+					currentImage: updatedItem.imageUrl || ''
+				});
+				this.uploadingImage.set(false);
+			},
+			error: (err) => {
+				console.error('Failed to upload image:', err);
+				alert(`Error: ${err.error?.error || 'Could not upload image.'}`);
+				this.uploadingImage.set(false);
+			}
+		});
+	}
+
+	switchToImage(imageUrl: string) {
+		if (!this.selectedItemForImages()) return;
+
+		const selectedItem = this.selectedItemForImages()!;
+		const endpoint = selectedItem.type === 'pastaType' 
+			? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/switch`
+			: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/switch`;
+
+		this.http.put<any>(endpoint, { imageUrl }).subscribe({
+			next: (response) => {
+				console.log('Image switched successfully:', response);
+				// Refresh the data
+				this.loadAllPastaTypes();
+				this.loadAllPastaSauces();
+				// Update the selected item
+				this.selectedItemForImages.update(item => item ? { ...item, currentImage: imageUrl } : null);
+			},
+			error: (err) => {
+				console.error('Failed to switch image:', err);
+				alert(`Error: ${err.error?.error || 'Could not switch image.'}`);
+			}
+		});
+	}
+
+	deleteImage(imageUrl: string) {
+		if (!this.selectedItemForImages()) return;
+
+		this.confirmationService.confirm({
+			message: 'Are you sure you want to delete this image? This action cannot be undone.',
+			header: 'Delete Image',
+			icon: 'pi pi-exclamation-triangle',
+			accept: () => {
+				const selectedItem = this.selectedItemForImages()!;
+				const endpoint = selectedItem.type === 'pastaType' 
+					? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/delete`
+					: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/delete`;
+
+				this.http.delete<any>(endpoint, { body: { imageUrl } }).subscribe({
+					next: (response) => {
+						console.log('Image deleted successfully:', response);
+						// Refresh the data
+						this.loadAllPastaTypes();
+						this.loadAllPastaSauces();
+						// Update the selected item
+						const updatedItem = response.pastaType || response.pastaSauce;
+						this.selectedItemForImages.set({
+							...selectedItem,
+							availableImages: JSON.parse(updatedItem.availableImages || '[]'),
+							currentImage: updatedItem.imageUrl || ''
+						});
+					},
+					error: (err) => {
+						console.error('Failed to delete image:', err);
+						alert(`Error: ${err.error?.error || 'Could not delete image.'}`);
+					}
+				});
+			}
+		});
 	}
 }

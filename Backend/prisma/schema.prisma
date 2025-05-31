@@ -24,17 +24,19 @@ model MenuItem {
 }
 
 model PastaType {
-  id        Int               @id @default(autoincrement())
-  name      String
-  imageUrl  String
-  menus     MenuToPastaType[]
+  id              Int               @id @default(autoincrement())
+  name            String
+  imageUrl        String
+  availableImages String            @default("[]") // JSON array of image URLs
+  menus           MenuToPastaType[]
 }
 
 model PastaSauce {
-  id        Int               @id @default(autoincrement())
-  name      String
-  imageUrl  String
-  menus     MenuToPastaSauce[]
+  id              Int                @id @default(autoincrement())
+  name            String
+  imageUrl        String
+  availableImages String             @default("[]") // JSON array of image URLs
+  menus           MenuToPastaSauce[]
 }
 
 

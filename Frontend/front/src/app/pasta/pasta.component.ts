@@ -1,5 +1,5 @@
 import { Component, computed, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Menu, PastaType as SinglePastaType, PastaSauce as SinglePastaSauce, MenuItem, MenuPastaTypeEntry, MenuPastaSauceEntry } from '../Menu/menu';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
@@ -8,7 +8,7 @@ import { PanelModule } from 'primeng/panel';
 @Component({
     selector: 'app-pasta',
     standalone: true,
-    imports: [CommonModule, CardModule, DividerModule, PanelModule],
+    imports: [CardModule, DividerModule, PanelModule],
     templateUrl: './pasta.component.html',
     styleUrls: ['./pasta.component.scss'],
 })

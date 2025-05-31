@@ -9,8 +9,10 @@
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
+    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "multer": "^2.0.0",
     "prisma": "^6.8.2",
     "ws": "^8.18.2"
   }

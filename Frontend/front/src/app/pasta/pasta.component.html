@@ -19,13 +19,15 @@
           <div class="pasta-selection">
             <h4>Step 1: Choose Your Pasta</h4>
             <div class="grid">
-              <div *ngFor="let pasta of pastaTypes()" class="col-6 mb-3">
-                <p-card [header]="pasta.name" styleClass="pasta-card">
-                  <ng-template pTemplate="header">
-                    <img [alt]="pasta.name" [src]="pasta.image" class="pasta-image"/>
-                  </ng-template>
-                </p-card>
-              </div>
+              @for (pasta of pastaTypes(); track pasta) {
+                <div class="col-6 mb-3">
+                  <p-card [header]="pasta.name" styleClass="pasta-card">
+                    <ng-template pTemplate="header">
+                      <img [alt]="pasta.name" title="{{pasta.name}}" [src]="pasta.image" class="pasta-image"/>
+                    </ng-template>
+                  </p-card>
+                </div>
+              }
             </div>
           </div>
         </div>
@@ -43,13 +45,15 @@
           <div class="sauce-selection">
             <h4>Step 2: Choose Your Sauce</h4>
             <div class="grid">
-              <div *ngFor="let sauce of pastaSauces()" class="col-6 mb-3">
-                <p-card [header]="sauce.name" [subheader]="'$'" styleClass="sauce-card">
-                  <ng-template pTemplate="header">
-                    <img [alt]="sauce.name" [src]="sauce.image" [title]="sauce.name" class="sauce-image"/>
-                  </ng-template>
-                </p-card>
-              </div>
+              @for (sauce of pastaSauces(); track sauce) {
+                <div class="col-6 mb-3">
+                  <p-card [header]="sauce.name" [subheader]="'$'" styleClass="sauce-card">
+                    <ng-template pTemplate="header">
+                      <img [alt]="sauce.name" [src]="sauce.image" title="{{sauce.name}}" class="sauce-image"/>
+                    </ng-template>
+                  </p-card>
+                </div>
+              }
             </div>
           </div>
         </div>

@@ -1,0 +1,2003 @@
+const express = require("express");
+const { PrismaClient } = require("@prisma/client");
+const bodyParser = require("body-parser");
+const http = require("http");
+const WebSocket = require("ws");
+const cors = require("cors");
+const fs = require("fs");
+const path = require("path");
+const multer = require("multer");
+// const cron = require('node-cron'); // Optional: for more complex scheduling
+
+const prisma = new PrismaClient();
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server, path: "/menu-updates" });
+const clients = new Set();
+
+let currentInMemoryMenu = null;
+
+async function loadInitialMenu() {
+  try {
+    const latestMenuFromDB = await prisma.menu.findFirst({
+      orderBy: { createdAt: "desc" },
+      include: {
+        menuItems: true,
+        pastaTypes: { include: { pastaType: true } },
+        pastaSauces: { include: { pastaSauce: true } },
+      },
+    });
+    if (latestMenuFromDB) {
+      currentInMemoryMenu = latestMenuFromDB;
+      console.log("Initial menu loaded from DB into memory.");
+    } else {
+      // Seed default data if database is empty
+      await seedDefaultData();
+      currentInMemoryMenu = {
+        createdAt: new Date().toISOString(),
+        menuItems: [],
+        pastaTypes: [],
+        pastaSauces: [],
+      };
+      console.log("No menu in DB, seeded default data and initialized empty in-memory menu.");
+    }
+  } catch (error) {
+    console.error("Error loading initial menu:", error);
+    currentInMemoryMenu = {
+      createdAt: new Date().toISOString(),
+      menuItems: [],
+      pastaTypes: [],
+      pastaSauces: [],
+    };
+  }
+}
+
+async function seedDefaultData() {
+  try {
+    // Check if data already exists
+    const existingPastaTypes = await prisma.pastaType.count();
+    const existingPastaSauces = await prisma.pastaSauce.count();
+
+    // Load init data from JSON file
+    const initDataPath = path.join(__dirname, "../assets/init.json");
+    let initData = {};
+    
+    if (fs.existsSync(initDataPath)) {
+      const initDataContent = fs.readFileSync(initDataPath, "utf8");
+      initData = JSON.parse(initDataContent);
+      console.log("Loaded init data from init.json");
+    } else {
+      console.log("init.json not found, using fallback data");
+    }
+
+    // Map existing assets to pasta types
+    const assetMapping = {
+      "Gnocchi": "/assets/gnocchi1.jpeg.jpg",
+      "Penne": "/assets/penne.jpg", 
+      "Pici": "/assets/pici.jpg",
+      "Trofie": "/assets/trofie.png",
+      "Tagliatelle": "/assets/tagliatelle.jpg"
+    };
+
+    if (existingPastaTypes === 0) {
+      console.log("Seeding default pasta types...");
+      const pastaTypesToSeed = initData.pastaTypes || [
+        "Maltagliati", "Pici", "Gnocchi", "Trofie", "Penne", "Mezze Maniche"
+      ];
+      
+      const pastaTypeData = pastaTypesToSeed.map(name => ({
+        name,
+        imageUrl: assetMapping[name] || "", // Use mapped asset or empty string
+        availableImages: JSON.stringify([
+          ...(assetMapping[name] ? [assetMapping[name]] : [])
+        ]) // Store available images as JSON array
+      }));
+
+      await prisma.pastaType.createMany({
+        data: pastaTypeData,
+      });
+    }
+
+    if (existingPastaSauces === 0) {
+      console.log("Seeding default pasta sauces...");
+      const pastaSaucesToSeed = initData.pastaSauces || [
+        "Pancetta, Porro e Funghi", "Provola e Speck", "Puttanesca", 
+        "Ragù", "Arrabbiata", "Pomodoro"
+      ];
+      
+      const pastaSauceData = pastaSaucesToSeed.map(name => ({
+        name,
+        imageUrl: "", // No default images for sauces yet
+        availableImages: JSON.stringify([]) // Empty array for now
+      }));
+
+      await prisma.pastaSauce.createMany({
+        data: pastaSauceData,
+      });
+    }
+
+    console.log("Default data seeding completed.");
+  } catch (error) {
+    console.error("Error seeding default data:", error);
+  }
+}
+
+function broadcastInMemoryMenu() {
+  if (!currentInMemoryMenu) return;
+  const menuToSend = JSON.stringify(currentInMemoryMenu);
+  clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(menuToSend);
+    }
+  });
+}
+
+async function sendLatestMenuToClient(ws) {
+  if (currentInMemoryMenu && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(currentInMemoryMenu));
+  }
+}
+
+wss.on("connection", (ws) => {
+  console.log("Client connected to WebSocket");
+  clients.add(ws);
+  sendLatestMenuToClient(ws);
+
+  ws.on("message", (messageString) => {
+    try {
+      const message = JSON.parse(messageString);
+      console.log("Received message from client:", message);
+
+      if (!currentInMemoryMenu) {
+        console.warn("In-memory menu not initialized. Ignoring message.");
+        return;
+      }
+
+      let updated = false;
+      switch (message.type) {
+        case "addItem":
+          if (
+            message.item &&
+            typeof message.item.name === "string" &&
+            typeof message.item.price === "number"
+          ) {
+            const newItem = {
+              id: Date.now(), // Temporary in-memory ID
+              name: message.item.name,
+              price: message.item.price,
+              // menuId will be associated on DB save
+            };
+            currentInMemoryMenu.menuItems.push(newItem);
+            updated = true;
+          }
+          break;
+        case "removeItem":
+          if (typeof message.itemId === "number") {
+            currentInMemoryMenu.menuItems =
+              currentInMemoryMenu.menuItems.filter(
+                (item) => item.id !== message.itemId
+              );
+            updated = true;
+          }
+          break;
+        // TODO: Implement addPastaTypeToMenu, removePastaTypeFromMenu, etc.
+        // Example: addPastaTypeToMenu would require pastaTypeId
+        // It would then find the PastaType details (or assume client sends them)
+        // and add to currentInMemoryMenu.pastaTypes as a MenuToPastaType-like structure.
+        default:
+          console.warn("Unknown message type:", message.type);
+      }
+
+      if (updated) {
+        console.log("In-memory menu updated, broadcasting...");
+        broadcastInMemoryMenu();
+      }
+    } catch (error) {
+      console.error("Failed to process message or broadcast:", error);
+    }
+  });
+
+  ws.on("close", () => {
+    console.log("Client disconnected from WebSocket");
+    clients.delete(ws);
+  });
+});
+
+app.get('/pasta-types', async (req, res) => {
+  try {
+    const pastaTypes = await prisma.pastaType.findMany({ orderBy: { name: 'asc' } });
+    res.json(pastaTypes);
+  } catch (error) {
+    console.error('Error fetching pasta types:', error);
+    res.status(500).json({ error: 'Failed to fetch pasta types' });
+  }
+});
+
+app.post('/pasta-types', async (req, res) => {
+  const { name, imageUrl } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Pasta type name is required' });
+  }
+  try {
+    const newPastaType = await prisma.pastaType.create({
+      data: { name, imageUrl: imageUrl || '' },
+    });
+    res.status(201).json(newPastaType);
+  } catch (error) {
+    console.error('Error creating pasta type:', error);
+    if (error.code === 'P2002') { // Unique constraint failed
+        return res.status(409).json({ error: 'Pasta type with this name already exists.' });
+    }
+    res.status(500).json({ error: 'Failed to create pasta type' });
+  }
+});
+
+// --- API Endpoints for PastaSauces ---
+app.get('/pasta-sauces', async (req, res) => {
+  try {
+    const pastaSauces = await prisma.pastaSauce.findMany({ orderBy: { name: 'asc' } });
+    res.json(pastaSauces);
+  } catch (error) {
+    console.error('Error fetching pasta sauces:', error);
+    res.status(500).json({ error: 'Failed to fetch pasta sauces' });
+  }
+});
+
+app.post('/pasta-sauces', async (req, res) => {
+  const { name, imageUrl } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Pasta sauce name is required' });
+  }
+  try {
+    const newPastaSauce = await prisma.pastaSauce.create({
+      data: { name, imageUrl: imageUrl || '' },
+    });
+    res.status(201).json(newPastaSauce);
+  } catch (error) {
+    console.error('Error creating pasta sauce:', error);
+    if (error.code === 'P2002') { // Unique constraint failed
+        return res.status(409).json({ error: 'Pasta sauce with this name already exists.' });
+    }
+    res.status(500).json({ error: 'Failed to create pasta sauce' });
+  }
+});
+
+
+wss.on('connection', (ws) => {
+  console.log('Client connected to WebSocket');
+  clients.add(ws);
+  sendLatestMenuToClient(ws); // Send current state
+
+  ws.on('message', async (messageString) => { // Make this async to await prisma calls
+    try {
+      const message = JSON.parse(messageString);
+      console.log('Received message from client:', message);
+
+      if (!currentInMemoryMenu) {
+        console.warn('In-memory menu not initialized. Ignoring message.');
+        return;
+      }
+
+      let updated = false;
+      switch (message.type) {
+        case 'addItem':
+          // ... existing addItem logic ...
+          if (message.item && typeof message.item.name === 'string' && typeof message.item.price === 'number') {
+            const newItem = {
+              id: Date.now(), // Temporary in-memory ID
+              name: message.item.name,
+              price: message.item.price,
+            };
+            currentInMemoryMenu.menuItems.push(newItem);
+            updated = true;
+          }
+          break;
+        case 'removeItem':
+          // ... existing removeItem logic ...
+          if (typeof message.itemId === 'number') {
+            currentInMemoryMenu.menuItems = currentInMemoryMenu.menuItems.filter(
+              (item) => item.id !== message.itemId
+            );
+            updated = true;
+          }
+          break;
+        case 'addPastaTypeToMenu':
+          if (typeof message.pastaTypeId === 'number') {
+            const pastaTypeExists = currentInMemoryMenu.pastaTypes.some(pt => pt.pastaType.id === message.pastaTypeId);
+            if (!pastaTypeExists) {
+              const pastaTypeToAdd = await prisma.pastaType.findUnique({ where: { id: message.pastaTypeId } });
+              if (pastaTypeToAdd) {
+                currentInMemoryMenu.pastaTypes.push({
+                  // id: Date.now(), // Temp ID for join entry, DB will assign real one
+                  // menuId: currentInMemoryMenu.id, // Will be set on DB save
+                  pastaTypeId: pastaTypeToAdd.id,
+                  pastaType: pastaTypeToAdd, // Embed the full object
+                });
+                updated = true;
+              } else {
+                console.warn(`PastaType with ID ${message.pastaTypeId} not found.`);
+              }
+            }
+          }
+          break;
+        case 'removePastaTypeFromMenu':
+          if (typeof message.pastaTypeId === 'number') {
+            const initialLength = currentInMemoryMenu.pastaTypes.length;
+            currentInMemoryMenu.pastaTypes = currentInMemoryMenu.pastaTypes.filter(
+              (ptEntry) => ptEntry.pastaType.id !== message.pastaTypeId
+            );
+            if (currentInMemoryMenu.pastaTypes.length < initialLength) {
+                updated = true;
+            }
+          }
+          break;
+        case 'addPastaSauceToMenu':
+          if (typeof message.pastaSauceId === 'number') {
+            const sauceExists = currentInMemoryMenu.pastaSauces.some(ps => ps.pastaSauce.id === message.pastaSauceId);
+            if (!sauceExists) {
+              const pastaSauceToAdd = await prisma.pastaSauce.findUnique({ where: { id: message.pastaSauceId } });
+              if (pastaSauceToAdd) {
+                currentInMemoryMenu.pastaSauces.push({
+                  // id: Date.now(),
+                  // menuId: currentInMemoryMenu.id,
+                  pastaSauceId: pastaSauceToAdd.id,
+                  pastaSauce: pastaSauceToAdd,
+                });
+                updated = true;
+              } else {
+                console.warn(`PastaSauce with ID ${message.pastaSauceId} not found.`);
+              }
+            }
+          }
+          break;
+        case 'removePastaSauceFromMenu':
+          if (typeof message.pastaSauceId === 'number') {
+            const initialLength = currentInMemoryMenu.pastaSauces.length;
+            currentInMemoryMenu.pastaSauces = currentInMemoryMenu.pastaSauces.filter(
+              (psEntry) => psEntry.pastaSauce.id !== message.pastaSauceId
+            );
+            if (currentInMemoryMenu.pastaSauces.length < initialLength) {
+                updated = true;
+            }
+          }
+          break;
+        default:
+          console.warn('Unknown message type:', message.type);
+      }
+
+      if (updated) {
+        console.log('In-memory menu updated, broadcasting...');
+        broadcastInMemoryMenu();
+      }
+    } catch (error) {
+      console.error('Failed to process message or broadcast:', error);
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected from WebSocket');
+    clients.delete(ws);
+  });
+});
+
+// Configure CORS to allow requests from Angular dev server
+app.use(cors({
+  origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+app.use(bodyParser.json());
+
+// Serve static files from assets folder
+app.use('/assets', express.static(path.join(__dirname, '../assets')));
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../assets');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with original extension
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  fileFilter: function (req, file, cb) {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
+// --- Image Management Endpoints ---
+
+// Upload image for pasta type
+app.post('/pasta-types/:id/upload-image', upload.single('image'), async (req, res) => {
+  const { id } = req.params;
+  const pastaTypeId = parseInt(id);
+  
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image file provided' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      // Clean up uploaded file if pasta type doesn't exist
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const imageUrl = `/assets/${req.file.filename}`;
+    const currentImages = JSON.parse(pastaType.availableImages || '[]');
+    const updatedImages = [...currentImages, imageUrl];
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: {
+        imageUrl: pastaType.imageUrl || imageUrl, // Set as current if no current image
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image uploaded successfully',
+      pastaType: updatedPastaType,
+      uploadedImage: imageUrl
+    });
+  } catch (error) {
+    console.error('Error uploading image for pasta type:', error);
+    // Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+// Switch current image for pasta type
+app.put('/pasta-types/:id/switch-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaTypeId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const availableImages = JSON.parse(pastaType.availableImages || '[]');
+    if (!availableImages.includes(imageUrl)) {
+      return res.status(400).json({ error: 'Image not available for this pasta type' });
+    }
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: { imageUrl }
+    });
+
+    res.json({
+      message: 'Image switched successfully',
+      pastaType: updatedPastaType
+    });
+  } catch (error) {
+    console.error('Error switching image for pasta type:', error);
+    res.status(500).json({ error: 'Failed to switch image' });
+  }
+});
+
+// Delete image for pasta type
+app.delete('/pasta-types/:id/delete-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaTypeId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const availableImages = JSON.parse(pastaType.availableImages || '[]');
+    const updatedImages = availableImages.filter(img => img !== imageUrl);
+
+    // Delete physical file
+    const filename = path.basename(imageUrl);
+    const filePath = path.join(__dirname, '../assets', filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Update current image if it was the deleted one
+    const newCurrentImage = pastaType.imageUrl === imageUrl 
+      ? (updatedImages[0] || '') 
+      : pastaType.imageUrl;
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: {
+        imageUrl: newCurrentImage,
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image deleted successfully',
+      pastaType: updatedPastaType
+    });
+  } catch (error) {
+    console.error('Error deleting image for pasta type:', error);
+    res.status(500).json({ error: 'Failed to delete image' });
+  }
+});
+
+// Upload image for pasta sauce
+app.post('/pasta-sauces/:id/upload-image', upload.single('image'), async (req, res) => {
+  const { id } = req.params;
+  const pastaSauceId = parseInt(id);
+  
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image file provided' });
+  }
+
+  try {
+    const pastaSauce = await prisma.pastaSauce.findUnique({ where: { id: pastaSauceId } });
+    if (!pastaSauce) {
+      // Clean up uploaded file if pasta sauce doesn't exist
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Pasta sauce not found' });
+    }
+
+    const imageUrl = `/assets/${req.file.filename}`;
+    const currentImages = JSON.parse(pastaSauce.availableImages || '[]');
+    const updatedImages = [...currentImages, imageUrl];
+
+    const updatedPastaSauce = await prisma.pastaSauce.update({
+      where: { id: pastaSauceId },
+      data: {
+        imageUrl: pastaSauce.imageUrl || imageUrl, // Set as current if no current image
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image uploaded successfully',
+      pastaSauce: updatedPastaSauce,
+      uploadedImage: imageUrl
+    });
+  } catch (error) {
+    console.error('Error uploading image for pasta sauce:', error);
+    // Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+// Switch current image for pasta sauce
+app.put('/pasta-sauces/:id/switch-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaSauceId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaSauce = await prisma.pastaSauce.findUnique({ where: { id: pastaSauceId } });
+    if (!pastaSauce) {
+      return res.status(404).json({ error: 'Pasta sauce not found' });
+    }
+
+    const availableImages = JSON.parse(pastaSauce.availableImages || '[]');
+    if (!availableImages.includes(imageUrl)) {
+      return res.status(400).json({ error: 'Image not available for this pasta sauce' });
+    }
+
+    const updatedPastaSauce = await prisma.pastaSauce.update({
+      where: { id: pastaSauceId },
+      data: { imageUrl }
+    });
+
+    res.json({
+      message: 'Image switched successfully',
+      pastaSauce: updatedPastaSauce
+    });
+  } catch (error) {
+    console.error('Error switching image for pasta sauce:', error);
+    res.status(500).json({ error: 'Failed to switch image' });
+  }
+});
+
+// Delete image for pasta sauce
+app.delete('/pasta-sauces/:id/delete-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaSauceId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaSauce = await prisma.pastaSauce.findUnique({ where: { id: pastaSauceId } });
+    if (!pastaSauce) {
+      return res.status(404).json({ error: 'Pasta sauce not found' });
+    }
+
+    const availableImages = JSON.parse(pastaSauce.availableImages || '[]');
+    const updatedImages = availableImages.filter(img => img !== imageUrl);
+
+    // Delete physical file
+    const filename = path.basename(imageUrl);
+    const filePath = path.join(__dirname, '../assets', filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Update current image if it was the deleted one
+    const newCurrentImage = pastaSauce.imageUrl === imageUrl 
+      ? (updatedImages[0] || '') 
+      : pastaSauce.imageUrl;
+
+    const updatedPastaSauce = await prisma.pastaSauce.update({
+      where: { id: pastaSauceId },
+      data: {
+        imageUrl: newCurrentImage,
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image deleted successfully',
+      pastaSauce: updatedPastaSauce
+    });
+  } catch (error) {
+    console.error('Error deleting image for pasta sauce:', error);
+    res.status(500).json({ error: 'Failed to delete image' });
+  }
+});
+
+// --- End of Image Management Endpoints ---
+
+// --- API Endpoints for PastaTypes ---
+app.get('/pasta-types', async (req, res) => {
+  try {
+    const pastaTypes = await prisma.pastaType.findMany({ orderBy: { name: 'asc' } });
+    res.json(pastaTypes);
+  } catch (error) {
+    console.error('Error fetching pasta types:', error);
+    res.status(500).json({ error: 'Failed to fetch pasta types' });
+  }
+});
+
+app.post('/pasta-types', async (req, res) => {
+  const { name, imageUrl } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Pasta type name is required' });
+  }
+  try {
+    const newPastaType = await prisma.pastaType.create({
+      data: { name, imageUrl: imageUrl || '' },
+    });
+    res.status(201).json(newPastaType);
+  } catch (error) {
+    console.error('Error creating pasta type:', error);
+    if (error.code === 'P2002') { // Unique constraint failed
+        return res.status(409).json({ error: 'Pasta type with this name already exists.' });
+    }
+    res.status(500).json({ error: 'Failed to create pasta type' });
+  }
+});
+
+// --- API Endpoints for PastaSauces ---
+app.get('/pasta-sauces', async (req, res) => {
+  try {
+    const pastaSauces = await prisma.pastaSauce.findMany({ orderBy: { name: 'asc' } });
+    res.json(pastaSauces);
+  } catch (error) {
+    console.error('Error fetching pasta sauces:', error);
+    res.status(500).json({ error: 'Failed to fetch pasta sauces' });
+  }
+});
+
+app.post('/pasta-sauces', async (req, res) => {
+  const { name, imageUrl } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Pasta sauce name is required' });
+  }
+  try {
+    const newPastaSauce = await prisma.pastaSauce.create({
+      data: { name, imageUrl: imageUrl || '' },
+    });
+    res.status(201).json(newPastaSauce);
+  } catch (error) {
+    console.error('Error creating pasta sauce:', error);
+    if (error.code === 'P2002') { // Unique constraint failed
+        return res.status(409).json({ error: 'Pasta sauce with this name already exists.' });
+    }
+    res.status(500).json({ error: 'Failed to create pasta sauce' });
+  }
+});
+
+
+wss.on('connection', (ws) => {
+  console.log('Client connected to WebSocket');
+  clients.add(ws);
+  sendLatestMenuToClient(ws); // Send current state
+
+  ws.on('message', async (messageString) => { // Make this async to await prisma calls
+    try {
+      const message = JSON.parse(messageString);
+      console.log('Received message from client:', message);
+
+      if (!currentInMemoryMenu) {
+        console.warn('In-memory menu not initialized. Ignoring message.');
+        return;
+      }
+
+      let updated = false;
+      switch (message.type) {
+        case 'addItem':
+          // ... existing addItem logic ...
+          if (message.item && typeof message.item.name === 'string' && typeof message.item.price === 'number') {
+            const newItem = {
+              id: Date.now(), // Temporary in-memory ID
+              name: message.item.name,
+              price: message.item.price,
+            };
+            currentInMemoryMenu.menuItems.push(newItem);
+            updated = true;
+          }
+          break;
+        case 'removeItem':
+          // ... existing removeItem logic ...
+          if (typeof message.itemId === 'number') {
+            currentInMemoryMenu.menuItems = currentInMemoryMenu.menuItems.filter(
+              (item) => item.id !== message.itemId
+            );
+            updated = true;
+          }
+          break;
+        case 'addPastaTypeToMenu':
+          if (typeof message.pastaTypeId === 'number') {
+            const pastaTypeExists = currentInMemoryMenu.pastaTypes.some(pt => pt.pastaType.id === message.pastaTypeId);
+            if (!pastaTypeExists) {
+              const pastaTypeToAdd = await prisma.pastaType.findUnique({ where: { id: message.pastaTypeId } });
+              if (pastaTypeToAdd) {
+                currentInMemoryMenu.pastaTypes.push({
+                  // id: Date.now(), // Temp ID for join entry, DB will assign real one
+                  // menuId: currentInMemoryMenu.id, // Will be set on DB save
+                  pastaTypeId: pastaTypeToAdd.id,
+                  pastaType: pastaTypeToAdd, // Embed the full object
+                });
+                updated = true;
+              } else {
+                console.warn(`PastaType with ID ${message.pastaTypeId} not found.`);
+              }
+            }
+          }
+          break;
+        case 'removePastaTypeFromMenu':
+          if (typeof message.pastaTypeId === 'number') {
+            const initialLength = currentInMemoryMenu.pastaTypes.length;
+            currentInMemoryMenu.pastaTypes = currentInMemoryMenu.pastaTypes.filter(
+              (ptEntry) => ptEntry.pastaType.id !== message.pastaTypeId
+            );
+            if (currentInMemoryMenu.pastaTypes.length < initialLength) {
+                updated = true;
+            }
+          }
+          break;
+        case 'addPastaSauceToMenu':
+          if (typeof message.pastaSauceId === 'number') {
+            const sauceExists = currentInMemoryMenu.pastaSauces.some(ps => ps.pastaSauce.id === message.pastaSauceId);
+            if (!sauceExists) {
+              const pastaSauceToAdd = await prisma.pastaSauce.findUnique({ where: { id: message.pastaSauceId } });
+              if (pastaSauceToAdd) {
+                currentInMemoryMenu.pastaSauces.push({
+                  // id: Date.now(),
+                  // menuId: currentInMemoryMenu.id,
+                  pastaSauceId: pastaSauceToAdd.id,
+                  pastaSauce: pastaSauceToAdd,
+                });
+                updated = true;
+              } else {
+                console.warn(`PastaSauce with ID ${message.pastaSauceId} not found.`);
+              }
+            }
+          }
+          break;
+        case 'removePastaSauceFromMenu':
+          if (typeof message.pastaSauceId === 'number') {
+            const initialLength = currentInMemoryMenu.pastaSauces.length;
+            currentInMemoryMenu.pastaSauces = currentInMemoryMenu.pastaSauces.filter(
+              (psEntry) => psEntry.pastaSauce.id !== message.pastaSauceId
+            );
+            if (currentInMemoryMenu.pastaSauces.length < initialLength) {
+                updated = true;
+            }
+          }
+          break;
+        default:
+          console.warn('Unknown message type:', message.type);
+      }
+
+      if (updated) {
+        console.log('In-memory menu updated, broadcasting...');
+        broadcastInMemoryMenu();
+      }
+    } catch (error) {
+      console.error('Failed to process message or broadcast:', error);
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected from WebSocket');
+    clients.delete(ws);
+  });
+});
+
+// Configure CORS to allow requests from Angular dev server
+app.use(cors({
+  origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+app.use(bodyParser.json());
+
+// Serve static files from assets folder
+app.use('/assets', express.static(path.join(__dirname, '../assets')));
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../assets');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with original extension
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  fileFilter: function (req, file, cb) {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
+// --- Image Management Endpoints ---
+
+// Upload image for pasta type
+app.post('/pasta-types/:id/upload-image', upload.single('image'), async (req, res) => {
+  const { id } = req.params;
+  const pastaTypeId = parseInt(id);
+  
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image file provided' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      // Clean up uploaded file if pasta type doesn't exist
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const imageUrl = `/assets/${req.file.filename}`;
+    const currentImages = JSON.parse(pastaType.availableImages || '[]');
+    const updatedImages = [...currentImages, imageUrl];
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: {
+        imageUrl: pastaType.imageUrl || imageUrl, // Set as current if no current image
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image uploaded successfully',
+      pastaType: updatedPastaType,
+      uploadedImage: imageUrl
+    });
+  } catch (error) {
+    console.error('Error uploading image for pasta type:', error);
+    // Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+// Switch current image for pasta type
+app.put('/pasta-types/:id/switch-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaTypeId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const availableImages = JSON.parse(pastaType.availableImages || '[]');
+    if (!availableImages.includes(imageUrl)) {
+      return res.status(400).json({ error: 'Image not available for this pasta type' });
+    }
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: { imageUrl }
+    });
+
+    res.json({
+      message: 'Image switched successfully',
+      pastaType: updatedPastaType
+    });
+  } catch (error) {
+    console.error('Error switching image for pasta type:', error);
+    res.status(500).json({ error: 'Failed to switch image' });
+  }
+});
+
+// Delete image for pasta type
+app.delete('/pasta-types/:id/delete-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaTypeId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const availableImages = JSON.parse(pastaType.availableImages || '[]');
+    const updatedImages = availableImages.filter(img => img !== imageUrl);
+
+    // Delete physical file
+    const filename = path.basename(imageUrl);
+    const filePath = path.join(__dirname, '../assets', filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Update current image if it was the deleted one
+    const newCurrentImage = pastaType.imageUrl === imageUrl 
+      ? (updatedImages[0] || '') 
+      : pastaType.imageUrl;
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: {
+        imageUrl: newCurrentImage,
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image deleted successfully',
+      pastaType: updatedPastaType
+    });
+  } catch (error) {
+    console.error('Error deleting image for pasta type:', error);
+    res.status(500).json({ error: 'Failed to delete image' });
+  }
+});
+
+// Upload image for pasta sauce
+app.post('/pasta-sauces/:id/upload-image', upload.single('image'), async (req, res) => {
+  const { id } = req.params;
+  const pastaSauceId = parseInt(id);
+  
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image file provided' });
+  }
+
+  try {
+    const pastaSauce = await prisma.pastaSauce.findUnique({ where: { id: pastaSauceId } });
+    if (!pastaSauce) {
+      // Clean up uploaded file if pasta sauce doesn't exist
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Pasta sauce not found' });
+    }
+
+    const imageUrl = `/assets/${req.file.filename}`;
+    const currentImages = JSON.parse(pastaSauce.availableImages || '[]');
+    const updatedImages = [...currentImages, imageUrl];
+
+    const updatedPastaSauce = await prisma.pastaSauce.update({
+      where: { id: pastaSauceId },
+      data: {
+        imageUrl: pastaSauce.imageUrl || imageUrl, // Set as current if no current image
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image uploaded successfully',
+      pastaSauce: updatedPastaSauce,
+      uploadedImage: imageUrl
+    });
+  } catch (error) {
+    console.error('Error uploading image for pasta sauce:', error);
+    // Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+// Switch current image for pasta sauce
+app.put('/pasta-sauces/:id/switch-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaSauceId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaSauce = await prisma.pastaSauce.findUnique({ where: { id: pastaSauceId } });
+    if (!pastaSauce) {
+      return res.status(404).json({ error: 'Pasta sauce not found' });
+    }
+
+    const availableImages = JSON.parse(pastaSauce.availableImages || '[]');
+    if (!availableImages.includes(imageUrl)) {
+      return res.status(400).json({ error: 'Image not available for this pasta sauce' });
+    }
+
+    const updatedPastaSauce = await prisma.pastaSauce.update({
+      where: { id: pastaSauceId },
+      data: { imageUrl }
+    });
+
+    res.json({
+      message: 'Image switched successfully',
+      pastaSauce: updatedPastaSauce
+    });
+  } catch (error) {
+    console.error('Error switching image for pasta sauce:', error);
+    res.status(500).json({ error: 'Failed to switch image' });
+  }
+});
+
+// Delete image for pasta sauce
+app.delete('/pasta-sauces/:id/delete-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaSauceId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaSauce = await prisma.pastaSauce.findUnique({ where: { id: pastaSauceId } });
+    if (!pastaSauce) {
+      return res.status(404).json({ error: 'Pasta sauce not found' });
+    }
+
+    const availableImages = JSON.parse(pastaSauce.availableImages || '[]');
+    const updatedImages = availableImages.filter(img => img !== imageUrl);
+
+    // Delete physical file
+    const filename = path.basename(imageUrl);
+    const filePath = path.join(__dirname, '../assets', filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Update current image if it was the deleted one
+    const newCurrentImage = pastaSauce.imageUrl === imageUrl 
+      ? (updatedImages[0] || '') 
+      : pastaSauce.imageUrl;
+
+    const updatedPastaSauce = await prisma.pastaSauce.update({
+      where: { id: pastaSauceId },
+      data: {
+        imageUrl: newCurrentImage,
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image deleted successfully',
+      pastaSauce: updatedPastaSauce
+    });
+  } catch (error) {
+    console.error('Error deleting image for pasta sauce:', error);
+    res.status(500).json({ error: 'Failed to delete image' });
+  }
+});
+
+// --- End of Image Management Endpoints ---
+
+// --- API Endpoints for PastaTypes ---
+app.get('/pasta-types', async (req, res) => {
+  try {
+    const pastaTypes = await prisma.pastaType.findMany({ orderBy: { name: 'asc' } });
+    res.json(pastaTypes);
+  } catch (error) {
+    console.error('Error fetching pasta types:', error);
+    res.status(500).json({ error: 'Failed to fetch pasta types' });
+  }
+});
+
+app.post('/pasta-types', async (req, res) => {
+  const { name, imageUrl } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Pasta type name is required' });
+  }
+  try {
+    const newPastaType = await prisma.pastaType.create({
+      data: { name, imageUrl: imageUrl || '' },
+    });
+    res.status(201).json(newPastaType);
+  } catch (error) {
+    console.error('Error creating pasta type:', error);
+    if (error.code === 'P2002') { // Unique constraint failed
+        return res.status(409).json({ error: 'Pasta type with this name already exists.' });
+    }
+    res.status(500).json({ error: 'Failed to create pasta type' });
+  }
+});
+
+// --- API Endpoints for PastaSauces ---
+app.get('/pasta-sauces', async (req, res) => {
+  try {
+    const pastaSauces = await prisma.pastaSauce.findMany({ orderBy: { name: 'asc' } });
+    res.json(pastaSauces);
+  } catch (error) {
+    console.error('Error fetching pasta sauces:', error);
+    res.status(500).json({ error: 'Failed to fetch pasta sauces' });
+  }
+});
+
+app.post('/pasta-sauces', async (req, res) => {
+  const { name, imageUrl } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Pasta sauce name is required' });
+  }
+  try {
+    const newPastaSauce = await prisma.pastaSauce.create({
+      data: { name, imageUrl: imageUrl || '' },
+    });
+    res.status(201).json(newPastaSauce);
+  } catch (error) {
+    console.error('Error creating pasta sauce:', error);
+    if (error.code === 'P2002') { // Unique constraint failed
+        return res.status(409).json({ error: 'Pasta sauce with this name already exists.' });
+    }
+    res.status(500).json({ error: 'Failed to create pasta sauce' });
+  }
+});
+
+
+wss.on('connection', (ws) => {
+  console.log('Client connected to WebSocket');
+  clients.add(ws);
+  sendLatestMenuToClient(ws); // Send current state
+
+  ws.on('message', async (messageString) => { // Make this async to await prisma calls
+    try {
+      const message = JSON.parse(messageString);
+      console.log('Received message from client:', message);
+
+      if (!currentInMemoryMenu) {
+        console.warn('In-memory menu not initialized. Ignoring message.');
+        return;
+      }
+
+      let updated = false;
+      switch (message.type) {
+        case 'addItem':
+          // ... existing addItem logic ...
+          if (message.item && typeof message.item.name === 'string' && typeof message.item.price === 'number') {
+            const newItem = {
+              id: Date.now(), // Temporary in-memory ID
+              name: message.item.name,
+              price: message.item.price,
+            };
+            currentInMemoryMenu.menuItems.push(newItem);
+            updated = true;
+          }
+          break;
+        case 'removeItem':
+          // ... existing removeItem logic ...
+          if (typeof message.itemId === 'number') {
+            currentInMemoryMenu.menuItems = currentInMemoryMenu.menuItems.filter(
+              (item) => item.id !== message.itemId
+            );
+            updated = true;
+          }
+          break;
+        case 'addPastaTypeToMenu':
+          if (typeof message.pastaTypeId === 'number') {
+            const pastaTypeExists = currentInMemoryMenu.pastaTypes.some(pt => pt.pastaType.id === message.pastaTypeId);
+            if (!pastaTypeExists) {
+              const pastaTypeToAdd = await prisma.pastaType.findUnique({ where: { id: message.pastaTypeId } });
+              if (pastaTypeToAdd) {
+                currentInMemoryMenu.pastaTypes.push({
+                  // id: Date.now(), // Temp ID for join entry, DB will assign real one
+                  // menuId: currentInMemoryMenu.id, // Will be set on DB save
+                  pastaTypeId: pastaTypeToAdd.id,
+                  pastaType: pastaTypeToAdd, // Embed the full object
+                });
+                updated = true;
+              } else {
+                console.warn(`PastaType with ID ${message.pastaTypeId} not found.`);
+              }
+            }
+          }
+          break;
+        case 'removePastaTypeFromMenu':
+          if (typeof message.pastaTypeId === 'number') {
+            const initialLength = currentInMemoryMenu.pastaTypes.length;
+            currentInMemoryMenu.pastaTypes = currentInMemoryMenu.pastaTypes.filter(
+              (ptEntry) => ptEntry.pastaType.id !== message.pastaTypeId
+            );
+            if (currentInMemoryMenu.pastaTypes.length < initialLength) {
+                updated = true;
+            }
+          }
+          break;
+        case 'addPastaSauceToMenu':
+          if (typeof message.pastaSauceId === 'number') {
+            const sauceExists = currentInMemoryMenu.pastaSauces.some(ps => ps.pastaSauce.id === message.pastaSauceId);
+            if (!sauceExists) {
+              const pastaSauceToAdd = await prisma.pastaSauce.findUnique({ where: { id: message.pastaSauceId } });
+              if (pastaSauceToAdd) {
+                currentInMemoryMenu.pastaSauces.push({
+                  // id: Date.now(),
+                  // menuId: currentInMemoryMenu.id,
+                  pastaSauceId: pastaSauceToAdd.id,
+                  pastaSauce: pastaSauceToAdd,
+                });
+                updated = true;
+              } else {
+                console.warn(`PastaSauce with ID ${message.pastaSauceId} not found.`);
+              }
+            }
+          }
+          break;
+        case 'removePastaSauceFromMenu':
+          if (typeof message.pastaSauceId === 'number') {
+            const initialLength = currentInMemoryMenu.pastaSauces.length;
+            currentInMemoryMenu.pastaSauces = currentInMemoryMenu.pastaSauces.filter(
+              (psEntry) => psEntry.pastaSauce.id !== message.pastaSauceId
+            );
+            if (currentInMemoryMenu.pastaSauces.length < initialLength) {
+                updated = true;
+            }
+          }
+          break;
+        default:
+          console.warn('Unknown message type:', message.type);
+      }
+
+      if (updated) {
+        console.log('In-memory menu updated, broadcasting...');
+        broadcastInMemoryMenu();
+      }
+    } catch (error) {
+      console.error('Failed to process message or broadcast:', error);
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected from WebSocket');
+    clients.delete(ws);
+  });
+});
+
+// Configure CORS to allow requests from Angular dev server
+app.use(cors({
+  origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+app.use(bodyParser.json());
+
+// Serve static files from assets folder
+app.use('/assets', express.static(path.join(__dirname, '../assets')));
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../assets');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with original extension
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  fileFilter: function (req, file, cb) {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
+// --- Image Management Endpoints ---
+
+// Upload image for pasta type
+app.post('/pasta-types/:id/upload-image', upload.single('image'), async (req, res) => {
+  const { id } = req.params;
+  const pastaTypeId = parseInt(id);
+  
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image file provided' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      // Clean up uploaded file if pasta type doesn't exist
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const imageUrl = `/assets/${req.file.filename}`;
+    const currentImages = JSON.parse(pastaType.availableImages || '[]');
+    const updatedImages = [...currentImages, imageUrl];
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: {
+        imageUrl: pastaType.imageUrl || imageUrl, // Set as current if no current image
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image uploaded successfully',
+      pastaType: updatedPastaType,
+      uploadedImage: imageUrl
+    });
+  } catch (error) {
+    console.error('Error uploading image for pasta type:', error);
+    // Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+// Switch current image for pasta type
+app.put('/pasta-types/:id/switch-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaTypeId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const availableImages = JSON.parse(pastaType.availableImages || '[]');
+    if (!availableImages.includes(imageUrl)) {
+      return res.status(400).json({ error: 'Image not available for this pasta type' });
+    }
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: { imageUrl }
+    });
+
+    res.json({
+      message: 'Image switched successfully',
+      pastaType: updatedPastaType
+    });
+  } catch (error) {
+    console.error('Error switching image for pasta type:', error);
+    res.status(500).json({ error: 'Failed to switch image' });
+  }
+});
+
+// Delete image for pasta type
+app.delete('/pasta-types/:id/delete-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaTypeId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const availableImages = JSON.parse(pastaType.availableImages || '[]');
+    const updatedImages = availableImages.filter(img => img !== imageUrl);
+
+    // Delete physical file
+    const filename = path.basename(imageUrl);
+    const filePath = path.join(__dirname, '../assets', filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Update current image if it was the deleted one
+    const newCurrentImage = pastaType.imageUrl === imageUrl 
+      ? (updatedImages[0] || '') 
+      : pastaType.imageUrl;
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: {
+        imageUrl: newCurrentImage,
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image deleted successfully',
+      pastaType: updatedPastaType
+    });
+  } catch (error) {
+    console.error('Error deleting image for pasta type:', error);
+    res.status(500).json({ error: 'Failed to delete image' });
+  }
+});
+
+// Upload image for pasta sauce
+app.post('/pasta-sauces/:id/upload-image', upload.single('image'), async (req, res) => {
+  const { id } = req.params;
+  const pastaSauceId = parseInt(id);
+  
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image file provided' });
+  }
+
+  try {
+    const pastaSauce = await prisma.pastaSauce.findUnique({ where: { id: pastaSauceId } });
+    if (!pastaSauce) {
+      // Clean up uploaded file if pasta sauce doesn't exist
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Pasta sauce not found' });
+    }
+
+    const imageUrl = `/assets/${req.file.filename}`;
+    const currentImages = JSON.parse(pastaSauce.availableImages || '[]');
+    const updatedImages = [...currentImages, imageUrl];
+
+    const updatedPastaSauce = await prisma.pastaSauce.update({
+      where: { id: pastaSauceId },
+      data: {
+        imageUrl: pastaSauce.imageUrl || imageUrl, // Set as current if no current image
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image uploaded successfully',
+      pastaSauce: updatedPastaSauce,
+      uploadedImage: imageUrl
+    });
+  } catch (error) {
+    console.error('Error uploading image for pasta sauce:', error);
+    // Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+// Switch current image for pasta sauce
+app.put('/pasta-sauces/:id/switch-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaSauceId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaSauce = await prisma.pastaSauce.findUnique({ where: { id: pastaSauceId } });
+    if (!pastaSauce) {
+      return res.status(404).json({ error: 'Pasta sauce not found' });
+    }
+
+    const availableImages = JSON.parse(pastaSauce.availableImages || '[]');
+    if (!availableImages.includes(imageUrl)) {
+      return res.status(400).json({ error: 'Image not available for this pasta sauce' });
+    }
+
+    const updatedPastaSauce = await prisma.pastaSauce.update({
+      where: { id: pastaSauceId },
+      data: { imageUrl }
+    });
+
+    res.json({
+      message: 'Image switched successfully',
+      pastaSauce: updatedPastaSauce
+    });
+  } catch (error) {
+    console.error('Error switching image for pasta sauce:', error);
+    res.status(500).json({ error: 'Failed to switch image' });
+  }
+});
+
+// Delete image for pasta sauce
+app.delete('/pasta-sauces/:id/delete-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaSauceId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaSauce = await prisma.pastaSauce.findUnique({ where: { id: pastaSauceId } });
+    if (!pastaSauce) {
+      return res.status(404).json({ error: 'Pasta sauce not found' });
+    }
+
+    const availableImages = JSON.parse(pastaSauce.availableImages || '[]');
+    const updatedImages = availableImages.filter(img => img !== imageUrl);
+
+    // Delete physical file
+    const filename = path.basename(imageUrl);
+    const filePath = path.join(__dirname, '../assets', filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Update current image if it was the deleted one
+    const newCurrentImage = pastaSauce.imageUrl === imageUrl 
+      ? (updatedImages[0] || '') 
+      : pastaSauce.imageUrl;
+
+    const updatedPastaSauce = await prisma.pastaSauce.update({
+      where: { id: pastaSauceId },
+      data: {
+        imageUrl: newCurrentImage,
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image deleted successfully',
+      pastaSauce: updatedPastaSauce
+    });
+  } catch (error) {
+    console.error('Error deleting image for pasta sauce:', error);
+    res.status(500).json({ error: 'Failed to delete image' });
+  }
+});
+
+// --- End of Image Management Endpoints ---
+
+// --- API Endpoints for PastaTypes ---
+app.get('/pasta-types', async (req, res) => {
+  try {
+    const pastaTypes = await prisma.pastaType.findMany({ orderBy: { name: 'asc' } });
+    res.json(pastaTypes);
+  } catch (error) {
+    console.error('Error fetching pasta types:', error);
+    res.status(500).json({ error: 'Failed to fetch pasta types' });
+  }
+});
+
+app.post('/pasta-types', async (req, res) => {
+  const { name, imageUrl } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Pasta type name is required' });
+  }
+  try {
+    const newPastaType = await prisma.pastaType.create({
+      data: { name, imageUrl: imageUrl || '' },
+    });
+    res.status(201).json(newPastaType);
+  } catch (error) {
+    console.error('Error creating pasta type:', error);
+    if (error.code === 'P2002') { // Unique constraint failed
+        return res.status(409).json({ error: 'Pasta type with this name already exists.' });
+    }
+    res.status(500).json({ error: 'Failed to create pasta type' });
+  }
+});
+
+// --- API Endpoints for PastaSauces ---
+app.get('/pasta-sauces', async (req, res) => {
+  try {
+    const pastaSauces = await prisma.pastaSauce.findMany({ orderBy: { name: 'asc' } });
+    res.json(pastaSauces);
+  } catch (error) {
+    console.error('Error fetching pasta sauces:', error);
+    res.status(500).json({ error: 'Failed to fetch pasta sauces' });
+  }
+});
+
+app.post('/pasta-sauces', async (req, res) => {
+  const { name, imageUrl } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Pasta sauce name is required' });
+  }
+  try {
+    const newPastaSauce = await prisma.pastaSauce.create({
+      data: { name, imageUrl: imageUrl || '' },
+    });
+    res.status(201).json(newPastaSauce);
+  } catch (error) {
+    console.error('Error creating pasta sauce:', error);
+    if (error.code === 'P2002') { // Unique constraint failed
+        return res.status(409).json({ error: 'Pasta sauce with this name already exists.' });
+    }
+    res.status(500).json({ error: 'Failed to create pasta sauce' });
+  }
+});
+
+
+wss.on('connection', (ws) => {
+  console.log('Client connected to WebSocket');
+  clients.add(ws);
+  sendLatestMenuToClient(ws); // Send current state
+
+  ws.on('message', async (messageString) => { // Make this async to await prisma calls
+    try {
+      const message = JSON.parse(messageString);
+      console.log('Received message from client:', message);
+
+      if (!currentInMemoryMenu) {
+        console.warn('In-memory menu not initialized. Ignoring message.');
+        return;
+      }
+
+      let updated = false;
+      switch (message.type) {
+        case 'addItem':
+          // ... existing addItem logic ...
+          if (message.item && typeof message.item.name === 'string' && typeof message.item.price === 'number') {
+            const newItem = {
+              id: Date.now(), // Temporary in-memory ID
+              name: message.item.name,
+              price: message.item.price,
+            };
+            currentInMemoryMenu.menuItems.push(newItem);
+            updated = true;
+          }
+          break;
+        case 'removeItem':
+          // ... existing removeItem logic ...
+          if (typeof message.itemId === 'number') {
+            currentInMemoryMenu.menuItems = currentInMemoryMenu.menuItems.filter(
+              (item) => item.id !== message.itemId
+            );
+            updated = true;
+          }
+          break;
+        case 'addPastaTypeToMenu':
+          if (typeof message.pastaTypeId === 'number') {
+            const pastaTypeExists = currentInMemoryMenu.pastaTypes.some(pt => pt.pastaType.id === message.pastaTypeId);
+            if (!pastaTypeExists) {
+              const pastaTypeToAdd = await prisma.pastaType.findUnique({ where: { id: message.pastaTypeId } });
+              if (pastaTypeToAdd) {
+                currentInMemoryMenu.pastaTypes.push({
+                  // id: Date.now(), // Temp ID for join entry, DB will assign real one
+                  // menuId: currentInMemoryMenu.id, // Will be set on DB save
+                  pastaTypeId: pastaTypeToAdd.id,
+                  pastaType: pastaTypeToAdd, // Embed the full object
+                });
+                updated = true;
+              } else {
+                console.warn(`PastaType with ID ${message.pastaTypeId} not found.`);
+              }
+            }
+          }
+          break;
+        case 'removePastaTypeFromMenu':
+          if (typeof message.pastaTypeId === 'number') {
+            const initialLength = currentInMemoryMenu.pastaTypes.length;
+            currentInMemoryMenu.pastaTypes = currentInMemoryMenu.pastaTypes.filter(
+              (ptEntry) => ptEntry.pastaType.id !== message.pastaTypeId
+            );
+            if (currentInMemoryMenu.pastaTypes.length < initialLength) {
+                updated = true;
+            }
+          }
+          break;
+        case 'addPastaSauceToMenu':
+          if (typeof message.pastaSauceId === 'number') {
+            const sauceExists = currentInMemoryMenu.pastaSauces.some(ps => ps.pastaSauce.id === message.pastaSauceId);
+            if (!sauceExists) {
+              const pastaSauceToAdd = await prisma.pastaSauce.findUnique({ where: { id: message.pastaSauceId } });
+              if (pastaSauceToAdd) {
+                currentInMemoryMenu.pastaSauces.push({
+                  // id: Date.now(),
+                  // menuId: currentInMemoryMenu.id,
+                  pastaSauceId: pastaSauceToAdd.id,
+                  pastaSauce: pastaSauceToAdd,
+                });
+                updated = true;
+              } else {
+                console.warn(`PastaSauce with ID ${message.pastaSauceId} not found.`);
+              }
+            }
+          }
+          break;
+        case 'removePastaSauceFromMenu':
+          if (typeof message.pastaSauceId === 'number') {
+            const initialLength = currentInMemoryMenu.pastaSauces.length;
+            currentInMemoryMenu.pastaSauces = currentInMemoryMenu.pastaSauces.filter(
+              (psEntry) => psEntry.pastaSauce.id !== message.pastaSauceId
+            );
+            if (currentInMemoryMenu.pastaSauces.length < initialLength) {
+                updated = true;
+            }
+          }
+          break;
+        default:
+          console.warn('Unknown message type:', message.type);
+      }
+
+      if (updated) {
+        console.log('In-memory menu updated, broadcasting...');
+        broadcastInMemoryMenu();
+      }
+    } catch (error) {
+      console.error('Failed to process message or broadcast:', error);
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected from WebSocket');
+    clients.delete(ws);
+  });
+});
+
+// Configure CORS to allow requests from Angular dev server
+app.use(cors({
+  origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+app.use(bodyParser.json());
+
+// Serve static files from assets folder
+app.use('/assets', express.static(path.join(__dirname, '../assets')));
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../assets');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with original extension
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  fileFilter: function (req, file, cb) {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
+// --- Image Management Endpoints ---
+
+// Upload image for pasta type
+app.post('/pasta-types/:id/upload-image', upload.single('image'), async (req, res) => {
+  const { id } = req.params;
+  const pastaTypeId = parseInt(id);
+  
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image file provided' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      // Clean up uploaded file if pasta type doesn't exist
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const imageUrl = `/assets/${req.file.filename}`;
+    const currentImages = JSON.parse(pastaType.availableImages || '[]');
+    const updatedImages = [...currentImages, imageUrl];
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: {
+        imageUrl: pastaType.imageUrl || imageUrl, // Set as current if no current image
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image uploaded successfully',
+      pastaType: updatedPastaType,
+      uploadedImage: imageUrl
+    });
+  } catch (error) {
+    console.error('Error uploading image for pasta type:', error);
+    // Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+// Switch current image for pasta type
+app.put('/pasta-types/:id/switch-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaTypeId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const availableImages = JSON.parse(pastaType.availableImages || '[]');
+    if (!availableImages.includes(imageUrl)) {
+      return res.status(400).json({ error: 'Image not available for this pasta type' });
+    }
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: { imageUrl }
+    });
+
+    res.json({
+      message: 'Image switched successfully',
+      pastaType: updatedPastaType
+    });
+  } catch (error) {
+    console.error('Error switching image for pasta type:', error);
+    res.status(500).json({ error: 'Failed to switch image' });
+  }
+});
+
+// Delete image for pasta type
+app.delete('/pasta-types/:id/delete-image', async (req, res) => {
+  const { id } = req.params;
+  const { imageUrl } = req.body;
+  const pastaTypeId = parseInt(id);
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: 'Image URL is required' });
+  }
+
+  try {
+    const pastaType = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+    if (!pastaType) {
+      return res.status(404).json({ error: 'Pasta type not found' });
+    }
+
+    const availableImages = JSON.parse(pastaType.availableImages || '[]');
+    const updatedImages = availableImages.filter(img => img !== imageUrl);
+
+    // Delete physical file
+    const filename = path.basename(imageUrl);
+    const filePath = path.join(__dirname, '../assets', filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // Update current image if it was the deleted one
+    const newCurrentImage = pastaType.imageUrl === imageUrl 
+      ? (updatedImages[0] || '') 
+      : pastaType.imageUrl;
+
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: pastaTypeId },
+      data: {
+        imageUrl: newCurrentImage,
+        availableImages: JSON.stringify(updatedImages)
+      }
+    });
+
+    res.json({
+      message: 'Image deleted
