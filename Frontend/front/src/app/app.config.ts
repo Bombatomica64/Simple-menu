@@ -7,6 +7,8 @@ import {
 	withEventReplay,
 } from '@angular/platform-browser';
 import { provideHttpClient, withFetch } from '@angular/common/http';
+import { providePrimeNG } from 'primeng/config';
+import Aura from '@primeng/themes/aura';
 
 export const appConfig: ApplicationConfig = {
 	providers: [
@@ -15,5 +17,17 @@ export const appConfig: ApplicationConfig = {
 		provideHttpClient(withFetch()),
 		provideAnimations(),
 		provideClientHydration(withEventReplay()),
+		providePrimeNG({
+			theme: {
+				preset: Aura,
+				options: {
+					darkModeSelector: '.p-dark',
+					cssLayer: {
+						name: 'primeng',
+						order: 'tailwind-base, primeng, tailwind-utilities'
+					}
+				}
+			}
+		}),
 	],
 };

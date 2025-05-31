@@ -2,53 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-// Dark Theme Variables
+// PrimeNG Dark Theme Configuration
 :root {
-	/* Dark background colors */
-	--surface-a: #2d3748; /* Main card background */
-	--surface-b: #1a202c; /* Page background */
-	--surface-c: #4a5568; /* Lighter surface */
-	--surface-d: #718096; /* Even lighter surface */
-	--surface-e: #2d3748; /* Card background */
-	--surface-f: #374151; /* Hover states */
-	--surface-border: #4a5568; /* Border color */
-	--surface-hover: #374151; /* Hover background */
-	--surface-ground: #1a202c; /* Ground/page background */
-	--surface-section: #374151; /* Section background */
-	--surface-card: #2d3748; /* Card background */
+	// Override PrimeNG design tokens for dark theme
+	--p-primary-50: #dbeafe;
+	--p-primary-100: #bfdbfe;
+	--p-primary-200: #93c5fd;
+	--p-primary-300: #60a5fa;
+	--p-primary-400: #3b82f6;
+	--p-primary-500: #2563eb;
+	--p-primary-600: #1d4ed8;
+	--p-primary-700: #1e40af;
+	--p-primary-800: #1e3a8a;
+	--p-primary-900: #1e3a8a;
+	--p-primary-950: #172554;
 
-	/* Text colors */
-	--text-color: #f7fafc; /* Primary text */
-	--text-color-secondary: #cbd5e0; /* Secondary text */
-	--text-muted: #a0aec0; /* Muted text */
+	// Surface colors for dark theme
+	--p-surface-0: #ffffff;
+	--p-surface-50: #f8fafc;
+	--p-surface-100: #f1f5f9;
+	--p-surface-200: #e2e8f0;
+	--p-surface-300: #cbd5e1;
+	--p-surface-400: #94a3b8;
+	--p-surface-500: #64748b;
+	--p-surface-600: #475569;
+	--p-surface-700: #334155;
+	--p-surface-800: #1e293b;
+	--p-surface-900: #0f172a;
+	--p-surface-950: #020617;
 
-	/* Primary colors */
-	--primary-color: #4299e1; /* Blue accent */
-	--primary-color-text: #ffffff;
-	--primary-hover: #3182ce;
+	// Dark mode surface mappings
+	--p-content-background: var(--p-surface-900);
+	--p-content-color: var(--p-surface-0);
+	--p-content-border-color: var(--p-surface-700);
+	--p-content-hover-background: var(--p-surface-800);
+	--p-content-hover-color: var(--p-surface-0);
 
-	/* Status colors */
-	--green-50: rgba(72, 187, 120, 0.1);
-	--green-100: rgba(72, 187, 120, 0.2);
-	--green-200: #68d391;
-	--green-500: #48bb78;
-	--green-800: #38a169;
-	--orange-50: rgba(237, 137, 54, 0.1);
-	--orange-100: rgba(237, 137, 54, 0.2);
-	--orange-200: #fbb040;
-	--orange-500: #ed8936;
-	--orange-800: #c05621;
-	--red-500: #f56565;
-	--red-600: #e53e3e;
-	--blue-400: #63b3ed;
+	// Component specific overrides
+	--p-button-primary-background: var(--p-primary-500);
+	--p-button-primary-border-color: var(--p-primary-500);
+	--p-button-primary-color: var(--p-surface-0);
+	--p-button-primary-hover-background: var(--p-primary-600);
+	--p-button-primary-hover-border-color: var(--p-primary-600);
+	--p-button-primary-active-background: var(--p-primary-700);
+	--p-button-primary-active-border-color: var(--p-primary-700);
 
-	/* Highlight colors */
-	--highlight-bg: rgba(66, 153, 225, 0.2);
-	--highlight-text-color: #4299e1;
+	// Input fields
+	--p-inputtext-background: var(--p-surface-800);
+	--p-inputtext-border-color: var(--p-surface-700);
+	--p-inputtext-color: var(--p-surface-0);
+	--p-inputtext-focus-border-color: var(--p-primary-500);
 
-	--font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-		Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-		"Segoe UI Symbol";
+	// Dialogs
+	--p-dialog-background: var(--p-surface-900);
+	--p-dialog-border-color: var(--p-surface-700);
+	--p-dialog-color: var(--p-surface-0);
+	--p-dialog-header-background: var(--p-surface-800);
+	--p-dialog-header-border-color: var(--p-surface-700);
+	--p-dialog-header-color: var(--p-surface-0);
+
+	// Success/Error colors
+	--p-green-500: #22c55e;
+	--p-green-600: #16a34a;
+	--p-red-500: #ef4444;
+	--p-red-600: #dc2626;
+
+	// App-specific CSS variables for compatibility
+	--surface-ground: var(--p-surface-900);
+	--surface-card: var(--p-surface-800);
+	--surface-border: var(--p-surface-700);
+	--surface-hover: var(--p-surface-700);
+	--surface-section: var(--p-surface-800);
+	--text-color: var(--p-surface-0);
+	--text-color-secondary: var(--p-surface-300);
+	--primary-color: var(--p-primary-500);
+	--primary-color-text: var(--p-surface-0);
+	--green-500: var(--p-green-500);
+	--green-600: var(--p-green-600);
+	--green-800: var(--p-green-600);
+	--red-500: var(--p-red-500);
+	--red-600: var(--p-red-600);
+	--blue-400: var(--p-primary-400);
 }
 
 body {
