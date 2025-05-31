@@ -1,0 +1,165 @@
+.saved-menus-container {
+	background: var(--surface-card);
+	border: 1px solid var(--surface-border);
+	border-radius: 8px;
+	padding: 1.5rem;
+	margin-top: 2rem;
+
+	.header-section {
+		border-bottom: 1px solid var(--surface-border);
+		margin-bottom: 1rem;
+		padding-bottom: 1rem;
+
+		h3 {
+			margin: 0;
+			color: var(--text-color);
+			font-weight: 600;
+		}
+	}
+
+	.saved-menus-list {
+		min-height: 300px;
+
+		:host ::ng-deep {
+			.p-datatable {
+				background: var(--surface-card);
+				border: 1px solid var(--surface-border);
+				color: var(--text-color);
+
+				.p-datatable-thead > tr > th {
+					background-color: var(--surface-section);
+					border-color: var(--surface-border);
+					color: var(--text-color);
+					font-weight: 600;
+				}
+
+				.p-datatable-tbody > tr {
+					background: var(--surface-card);
+					color: var(--text-color);
+					border-color: var(--surface-border);
+
+					&:hover {
+						background-color: var(--surface-hover);
+					}
+
+					td {
+						border-color: var(--surface-border);
+						color: var(--text-color);
+					}
+				}
+
+				.p-paginator {
+					background: var(--surface-section);
+					border-color: var(--surface-border);
+					color: var(--text-color);
+
+					.p-paginator-page,
+					.p-paginator-next,
+					.p-paginator-prev,
+					.p-paginator-first,
+					.p-paginator-last {
+						color: var(--text-color);
+						background: transparent;
+						border-color: var(--surface-border);
+
+						&:hover {
+							background: var(--surface-hover);
+						}
+
+						&.p-highlight {
+							background: var(--primary-color);
+							color: var(--primary-color-text);
+						}
+					}
+				}
+			}
+
+			.p-button-sm {
+				padding: 0.25rem 0.5rem;
+				font-size: 0.75rem;
+			}
+		}
+	}
+
+	.text-center {
+		text-align: center;
+	}
+
+	.flex {
+		display: flex;
+	}
+
+	.justify-content-between {
+		justify-content: space-between;
+	}
+
+	.align-items-center {
+		align-items: center;
+	}
+
+	.gap-2 {
+		gap: 0.5rem;
+	}
+
+	.mb-3 {
+		margin-bottom: 1rem;
+	}
+
+	.mr-1 {
+		margin-right: 0.25rem;
+	}
+
+	.mt-2 {
+		margin-top: 0.5rem;
+	}
+
+	.text-500 {
+		color: var(--text-color-secondary);
+	}
+
+	.text-sm {
+		font-size: 0.875rem;
+	}
+
+	.p-4 {
+		padding: 1.5rem;
+	}
+
+	.m-0 {
+		margin: 0;
+	}
+
+	// Empty state styling
+	.empty-state {
+		color: var(--text-color-secondary);
+		background: var(--surface-section);
+		border: 1px solid var(--surface-border);
+		border-radius: 8px;
+		padding: 2rem;
+		text-align: center;
+
+		i {
+			color: var(--text-color-secondary);
+		}
+	}
+}
+
+// Additional overrides for saved-menus component
+:host ::ng-deep {
+	.saved-menus-container {
+		background: var(--surface-card) !important;
+
+		* {
+			background-color: inherit !important;
+		}
+
+		.p-table-wrapper,
+		.p-datatable-wrapper {
+			background: var(--surface-card) !important;
+		}
+
+		.p-datatable {
+			background: var(--surface-card) !important;
+		}
+	}
+}

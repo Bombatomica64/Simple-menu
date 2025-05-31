@@ -47,7 +47,7 @@
             <div class="grid">
               @for (sauce of pastaSauces(); track sauce) {
                 <div class="col-6 mb-3">
-                  <p-card [header]="sauce.name" [subheader]="'$'" styleClass="sauce-card">
+                  <p-card [header]="sauce.name" [subheader]="'€'" styleClass="sauce-card">
                     <ng-template pTemplate="header">
                       <img [alt]="sauce.name" [src]="sauce.image" title="{{sauce.name}}" class="sauce-image"/>
                     </ng-template>

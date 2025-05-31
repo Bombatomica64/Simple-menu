@@ -1,30 +1,626 @@
-// src/styles.scss
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-// @import "primeng/resources/themes/lara-light-blue/theme.css";
-// @import "primeng/resources/primeng.css";
-// @import "primeicons/primeicons.css";
-
+// Dark Theme Variables
 :root {
-  --surface-a: #ffffff;
-  --surface-b: #f8f9fa;
-  --surface-c: #e9ecef;
-  --surface-d: #dee2e6;
-  --surface-e: #ffffff;
-  --surface-f: #ffffff;
-  --text-color: #495057;
-  --text-color-secondary: #6c757d;
-  --primary-color: #3B82F6;
-  --primary-color-text: #ffffff;
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+	/* Dark background colors */
+	--surface-a: #2d3748; /* Main card background */
+	--surface-b: #1a202c; /* Page background */
+	--surface-c: #4a5568; /* Lighter surface */
+	--surface-d: #718096; /* Even lighter surface */
+	--surface-e: #2d3748; /* Card background */
+	--surface-f: #374151; /* Hover states */
+	--surface-border: #4a5568; /* Border color */
+	--surface-hover: #374151; /* Hover background */
+	--surface-ground: #1a202c; /* Ground/page background */
+	--surface-section: #374151; /* Section background */
+	--surface-card: #2d3748; /* Card background */
+
+	/* Text colors */
+	--text-color: #f7fafc; /* Primary text */
+	--text-color-secondary: #cbd5e0; /* Secondary text */
+	--text-muted: #a0aec0; /* Muted text */
+
+	/* Primary colors */
+	--primary-color: #4299e1; /* Blue accent */
+	--primary-color-text: #ffffff;
+	--primary-hover: #3182ce;
+
+	/* Status colors */
+	--green-50: rgba(72, 187, 120, 0.1);
+	--green-100: rgba(72, 187, 120, 0.2);
+	--green-200: #68d391;
+	--green-500: #48bb78;
+	--green-800: #38a169;
+	--orange-50: rgba(237, 137, 54, 0.1);
+	--orange-100: rgba(237, 137, 54, 0.2);
+	--orange-200: #fbb040;
+	--orange-500: #ed8936;
+	--orange-800: #c05621;
+	--red-500: #f56565;
+	--red-600: #e53e3e;
+	--blue-400: #63b3ed;
+
+	/* Highlight colors */
+	--highlight-bg: rgba(66, 153, 225, 0.2);
+	--highlight-text-color: #4299e1;
+
+	--font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+		Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+		"Segoe UI Symbol";
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-family);
-  background-color: var(--surface-b);
-  color: var(--text-color);
-}/* You can add global styles to this file, and also import other style files */
+	margin: 0;
+	padding: 0;
+	font-family: var(--font-family);
+	background-color: var(--surface-b);
+	color: var(--text-color);
+}
+
+/* PrimeNG global dark theme overrides */
+::ng-deep .p-component {
+	font-family: inherit;
+}
+
+/* Input styling */
+::ng-deep .p-inputtext {
+	background-color: #374151 !important;
+	border: 1px solid #4a5568 !important;
+	color: #f7fafc !important;
+	border-radius: 6px !important;
+}
+
+::ng-deep .p-inputtext::placeholder {
+	color: #9ca3af !important;
+}
+
+::ng-deep .p-inputtext:focus {
+	border-color: #4299e1 !important;
+	box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.2) !important;
+}
+
+/* Button styling */
+::ng-deep .p-button {
+	background-color: #4299e1 !important;
+	border: 1px solid #4299e1 !important;
+	color: #ffffff !important;
+	border-radius: 6px !important;
+	transition: all 0.3s ease !important;
+}
+
+::ng-deep .p-button:hover {
+	background-color: #3182ce !important;
+	border-color: #3182ce !important;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+::ng-deep .p-button-danger {
+	background-color: #f56565 !important;
+	border-color: #f56565 !important;
+}
+
+::ng-deep .p-button-danger:hover {
+	background-color: #e53e3e !important;
+	border-color: #e53e3e !important;
+}
+
+/* Comprehensive Button Styling - Fix for buttons appearing as text */
+::ng-deep .p-button,
+::ng-deep button[pButton],
+::ng-deep .p-button-rounded,
+::ng-deep .p-button-danger,
+::ng-deep .p-button-sm,
+::ng-deep .p-button-icon,
+::ng-deep .p-button-outlined,
+::ng-deep .p-component.p-button {
+  /* Base button styling */
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  outline: none !important;
+  border: 1px solid !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+  font-family: inherit !important;
+  font-weight: 500 !important;
+  vertical-align: middle !important;
+  position: relative !important;
+  overflow: hidden !important;
+  min-height: 2.5rem !important;
+  padding: 0.5rem 1rem !important;
+  font-size: 0.875rem !important;
+  gap: 0.5rem !important;
+
+  /* Default colors */
+  background-color: #4299e1 !important;
+  border-color: #4299e1 !important;
+  color: #ffffff !important;
+}
+
+/* Small button variant */
+::ng-deep .p-button-sm,
+::ng-deep .p-button.p-button-sm {
+  padding: 0.375rem 0.75rem !important;
+  font-size: 0.75rem !important;
+  min-height: 2rem !important;
+}
+
+/* Icon-only button variant */
+::ng-deep .p-button-icon,
+::ng-deep .p-button.p-button-icon {
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+}
+
+::ng-deep .p-button-icon.p-button-sm {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+/* Rounded button variant */
+::ng-deep .p-button-rounded,
+::ng-deep .p-button.p-button-rounded {
+  border-radius: 2rem !important;
+}
+
+/* Danger button variant */
+::ng-deep .p-button-danger,
+::ng-deep .p-button.p-button-danger {
+  background-color: #f56565 !important;
+  border-color: #f56565 !important;
+  color: #ffffff !important;
+}
+
+::ng-deep .p-button-danger:hover,
+::ng-deep .p-button.p-button-danger:hover {
+  background-color: #e53e3e !important;
+  border-color: #e53e3e !important;
+}
+
+/* Outlined button variant */
+::ng-deep .p-button-outlined,
+::ng-deep .p-button.p-button-outlined {
+  background-color: transparent !important;
+  border-color: #4299e1 !important;
+  color: #4299e1 !important;
+}
+
+::ng-deep .p-button-outlined:hover,
+::ng-deep .p-button.p-button-outlined:hover {
+  background-color: #4299e1 !important;
+  border-color: #4299e1 !important;
+  color: #ffffff !important;
+}
+
+/* Success button variant */
+::ng-deep .p-button-success,
+::ng-deep .p-button.p-button-success {
+  background-color: #48bb78 !important;
+  border-color: #48bb78 !important;
+  color: #ffffff !important;
+}
+
+::ng-deep .p-button-success:hover,
+::ng-deep .p-button.p-button-success:hover {
+  background-color: #38a169 !important;
+  border-color: #38a169 !important;
+}
+
+/* Button content styling */
+::ng-deep .p-button .p-button-icon,
+::ng-deep .p-button .pi {
+  font-size: 1rem !important;
+  line-height: 1 !important;
+}
+
+::ng-deep .p-button .p-button-label {
+  font-weight: 500 !important;
+  color: inherit !important;
+  line-height: 1 !important;
+}
+
+::ng-deep .p-button span,
+::ng-deep .p-button i {
+  color: inherit !important;
+}
+
+/* Hover effects for all buttons */
+::ng-deep .p-button:hover,
+::ng-deep button[pButton]:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Focus state */
+::ng-deep .p-button:focus,
+::ng-deep button[pButton]:focus {
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5) !important;
+}
+
+/* Disabled state */
+::ng-deep .p-button:disabled,
+::ng-deep button[pButton]:disabled {
+  background-color: #4a5568 !important;
+  border-color: #4a5568 !important;
+  color: #a0aec0 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Force button appearance for any element with pButton directive */
+::ng-deep [pButton] {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Additional button selectors to catch all cases */
+::ng-deep button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 6px !important;
+  border: 1px solid #4299e1 !important;
+  background-color: #4299e1 !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+  min-height: 2.5rem !important;
+}
+
+::ng-deep button:hover {
+  background-color: #3182ce !important;
+  border-color: #3182ce !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Specific targeting for Angular Material/PrimeNG buttons */
+::ng-deep .p-element.p-button,
+::ng-deep button.p-element,
+::ng-deep button.p-button,
+::ng-deep [role="button"],
+::ng-deep .btn,
+::ng-deep input[type="button"],
+::ng-deep input[type="submit"] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 6px !important;
+  border: 1px solid #4299e1 !important;
+  background-color: #4299e1 !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+  min-height: 2.5rem !important;
+  box-sizing: border-box !important;
+}
+
+::ng-deep .p-element.p-button:hover,
+::ng-deep button.p-element:hover,
+::ng-deep button.p-button:hover,
+::ng-deep [role="button"]:hover,
+::ng-deep .btn:hover,
+::ng-deep input[type="button"]:hover,
+::ng-deep input[type="submit"]:hover {
+  background-color: #3182ce !important;
+  border-color: #3182ce !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Critical fix for pButton directive elements */
+::ng-deep button[pButton],
+::ng-deep *[pButton] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 6px !important;
+  border: 1px solid #4299e1 !important;
+  background-color: #4299e1 !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+  min-height: 2.5rem !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+  vertical-align: middle !important;
+  position: relative !important;
+  overflow: hidden !important;
+  gap: 0.5rem !important;
+}
+
+::ng-deep button[pButton]:hover,
+::ng-deep *[pButton]:hover {
+  background-color: #3182ce !important;
+  border-color: #3182ce !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Fix for button icons and labels */
+::ng-deep button[pButton] .pi,
+::ng-deep button[pButton] span,
+::ng-deep *[pButton] .pi,
+::ng-deep *[pButton] span {
+  color: inherit !important;
+  font-size: inherit !important;
+}
+
+/* Override any inherited styles that might interfere */
+::ng-deep button[pButton],
+::ng-deep *[pButton] {
+  background-image: none !important;
+  text-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+::ng-deep button[pButton]:not(:disabled):not(.p-disabled):hover,
+::ng-deep *[pButton]:not(:disabled):not(.p-disabled):hover {
+  background-color: #3182ce !important;
+  border-color: #3182ce !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Dialog styling */
+::ng-deep .p-dialog {
+	background: #2d3748 !important;
+	border: 1px solid #4a5568 !important;
+	border-radius: 12px !important;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+::ng-deep .p-dialog-header {
+	background: #374151 !important;
+	border-bottom: 1px solid #4a5568 !important;
+	color: #f7fafc !important;
+	border-radius: 12px 12px 0 0 !important;
+}
+
+::ng-deep .p-dialog-content {
+	background: #2d3748 !important;
+	color: #f7fafc !important;
+}
+
+::ng-deep .p-dialog-footer {
+	background: #2d3748 !important;
+	border-top: 1px solid #4a5568 !important;
+	border-radius: 0 0 12px 12px !important;
+}
+
+/* Toast messages */
+::ng-deep .p-toast .p-toast-message {
+	background: #2d3748 !important;
+	border: 1px solid #4a5568 !important;
+	color: #f7fafc !important;
+	border-radius: 8px !important;
+}
+
+::ng-deep .p-toast .p-toast-message.p-toast-message-success {
+	background: rgba(72, 187, 120, 0.2) !important;
+	border-color: #48bb78 !important;
+}
+
+::ng-deep .p-toast .p-toast-message.p-toast-message-error {
+	background: rgba(245, 101, 101, 0.2) !important;
+	border-color: #f56565 !important;
+}
+
+/* Additional PrimeNG dark theme overrides */
+::ng-deep .p-datatable {
+	background: #2d3748 !important;
+	color: #f7fafc !important;
+	border: 1px solid #4a5568 !important;
+
+	.p-datatable-wrapper {
+		background: #2d3748 !important;
+	}
+
+	.p-datatable-thead > tr > th {
+		background: #374151 !important;
+		border: 1px solid #4a5568 !important;
+		color: #f7fafc !important;
+	}
+
+	.p-datatable-tbody > tr {
+		background: #2d3748 !important;
+		color: #f7fafc !important;
+		border: 1px solid #4a5568 !important;
+
+		&:hover {
+			background: #374151 !important;
+		}
+
+		td {
+			border: 1px solid #4a5568 !important;
+			color: #f7fafc !important;
+		}
+	}
+}
+
+::ng-deep .p-paginator {
+	background: #374151 !important;
+	border: 1px solid #4a5568 !important;
+	color: #f7fafc !important;
+
+	.p-paginator-page,
+	.p-paginator-next,
+	.p-paginator-prev,
+	.p-paginator-first,
+	.p-paginator-last {
+		color: #f7fafc !important;
+		background: transparent !important;
+		border: 1px solid #4a5568 !important;
+
+		&:hover {
+			background: #4a5568 !important;
+		}
+
+		&.p-highlight {
+			background: #3182ce !important;
+			color: #f7fafc !important;
+		}
+	}
+
+	.p-dropdown {
+		background: #2d3748 !important;
+		border: 1px solid #4a5568 !important;
+		color: #f7fafc !important;
+	}
+}
+
+::ng-deep .p-inputtext {
+	background: #2d3748 !important;
+	border: 1px solid #4a5568 !important;
+	color: #f7fafc !important;
+
+	&:focus {
+		border-color: #3182ce !important;
+		box-shadow: 0 0 0 0.2rem rgba(49, 130, 206, 0.2) !important;
+	}
+}
+
+::ng-deep .p-button {
+	&.p-button-text {
+		color: #f7fafc !important;
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.1) !important;
+		}
+	}
+}
+
+/* Toggle Button Styling - Fix for toggle buttons appearing as text */
+::ng-deep .p-togglebutton,
+::ng-deep .p-togglebutton.p-button {
+  background-color: #4a5568 !important;
+  border: 1px solid #4a5568 !important;
+  color: #cbd5e0 !important;
+  border-radius: 6px !important;
+  padding: 0.375rem 0.75rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.25rem !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+  min-height: 2rem !important;
+  min-width: 3rem !important;
+}
+
+::ng-deep .p-togglebutton:hover {
+  background-color: #718096 !important;
+  border-color: #718096 !important;
+}
+
+::ng-deep .p-togglebutton.p-highlight,
+::ng-deep .p-togglebutton.p-highlight.p-button {
+  background-color: #48bb78 !important;
+  border-color: #48bb78 !important;
+  color: #ffffff !important;
+}
+
+::ng-deep .p-togglebutton.p-highlight:hover {
+  background-color: #38a169 !important;
+  border-color: #38a169 !important;
+}
+
+::ng-deep .p-togglebutton .p-button-label {
+	font-weight: 500 !important;
+	color: inherit !important;
+}
+
+/* Additional Toggle Button Fixes */
+::ng-deep p-togglebutton,
+::ng-deep p-togglebutton .p-togglebutton,
+::ng-deep [ptogglebutton] {
+  display: inline-block !important;
+}
+
+::ng-deep .p-togglebutton-label.ng-star-inserted {
+  display: inline !important;
+  color: inherit !important;
+  font-weight: 500 !important;
+}
+
+/* Fix for any remaining text-only toggle buttons */
+::ng-deep p-togglebutton .p-element {
+  background: #4a5568 !important;
+  border: 1px solid #4a5568 !important;
+  border-radius: 6px !important;
+  padding: 0.375rem 0.75rem !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Ensure no white backgrounds anywhere */
+::ng-deep .saved-menus-container,
+::ng-deep .saved-menus-container *,
+::ng-deep app-saved-menus,
+::ng-deep app-saved-menus * {
+	background-color: transparent !important;
+}
+
+::ng-deep app-saved-menus .saved-menus-container {
+	background: var(--surface-card) !important;
+}
+
+/* Fix any remaining white backgrounds */
+::ng-deep .p-component {
+	background: transparent !important;
+}
+
+::ng-deep .p-table-wrapper {
+	background: var(--surface-card) !important;
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #374151;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #4a5568;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #cbd5e0;
+}

@@ -1,4 +1,4 @@
-import { computed, resource, ResourceRef, signal } from '@angular/core';
+import { computed, resource, ResourceRef, signal, Signal } from '@angular/core';
 import { Menu } from './Menu/menu';
 
 export interface AddItemMessage {
@@ -8,6 +8,26 @@ export interface AddItemMessage {
 export interface RemoveItemMessage {
 	type: 'removeItem';
 	itemId: number;
+}
+export interface UpdateMenuItemImageMessage {
+	type: 'updateMenuItemImage';
+	itemId: number;
+	imageUrl: string;
+}
+export interface ToggleMenuItemShowImageMessage {
+	type: 'toggleMenuItemShowImage';
+	itemId: number;
+	showImage: boolean;
+}
+export interface AddImageToMenuItemMessage {
+	type: 'addImageToMenuItem';
+	itemId: number;
+	imageUrl: string;
+}
+export interface RemoveImageFromMenuItemMessage {
+	type: 'removeImageFromMenuItem';
+	itemId: number;
+	imageUrl: string;
 }
 export interface AddPastaTypeMessage {
 	type: 'addPastaTypeToMenu';
@@ -26,13 +46,70 @@ export interface RemovePastaSauceMessage {
 	pastaSauceId: number;
 }
 
+// Saved menu message types
+export interface SaveCurrentMenuMessage {
+	type: 'saveCurrentMenu';
+	name: string;
+}
+export interface LoadSavedMenuMessage {
+	type: 'loadSavedMenu';
+	savedMenuId: number;
+}
+export interface DeleteSavedMenuMessage {
+	type: 'deleteSavedMenu';
+	savedMenuId: number;
+}
+export interface GetAllSavedMenusMessage {
+	type: 'getAllSavedMenus';
+}
+
+// Response message types from server
+export interface SavedMenu {
+	id: number;
+	name: string;
+	savedAt: string;
+	menu: Menu;
+}
+
+export interface MenuSavedResponse {
+	type: 'menuSaved';
+	savedMenu: SavedMenu;
+}
+export interface MenuDeletedResponse {
+	type: 'menuDeleted';
+	savedMenuId: number;
+}
+export interface SavedMenusListResponse {
+	type: 'savedMenusList';
+	savedMenus: SavedMenu[];
+}
+export interface ErrorResponse {
+	type: 'error';
+	message: string;
+}
+
 export type MenuUpdateMessage =
 	| AddItemMessage
 	| RemoveItemMessage
+	| UpdateMenuItemImageMessage
+	| ToggleMenuItemShowImageMessage
+	| AddImageToMenuItemMessage
+	| RemoveImageFromMenuItemMessage
 	| AddPastaTypeMessage
 	| RemovePastaTypeMessage
 	| AddPastaSauceMessage
-	| RemovePastaSauceMessage;
+	| RemovePastaSauceMessage
+	| SaveCurrentMenuMessage
+	| LoadSavedMenuMessage
+	| DeleteSavedMenuMessage
+	| GetAllSavedMenusMessage;
+
+export type MenuResponseMessage =
+	| MenuSavedResponse
+	| MenuDeletedResponse
+	| SavedMenusListResponse
+	| ErrorResponse;
+
 export type SendUpdateFn = (message: MenuUpdateMessage) => void;
 
 // Type for items in the resource stream
@@ -42,73 +119,89 @@ export type MenuConnection = {
 	resource: ResourceRef<Menu | undefined>;
 	connected: () => boolean;
 	sendUpdate: SendUpdateFn;
+	responseMessages: Signal<MenuResponseMessage | null>;
 };
 
 export function menuConnection(websocketUrl: string): MenuConnection {
 	let wsConnectionInstance: WebSocket | null = null; // Store the active WebSocket instance
 	const connected = signal(false);
-	const menuResource: ResourceRef<Menu | undefined> = resource({
-		loader: async ({ abortSignal }) => {
-			let currentMenu: Menu | undefined;
+	const responseMessages = signal<MenuResponseMessage | null>(null);
+	let currentMenu: Menu | undefined = undefined;
 
-			return new Promise<Menu | undefined>((resolve, reject) => {
-				if (
-					wsConnectionInstance &&
-					wsConnectionInstance.readyState === WebSocket.OPEN
-				) {
-					wsConnectionInstance.close(); // Close previous connection if any
+	const menuResource: ResourceRef<Menu | undefined> = resource({
+		stream: () => {
+			return new Promise<Signal<ResourceStreamItem<Menu | undefined>>>((resolve) => {
+				const resourceResult = signal<ResourceStreamItem<Menu | undefined>>({
+					value: undefined,
+				});
+
+				// Close existing connection if any
+				if (wsConnectionInstance) {
+					wsConnectionInstance.close();
 				}
+
 				wsConnectionInstance = new WebSocket(websocketUrl);
 
 				wsConnectionInstance.onopen = () => {
 					console.log('[WebSocket open] Connected to menu updates');
 					connected.set(true);
-					resolve(currentMenu); // Send current or undefined
+					resourceResult.update(current => ({
+						...current,
+						value: currentMenu
+					}));
 				};
 
 				wsConnectionInstance.onmessage = (event) => {
 					try {
-						const menuData = JSON.parse(event.data) as Menu;
-						console.log('[WebSocket message] Menu update received:', menuData);
-						currentMenu = Menu.fromJson(menuData); // Use fromJson if needed
-						resolve(currentMenu);
+						const data = JSON.parse(event.data);
+
+						// Check if it's a menu update or a response message
+						if (data.type && ['menuSaved', 'menuDeleted', 'savedMenusList', 'error'].includes(data.type)) {
+							// Handle response messages
+							console.log('[WebSocket response] Response received:', data);
+							responseMessages.set(data as MenuResponseMessage);
+						} else {
+							// Handle menu updates
+							const menuData = data as Menu;
+							console.log('[WebSocket message] Menu update received:', menuData);
+							currentMenu = Menu.fromJson(menuData);
+							resourceResult.update(current => ({
+								...current,
+								value: currentMenu,
+								error: undefined
+							}));
+						}
 					} catch (err) {
 						console.error('[WebSocket parse error]', err);
-						reject(new Error('Failed to parse menu data'));
+						resourceResult.update(current => ({
+							...current,
+							error: new Error('Failed to parse menu data')
+						}));
 					}
 				};
 
 				wsConnectionInstance.onerror = (event) => {
 					console.error('[WebSocket error]', event);
-					connected.set(false); // Set connected to false on error
-					reject(new Error('WebSocket connection error'));
+					connected.set(false);
+					resourceResult.update(current => ({
+						...current,
+						error: new Error('WebSocket connection error')
+					}));
 				};
 
 				wsConnectionInstance.onclose = () => {
 					console.log('[WebSocket closed] Disconnected from menu updates');
 					connected.set(false);
-					wsConnectionInstance = null; // Clear instance on close
-					// Reconnect logic (resource will re-trigger stream on request change or if configured)
-					// For explicit reconnect, you might need to manage 'request' signal
+					wsConnectionInstance = null;
+
+					// Attempt reconnection after 3 seconds
 					setTimeout(() => {
-						if (abortSignal.aborted) return;
-						console.log(
-							'[WebSocket] Attempting to re-evaluate resource for reconnect...'
-						);
-						// Forcing re-evaluation might involve changing the 'request' signal
-						// or relying on the resource's built-in retry/refresh mechanisms if any.
-						// A simple way is to hope the resource re-triggers if 'request' changes or on next access.
+						console.log('[WebSocket] Attempting to reconnect...');
+						// The resource stream will handle reconnection automatically
 					}, 3000);
 				};
 
-				abortSignal.addEventListener('abort', () => {
-					console.log('[WebSocket cleanup] Closing connection');
-					if (wsConnectionInstance) {
-						wsConnectionInstance.close();
-						wsConnectionInstance = null;
-					}
-					connected.set(false);
-				});
+				resolve(resourceResult);
 			});
 		},
 	});
@@ -130,5 +223,6 @@ export function menuConnection(websocketUrl: string): MenuConnection {
 		connected,
 		resource: menuResource,
 		sendUpdate,
+		responseMessages,
 	};
 }

@@ -1,0 +1,140 @@
+<div class="saved-menus-container">
+	<div class="header-section">
+		<div class="flex justify-content-between align-items-center mb-3">
+			<h3>Menu Salvati</h3>
+		</div>
+	</div>
+
+	<!-- Saved Menus Table -->
+	<div class="saved-menus-list">
+		@if (savedMenus().length > 0) {
+		<p-table
+			[value]="savedMenus()"
+			[paginator]="true"
+			[rows]="5"
+			[showCurrentPageReport]="true"
+			currentPageReportTemplate="Mostrando {first} a {last} di {totalRecords} menu"
+			[rowsPerPageOptions]="[5, 10, 20]"
+			styleClass="p-datatable-sm"
+		>
+			<ng-template pTemplate="header">
+				<tr>
+					<th>Nome</th>
+					<th>Data Salvataggio</th>
+					<th>Voci Menu</th>
+					<th>Tipi Pasta</th>
+					<th>Sughi</th>
+					<th>Azioni</th>
+				</tr>
+			</ng-template>
+			<ng-template pTemplate="body" let-savedMenu>
+				<tr>
+					<td>
+						<strong>{{ savedMenu.name }}</strong>
+					</td>
+					<td>
+						{{ formatDate(savedMenu.savedAt) }}
+					</td>
+					<td>
+						<span class="pi pi-list mr-1"></span>
+						{{ savedMenu.menu.menuItems?.length || 0 }}
+					</td>
+					<td>
+						<span class="pi pi-circle mr-1"></span>
+						{{ savedMenu.menu.pastaTypes?.length || 0 }}
+					</td>
+					<td>
+						<span class="pi pi-droplet mr-1"></span>
+						{{ savedMenu.menu.pastaSauces?.length || 0 }}
+					</td>
+					<td>
+						<div class="flex gap-2">
+							<button
+								pButton
+								type="button"
+								icon="pi pi-upload"
+								class="p-button-sm p-button-success"
+								(click)="loadSavedMenu(savedMenu)"
+								title="Carica questo menu"
+								[attr.aria-label]="'Carica menu ' + savedMenu.name"
+							></button>
+							<button
+								pButton
+								type="button"
+								icon="pi pi-trash"
+								class="p-button-sm p-button-danger"
+								(click)="deleteSavedMenu(savedMenu)"
+								title="Elimina questo menu salvato"
+								[attr.aria-label]="'Elimina menu ' + savedMenu.name"
+							></button>
+						</div>
+					</td>
+				</tr>
+			</ng-template>
+		</p-table>
+		} @else {
+		<div class="empty-state">
+			<i class="pi pi-info-circle text-3xl mb-3"></i>
+			<p class="m-0 mb-2">Nessun menu salvato disponibile.</p>
+			<p class="text-sm mt-2">
+				Salva il menu attuale per poterlo ricaricare in seguito.
+			</p>
+		</div>
+		}
+	</div>
+
+	<!-- Save Dialog -->
+	<p-dialog
+		header="Salva Menu Attuale"
+		[(visible)]="showSaveDialog"
+		[modal]="true"
+		[style]="{ width: '450px' }"
+		[draggable]="false"
+		[resizable]="false"
+	>
+		<div class="p-fluid">
+			<div class="p-field">
+				<label for="menuName">Nome del Menu</label>
+				<input
+					id="menuName"
+					type="text"
+					pInputText
+					[(ngModel)]="newMenuName"
+					placeholder="Inserisci un nome per il menu"
+					[disabled]="loading()"
+				/>
+				<small class="p-mt-1 text-500">
+					Inserisci un nome descrittivo per identificare questo menu in seguito.
+				</small>
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Annulla"
+				icon="pi pi-times"
+				(click)="showSaveDialog.set(false)"
+				class="p-button-text"
+				[disabled]="loading()"
+				title="Annulla salvataggio"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Salva"
+				icon="pi pi-save"
+				(click)="saveCurrentMenu()"
+				[disabled]="loading() || !newMenuName().trim()"
+				[loading]="loading()"
+				title="Salva il menu attuale"
+			></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Toast Messages -->
+	<p-toast></p-toast>
+
+	<!-- Confirmation Dialog -->
+	<p-confirmDialog></p-confirmDialog>
+</div>

@@ -55,6 +55,9 @@ async function addItemToMenu(item) {
       id: Date.now(), // Temporary in-memory ID
       name: item.name,
       price: item.price,
+      imageUrl: item.imageUrl || null,
+      availableImages: item.availableImages || "[]",
+      showImage: item.showImage || false,
     };
     currentInMemoryMenu.menuItems.push(newItem);
     return true;
@@ -143,6 +146,207 @@ async function removePastaSauceFromMenu(pastaSauceId) {
   return false;
 }
 
+async function updateMenuItemImage(itemId, imageUrl) {
+  if (!currentInMemoryMenu) return false;
+  
+  const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
+  if (item) {
+    item.imageUrl = imageUrl;
+    return true;
+  }
+  return false;
+}
+
+async function toggleMenuItemShowImage(itemId, showImage) {
+  if (!currentInMemoryMenu) return false;
+  
+  const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
+  if (item) {
+    item.showImage = showImage;
+    return true;
+  }
+  return false;
+}
+
+async function addImageToMenuItem(itemId, imageUrl) {
+  if (!currentInMemoryMenu) return false;
+  
+  const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
+  if (item) {
+    let availableImages = [];
+    try {
+      availableImages = JSON.parse(item.availableImages || "[]");
+    } catch (e) {
+      availableImages = [];
+    }
+    
+    if (!availableImages.includes(imageUrl)) {
+      availableImages.push(imageUrl);
+      item.availableImages = JSON.stringify(availableImages);
+      
+      // Set as current image if no image is set
+      if (!item.imageUrl) {
+        item.imageUrl = imageUrl;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+async function removeImageFromMenuItem(itemId, imageUrl) {
+  if (!currentInMemoryMenu) return false;
+  
+  const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
+  if (item) {
+    let availableImages = [];
+    try {
+      availableImages = JSON.parse(item.availableImages || "[]");
+    } catch (e) {
+      availableImages = [];
+    }
+    
+    const updatedImages = availableImages.filter(img => img !== imageUrl);
+    item.availableImages = JSON.stringify(updatedImages);
+    
+    // If the removed image was the current image, clear it
+    if (item.imageUrl === imageUrl) {
+      item.imageUrl = updatedImages.length > 0 ? updatedImages[0] : null;
+    }
+    return true;
+  }
+  return false;
+}
+
+// Save current menu to database
+async function saveCurrentMenu(name) {
+  if (!currentInMemoryMenu || !name) return null;
+  
+  try {
+    // First create the menu in the database
+    const savedMenu = await prisma.menu.create({
+      data: {
+        menuItems: {
+          create: currentInMemoryMenu.menuItems.map(item => ({
+            name: item.name,
+            price: item.price,
+            imageUrl: item.imageUrl,
+            availableImages: item.availableImages,
+            showImage: item.showImage,
+          }))
+        },
+        pastaTypes: {
+          create: currentInMemoryMenu.pastaTypes.map(pt => ({
+            pastaTypeId: pt.pastaType.id,
+          }))
+        },
+        pastaSauces: {
+          create: currentInMemoryMenu.pastaSauces.map(ps => ({
+            pastaSauceId: ps.pastaSauce.id,
+          }))
+        }
+      },
+      include: {
+        menuItems: true,
+        pastaTypes: { include: { pastaType: true } },
+        pastaSauces: { include: { pastaSauce: true } },
+      }
+    });
+
+    // Then create the SavedMenu entry that references this menu
+    const savedMenuEntry = await prisma.savedMenu.create({
+      data: {
+        name: name,
+        menuId: savedMenu.id,
+      },
+      include: {
+        menu: {
+          include: {
+            menuItems: true,
+            pastaTypes: { include: { pastaType: true } },
+            pastaSauces: { include: { pastaSauce: true } },
+          }
+        }
+      }
+    });
+
+    return savedMenuEntry;
+  } catch (error) {
+    console.error("Error saving menu:", error);
+    throw error;
+  }
+}
+
+// Get all saved menus
+async function getAllSavedMenus() {
+  try {
+    const savedMenus = await prisma.savedMenu.findMany({
+      orderBy: { savedAt: 'desc' },
+      include: {
+        menu: {
+          include: {
+            menuItems: true,
+            pastaTypes: { include: { pastaType: true } },
+            pastaSauces: { include: { pastaSauce: true } },
+          }
+        }
+      }
+    });
+    return savedMenus;
+  } catch (error) {
+    console.error("Error getting saved menus:", error);
+    throw error;
+  }
+}
+
+// Load a saved menu as current menu
+async function loadSavedMenu(savedMenuId) {
+  try {
+    const savedMenu = await prisma.savedMenu.findUnique({
+      where: { id: savedMenuId },
+      include: {
+        menu: {
+          include: {
+            menuItems: true,
+            pastaTypes: { include: { pastaType: true } },
+            pastaSauces: { include: { pastaSauce: true } },
+          }
+        }
+      }
+    });
+
+    if (savedMenu) {
+      // Convert database format to in-memory format
+      currentInMemoryMenu = {
+        id: savedMenu.menu.id,
+        createdAt: savedMenu.menu.createdAt,
+        menuItems: savedMenu.menu.menuItems,
+        pastaTypes: savedMenu.menu.pastaTypes,
+        pastaSauces: savedMenu.menu.pastaSauces,
+      };
+      return currentInMemoryMenu;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error loading saved menu:", error);
+    throw error;
+  }
+}
+
+// Delete a saved menu
+async function deleteSavedMenu(savedMenuId) {
+  try {
+    // This will also delete the associated Menu due to cascade
+    await prisma.savedMenu.delete({
+      where: { id: savedMenuId }
+    });
+    return true;
+  } catch (error) {
+    console.error("Error deleting saved menu:", error);
+    throw error;
+  }
+}
+
 module.exports = {
   loadInitialMenu,
   getCurrentMenu,
@@ -152,5 +356,13 @@ module.exports = {
   addPastaTypeToMenu,
   removePastaTypeFromMenu,
   addPastaSauceToMenu,
-  removePastaSauceFromMenu
+  removePastaSauceFromMenu,
+  updateMenuItemImage,
+  toggleMenuItemShowImage,
+  addImageToMenuItem,
+  removeImageFromMenuItem,
+  saveCurrentMenu,
+  getAllSavedMenus,
+  loadSavedMenu,
+  deleteSavedMenu,
 };

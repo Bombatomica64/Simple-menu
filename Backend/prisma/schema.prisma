@@ -13,14 +13,18 @@ model Menu {
   menuItems      MenuItem[]
   pastaTypes     MenuToPastaType[]
   pastaSauces    MenuToPastaSauce[]
+  savedMenus     SavedMenu[]       // One menu can have multiple saved versions
 }
 
 model MenuItem {
-  id        Int      @id @default(autoincrement())
-  name      String
-  price     Float
-  menuId    Int
-  menu      Menu     @relation(fields: [menuId], references: [id])
+  id              Int      @id @default(autoincrement())
+  name            String
+  price           Float
+  imageUrl        String?
+  availableImages String   @default("[]") // JSON array of image URLs
+  showImage       Boolean  @default(false) // Switch to show/hide image in menu
+  menuId          Int
+  menu            Menu     @relation(fields: [menuId], references: [id])
 }
 
 model PastaType {
@@ -59,4 +63,13 @@ model MenuToPastaSauce {
   pastaSauceId Int
 
   @@unique([menuId, pastaSauceId])
+}
+
+// Saved menu for storing menu snapshots
+model SavedMenu {
+  id          Int      @id @default(autoincrement())
+  name        String
+  savedAt     DateTime @default(now())
+  menuId      Int
+  menu        Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
 }

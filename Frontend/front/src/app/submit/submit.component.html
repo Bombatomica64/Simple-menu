@@ -1,282 +1,531 @@
 <div class="menu-management-container">
-  <div class="header-section">
-    <h2>Update Menu</h2>
+	<div class="header-section">
+		<div class="flex justify-content-between align-items-center">
+			<h2>Aggiorna Menu</h2>
+		</div>
 
-    @if (menuWsConnection?.connected() === false) {
-      <div class="connection-status disconnected">
-        <p>Connecting to menu service...</p>
-      </div>
-    }
+		@if (menuWsConnection?.connected() === false) {
+		<div class="connection-status disconnected">
+			<p>Connessione al servizio menu...</p>
+		</div>
+		} @if (menuWsConnection?.connected()) {
+		<div class="connection-status connected">
+			<p>Connesso al servizio menu</p>
+		</div>
+		}
+	</div>
 
-    @if (menuWsConnection?.connected()) {
-      <div class="connection-status connected">
-        <p>Connected to menu service</p>
-      </div>
-    }
-  </div>
+	@if (menuWsConnection?.connected()) {
+	<div class="content-sections">
+		<!-- Menu Items Section -->
+		<div class="card p-mb-4">
+			<h3>Voci del Menu</h3>
 
-  @if (menuWsConnection?.connected()) {
-    <div class="content-sections">
-      <!-- Menu Items Section -->
-      <div class="card p-mb-4">
-        <h3>Menu Items</h3>
+			<div class="form-section">
+				<h4>Aggiungi nuovo piatto</h4>
+				<div class="p-fluid p-formgrid p-grid">
+					<div class="p-field p-col-12 p-md-5">
+						<label for="itemName">Nome:</label>
+						<input
+							id="itemName"
+							type="text"
+							pInputText
+							[(ngModel)]="newItemName"
+							placeholder="Nome della voce"
+						/>
+					</div>
+					<div class="p-field p-col-12 p-md-5">
+						<label for="itemPrice">Prezzo:</label>
+						<input
+							id="itemPrice"
+							type="number"
+							pInputText
+							[(ngModel)]="newItemPrice"
+							placeholder="Prezzo della voce"
+						/>
+					</div>
+					<div class="p-field p-col-12 p-md-2">
+						<button
+							pButton
+							type="button"
+							label="Aggiungi Voce"
+							(click)="addItem()"
+							class="p-mt-4"
+							title="Aggiungi nuova voce del menu"
+						></button>
+					</div>
+				</div>
+			</div>
 
-        <div class="form-section">
-          <h4>Add New Item</h4>
-          <div class="p-fluid p-formgrid p-grid">
-            <div class="p-field p-col-12 p-md-5">
-              <label for="itemName">Name:</label>
-              <input id="itemName" type="text" pInputText [(ngModel)]="newItemName" placeholder="Item Name">
-            </div>
-            <div class="p-field p-col-12 p-md-5">
-              <label for="itemPrice">Price:</label>
-              <input id="itemPrice" type="number" pInputText [(ngModel)]="newItemPrice" placeholder="Item Price">
-            </div>
-            <div class="p-field p-col-12 p-md-2">
-              <button pButton type="button" label="Add Item" (click)="addItem()" class="p-mt-4" title="Add new menu item"></button>
-            </div>
-          </div>
-        </div>
+			<hr class="p-my-3" />
 
-        <hr class="p-my-3">
+			<div class="form-section">
+				<h4>Voci Attuali del Menu</h4>
+				@if (menuWsConnection?.resource?.value(); as menu) {
+				<div class="menu-item-list">
+					@if (menu.menuItems.length > 0) {
+					<div class="grid">
+						@for (item of menu.menuItems; track item.id) {
+						<div class="col-12 md:col-6 lg:col-4">
+							<div
+								class="menu-item-card p-3 border-1 border-300 border-round surface-card"
+							>
+								<!-- Image Section -->
+								@if (item.showImage && item.imageUrl) {
+								<div class="w-full mb-3">
+									<img
+										[src]="item.imageUrl"
+										[alt]="item.name + ' immagine'"
+										title="Immagine del piatto"
+										class="w-full h-6rem object-fit-cover border-round"
+									/>
+								</div>
+								}
 
-        <div class="form-section">
-          <h4>Remove Item</h4>
-          <p>Current Items (for ID reference):</p>
-          @if (menuWsConnection?.resource?.value(); as menu) {
-            <div class="menu-item-list">
-              <ul>
-                @for (item of menu.menuItems; track item.id) {
-                  <li>{{item.name}} (ID: {{item.id}}) - ${{item.price}}</li>
-                }
-                @if (!menu.menuItems.length) {
-                  <li>No items in the current menu.</li>
-                }
-              </ul>
-            </div>
-          } @else {
-            <p>Loading menu...</p>
-          }
-          <div class="p-fluid p-formgrid p-grid p-mt-3">
-            <div class="p-field p-col-12 p-md-10">
-              <label for="itemIdRemove">Item ID to Remove:</label>
-              <input id="itemIdRemove" type="number" pInputText [(ngModel)]="itemIdToRemove" placeholder="Item ID">
-            </div>
-            <div class="p-field p-col-12 p-md-2">
-              <button pButton type="button" label="Remove Item" (click)="removeItem()" class="p-button-danger p-mt-4" title="Remove selected menu item"></button>
-            </div>
-          </div>
-        </div>
-      </div>
+								<div
+									class="flex justify-content-between align-items-start mb-2"
+								>
+									<div class="flex-1">
+										<h5 class="m-0 mb-2">{{ item.name }}</h5>
+										<p class="m-0 text-primary font-bold">€{{ item.price }}</p>
+										<small class="text-500">ID: {{ item.id }}</small>
+									</div>
+									<button
+										pButton
+										type="button"
+										pButtonIcon="pi pi-times"
+										class="p-button-rounded p-button-danger p-button-sm"
+										(click)="removeItemById(item.id)"
+										[title]="'Rimuovi ' + item.name"
+										[attr.aria-label]="'Rimuovi ' + item.name + ' dal menu'"
+									>
+										<span class="sr-only">Rimuovi</span>
+									</button>
+								</div>
 
-      <!-- Pasta Types Section -->
-      <div class="card p-mb-4">
-        <h3>Pasta Types</h3>
-        <button pButton type="button" label="Create New Pasta Type" icon="pi pi-plus"
-                (click)="openNewPastaTypeDialog()" class="p-mb-3"
-                title="Create a new pasta type"></button>
-        <p-pickList
-          [source]="pastaTypesSource()"
-          [target]="pastaTypesTarget()"
-          sourceHeader="Available Pasta Types"
-          targetHeader="Selected for Menu"
-          [dragdrop]="true"
-          [responsive]="true"
-          [sourceStyle]="{ height: '250px' }"
-          [targetStyle]="{ height: '250px' }"
-          filterBy="name"
-          sourceFilterPlaceholder="Search by name"
-          targetFilterPlaceholder="Search by name"
-          (onMoveToTarget)="onPastaTypeMoveToTarget($event)"
-          (onMoveToSource)="onPastaTypeMoveToSource($event)">
-          <ng-template let-type pTemplate="item">
-            <div class="flex flex-wrap p-1 align-items-center gap-2 w-full">
-              @if (type.imageUrl) {
-                <img class="w-3rem shadow-2 shrink-0 border-round" [src]="type.imageUrl" [alt]="type.name + ' pasta type'" title="Pasta type image" />
-              }
-              @if (!type.imageUrl) {
-                <i class="pi pi-image placeholder-icon" title="No image available"></i>
-              }
-              <div class="flex-1 flex flex-col">
-                <span class="font-bold text-sm">{{ type.name }}</span>
-              </div>
-              <div class="flex gap-1">
-                <button pButton type="button" icon="pi pi-images" class="p-button-sm p-button-text"
-                        (click)="openImageManager('pastaType', type)"
-                        title="Manage images"
-                        [attr.aria-label]="'Manage images for ' + type.name"></button>
-              </div>
-            </div>
-          </ng-template>
-        </p-pickList>
-      </div>
+								<!-- Image Controls -->
+								<div
+									class="flex justify-content-between align-items-center gap-2 image-controls"
+								>
+									<div class="flex align-items-center gap-2">
+										<label class="text-sm font-medium">Mostra immagine:</label>
+										<p-toggleButton
+											[(ngModel)]="item.showImage"
+											(onChange)="
+												toggleMenuItemShowImage(item.id, $event.checked!)
+											"
+											onLabel="Sì"
+											offLabel="No"
+											styleClass="p-button-sm"
+										>
+										</p-toggleButton>
+									</div>
 
-      <!-- Pasta Sauces Section -->
-      <div class="card p-mb-4">
-        <h3>Pasta Sauces</h3>
-        <button pButton type="button" label="Create New Pasta Sauce" icon="pi pi-plus"
-                (click)="openNewPastaSauceDialog()" class="p-mb-3"
-                title="Create a new pasta sauce"></button>
-        <p-pickList
-          [source]="pastaSaucesSource()"
-          [target]="pastaSaucesTarget()"
-          sourceHeader="Available Pasta Sauces"
-          targetHeader="Selected for Menu"
-          [dragdrop]="true"
-          [responsive]="true"
-          [sourceStyle]="{ height: '250px' }"
-          [targetStyle]="{ height: '250px' }"
-          filterBy="name"
-          sourceFilterPlaceholder="Search by name"
-          targetFilterPlaceholder="Search by name"
-          (onMoveToTarget)="onPastaSauceMoveToTarget($event)"
-          (onMoveToSource)="onPastaSauceMoveToSource($event)">
-          <ng-template let-sauce pTemplate="item">
-            <div class="flex flex-wrap p-1 align-items-center gap-2 w-full">
-              @if (sauce.imageUrl) {
-                <img class="w-3rem shadow-2 shrink-0 border-round" [src]="sauce.imageUrl" [alt]="sauce.name + ' pasta sauce'" title="Pasta sauce image" />
-              }
-              @if (!sauce.imageUrl) {
-                <i class="pi pi-image placeholder-icon" title="No image available"></i>
-              }
-              <div class="flex-1 flex flex-col">
-                <span class="font-bold text-sm">{{ sauce.name }}</span>
-              </div>
-              <div class="flex gap-1">
-                <button pButton type="button" icon="pi pi-images" class="p-button-sm p-button-text"
-                        (click)="openImageManager('pastaSauce', sauce)"
-                        title="'Manage images for ' + sauce.name"
-                        [attr.aria-label]="'Manage images for ' + sauce.name"></button>
-              </div>
-            </div>
-          </ng-template>
-        </p-pickList>
-      </div>
-    </div>
-  }
+									@if (item.imageUrl || hasAvailableImages(item)) {
+									<button
+										pButton
+										type="button"
+										pButtonIcon="pi pi-images"
+										class="p-button-sm p-button-outlined"
+										(click)="openMenuItemImageManager(item)"
+										title="Gestisci immagini"
+										[attr.aria-label]="'Gestisci immagini per ' + item.name"
+									></button>
+									} @else {
+									<button
+										pButton
+										type="button"
+										label="Aggiungi Immagine"
+										pButtonIcon="pi pi-plus"
+										class="p-button-sm p-button-outlined"
+										(click)="openMenuItemImageManager(item)"
+										title="Aggiungi immagine"
+										[attr.aria-label]="'Aggiungi immagine per ' + item.name"
+									></button>
+									}
+								</div>
+							</div>
+						</div>
+						}
+					</div>
+					} @else {
+					<div class="text-center p-4">
+						<i class="pi pi-info-circle text-3xl text-500 mb-3"></i>
+						<p class="text-500 m-0">Nessuna voce nel menu attuale.</p>
+					</div>
+					}
+				</div>
+				} @else {
+				<div class="text-center p-4">
+					<i class="pi pi-spin pi-spinner text-2xl text-500"></i>
+					<p class="text-500 mt-2 m-0">Caricamento menu...</p>
+				</div>
+				}
+			</div>
 
-  <!-- Dialog for New Pasta Type -->
-  <p-dialog header="Create New Pasta Type" [(visible)]="showNewPastaTypeDialog" [modal]="true" [style]="{width: '50vw'}" [draggable]="false" [resizable]="false">
-    <div class="p-fluid">
-      <div class="p-field p-mb-3">
-        <label for="newPastaTypeName">Name</label>
-        <input id="newPastaTypeName" type="text" pInputText [ngModel]="newPastaTypeName()" (ngModelChange)="newPastaTypeName.set($event)"/>
-      </div>
-      <div class="p-field">
-        <label for="newPastaTypeImageUrl">Image URL (Optional)</label>
-        <input id="newPastaTypeImageUrl" type="text" pInputText [ngModel]="newPastaTypeImageUrl()" (ngModelChange)="newPastaTypeImageUrl.set($event)"/>
-      </div>
-    </div>
-    <ng-template pTemplate="footer">
-      <button pButton type="button" label="Cancel" icon="pi pi-times" (click)="showNewPastaTypeDialog.set(false)" class="p-button-text" title="Cancel pasta type creation"></button>
-      <button pButton type="button" label="Save" icon="pi pi-check" (click)="saveNewPastaType()" title="Save new pasta type"></button>
-    </ng-template>
-  </p-dialog>
+			<!-- Save Menu Button -->
+			@if (menuWsConnection?.connected()) {
+			<div class="text-center p-mt-4 save-menu-button">
+				<button
+					pButton
+					type="button"
+					label="Salva Menu Attuale"
+					icon="pi pi-save"
+					class="p-button-success p-button-lg"
+					(click)="openSaveMenuDialog()"
+					title="Salva il menu attuale per riutilizzarlo in seguito"
+				></button>
+			</div>
+			}
+		</div>
 
-  <!-- Dialog for New Pasta Sauce -->
-  <p-dialog header="Create New Pasta Sauce" [(visible)]="showNewPastaSauceDialog" [modal]="true" [style]="{width: '50vw'}" [draggable]="false" [resizable]="false">
-    <div class="p-fluid">
-      <div class="p-field p-mb-3">
-        <label for="newPastaSauceName">Name</label>
-        <input id="newPastaSauceName" type="text" pInputText [ngModel]="newPastaSauceName()" (ngModelChange)="newPastaSauceName.set($event)"/>
-      </div>
-      <div class="p-field">
-        <label for="newPastaSauceImageUrl">Image URL (Optional)</label>
-        <input id="newPastaSauceImageUrl" type="text" pInputText [ngModel]="newPastaSauceImageUrl()" (ngModelChange)="newPastaSauceImageUrl.set($event)"/>
-      </div>
-    </div>
-    <ng-template pTemplate="footer">
-      <button pButton type="button" label="Cancel" icon="pi pi-times" (click)="showNewPastaSauceDialog.set(false)" class="p-button-text" title="Cancel pasta sauce creation"></button>
-      <button pButton type="button" label="Save" icon="pi pi-check" (click)="saveNewPastaSauce()" title="Save new pasta sauce"></button>
-    </ng-template>
-  </p-dialog>
+		<!-- Pasta Types Section -->
+		<div class="card p-mb-4">
+			<h3>Tipi di Pasta</h3>
+			<button
+				pButton
+				type="button"
+				label="Crea Nuovo Tipo di Pasta"
+				icon="pi pi-plus"
+				(click)="openNewPastaTypeDialog()"
+				class="p-mb-3"
+				title="Crea un nuovo tipo di pasta"
+			></button>
+			<p-pickList
+				[source]="pastaTypesSource()"
+				[target]="pastaTypesTarget()"
+				sourceHeader="Tipi di Pasta Disponibili"
+				targetHeader="Selezionati per il Menu"
+				[dragdrop]="true"
+				[responsive]="true"
+				[sourceStyle]="{ height: '250px' }"
+				[targetStyle]="{ height: '250px' }"
+				filterBy="name"
+				sourceFilterPlaceholder="Cerca per nome"
+				targetFilterPlaceholder="Cerca per nome"
+				(onMoveToTarget)="onPastaTypeMoveToTarget($event)"
+				(onMoveToSource)="onPastaTypeMoveToSource($event)"
+			>
+				<ng-template let-type pTemplate="item">
+					<div class="flex flex-wrap p-1 align-items-center gap-2 w-full">
+						@if (type.imageUrl) {
+						<img
+							class="w-3rem shadow-2 shrink-0 border-round"
+							[src]="type.imageUrl"
+							[alt]="type.name + ' pasta type'"
+							title="Pasta type image"
+						/>
+						} @if (!type.imageUrl) {
+						<i
+							class="pi pi-image placeholder-icon"
+							title="Nessuna immagine disponibile"
+						></i>
+						}
+						<div class="flex-1 flex flex-col">
+							<span class="font-bold text-sm">{{ type.name }}</span>
+						</div>
+						<div class="flex gap-1">
+							<button
+								pButton
+								type="button"
+								icon="pi pi-images"
+								class="p-button-sm p-button-text"
+								(click)="openImageManager('pastaType', type)"
+								title="Gestisci immagini"
+								[attr.aria-label]="'Gestisci immagini per ' + type.name"
+							></button>
+						</div>
+					</div>
+				</ng-template>
+			</p-pickList>
+		</div>
 
-  <!-- Image Management Dialog -->
-  <p-dialog [header]="'Image Management - ' + (selectedItemForImages()?.name || '')"
-            [(visible)]="showImageManagerDialog"
-            [modal]="true"
-            [style]="{width: '70vw'}"
-            [draggable]="false"
-            [resizable]="false">
-    @if (selectedItemForImages(); as item) {
-      <div class="p-fluid">
-        <!-- Upload Section -->
-        <div class="p-field p-mb-4">
-          <h4>Upload New Image</h4>
-          <p-fileUpload
-            mode="basic"
-            name="image"
-            accept="image/*"
-            [maxFileSize]="10000000"
-            [auto]="false"
-            chooseLabel="Choose Image"
-            (onSelect)="onImageUpload($event)"
-            [disabled]="uploadingImage()">
-          </p-fileUpload>
-          @if (uploadingImage()) {
-            <p class="p-mt-2"><i class="pi pi-spin pi-spinner"></i> Uploading...</p>
-          }
-        </div>
+		<!-- Pasta Sauces Section -->
+		<div class="card p-mb-4">
+			<h3>Sughi per Pasta</h3>
+			<button
+				pButton
+				type="button"
+				label="Crea Nuovo Sugo per Pasta"
+				icon="pi pi-plus"
+				(click)="openNewPastaSauceDialog()"
+				class="p-mb-3"
+				title="Crea un nuovo sugo per pasta"
+			></button>
+			<p-pickList
+				[source]="pastaSaucesSource()"
+				[target]="pastaSaucesTarget()"
+				sourceHeader="Sughi per Pasta Disponibili"
+				targetHeader="Selezionati per il Menu"
+				[dragdrop]="true"
+				[responsive]="true"
+				[sourceStyle]="{ height: '250px' }"
+				[targetStyle]="{ height: '250px' }"
+				filterBy="name"
+				sourceFilterPlaceholder="Cerca per nome"
+				targetFilterPlaceholder="Cerca per nome"
+				(onMoveToTarget)="onPastaSauceMoveToTarget($event)"
+				(onMoveToSource)="onPastaSauceMoveToSource($event)"
+			>
+				<ng-template let-sauce pTemplate="item">
+					<div class="flex flex-wrap p-1 align-items-center gap-2 w-full">
+						@if (sauce.imageUrl) {
+						<img
+							class="w-3rem shadow-2 shrink-0 border-round"
+							[src]="sauce.imageUrl"
+							[alt]="sauce.name + ' pasta sauce'"
+							title="Pasta sauce image"
+						/>
+						} @if (!sauce.imageUrl) {
+						<i
+							class="pi pi-image placeholder-icon"
+							title="Nessuna immagine disponibile"
+						></i>
+						}
+						<div class="flex-1 flex flex-col">
+							<span class="font-bold text-sm">{{ sauce.name }}</span>
+						</div>
+						<div class="flex gap-1">
+							<button
+								pButton
+								type="button"
+								icon="pi pi-images"
+								class="p-button-sm p-button-text"
+								(click)="openImageManager('pastaSauce', sauce)"
+								title="Gestisci immagini per {{ sauce.name }}"
+								[attr.aria-label]="'Gestisci immagini per ' + sauce.name"
+							></button>
+						</div>
+					</div>
+				</ng-template>
+			</p-pickList>
+		</div>
+	</div>
+	}
 
-        <!-- Current Image Section -->
-        <div class="p-field p-mb-4">
-          <h4>Current Image</h4>
-          @if (item.currentImage) {
-            <div class="flex align-items-center gap-3">
-              <img [src]="item.currentImage" [alt]="item.name + ' current image'" title="Current image" class="pasta-image"/>
-              <span>{{item.currentImage}}</span>
-            </div>
-          } @else {
-            <p>No current image set</p>
-          }
-        </div>
+	<!-- Dialog for New Pasta Type -->
+	<p-dialog
+		header="Crea Nuovo Tipo di Pasta"
+		[(visible)]="showNewPastaTypeDialog"
+		[modal]="true"
+		[style]="{ width: '50vw' }"
+		[draggable]="false"
+		[resizable]="false"
+	>
+		<div class="p-fluid">
+			<div class="p-field p-mb-3">
+				<label for="newPastaTypeName">Nome</label>
+				<input
+					id="newPastaTypeName"
+					type="text"
+					pInputText
+					[ngModel]="newPastaTypeName()"
+					(ngModelChange)="newPastaTypeName.set($event)"
+				/>
+			</div>
+			<div class="p-field">
+				<label for="newPastaTypeImageUrl">URL Immagine (Opzionale)</label>
+				<input
+					id="newPastaTypeImageUrl"
+					type="text"
+					pInputText
+					[ngModel]="newPastaTypeImageUrl()"
+					(ngModelChange)="newPastaTypeImageUrl.set($event)"
+				/>
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Annulla"
+				icon="pi pi-times"
+				(click)="showNewPastaTypeDialog.set(false)"
+				class="p-button-text"
+				title="Annulla creazione tipo di pasta"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Salva"
+				icon="pi pi-check"
+				(click)="saveNewPastaType()"
+				title="Salva nuovo tipo di pasta"
+			></button>
+		</ng-template>
+	</p-dialog>
 
-        <!-- Available Images Section -->
-        <div class="p-field">
-          <h4>Available Images ({{item.availableImages.length}})</h4>
-          @if (item.availableImages.length > 0) {
-            <div class="grid">
-              @for (imageUrl of item.availableImages; track imageUrl) {
-                <div class="col-6 md:col-4 lg:col-3">
-                  <div class="p-card p-2">
-                    <img [src]="imageUrl" [alt]="item.name + ' available image'" title="Available image" class="w-full pasta-image p-mb-2"/>
-                    <div class="flex flex-column gap-2">
-                      @if (imageUrl !== item.currentImage) {
-                        <button pButton type="button"
-                                label="Set as Current"
-                                icon="pi pi-check"
-                                class="p-button-sm p-button-success"
-                                (click)="switchToImage(imageUrl)"
-                                title="Set as current image"></button>
-                      } @else {
-                        <span class="text-green-600 font-bold text-sm">
-                          <i class="pi pi-check-circle"></i> Current Image
-                        </span>
-                      }
-                      <button pButton type="button"
-                              label="Delete"
-                              icon="pi pi-trash"
-                              class="p-button-sm p-button-danger"
-                              (click)="deleteImage(imageUrl)"
-                              title="Delete this image"></button>
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <p>No images available. Upload an image to get started.</p>
-          }
-        </div>
-      </div>
-    }
-    <ng-template pTemplate="footer">
-      <button pButton type="button" label="Close" icon="pi pi-times"
-              (click)="showImageManagerDialog.set(false)"
-              title="Close image manager"></button>
-    </ng-template>
-  </p-dialog>
+	<!-- Dialog for New Pasta Sauce -->
+	<p-dialog
+		header="Crea Nuovo Sugo per Pasta"
+		[(visible)]="showNewPastaSauceDialog"
+		[modal]="true"
+		[style]="{ width: '50vw' }"
+		[draggable]="false"
+		[resizable]="false"
+	>
+		<div class="p-fluid">
+			<div class="p-field p-mb-3">
+				<label for="newPastaSauceName">Nome</label>
+				<input
+					id="newPastaSauceName"
+					type="text"
+					pInputText
+					[ngModel]="newPastaSauceName()"
+					(ngModelChange)="newPastaSauceName.set($event)"
+				/>
+			</div>
+			<div class="p-field">
+				<label for="newPastaSauceImageUrl">URL Immagine (Opzionale)</label>
+				<input
+					id="newPastaSauceImageUrl"
+					type="text"
+					pInputText
+					[ngModel]="newPastaSauceImageUrl()"
+					(ngModelChange)="newPastaSauceImageUrl.set($event)"
+				/>
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Annulla"
+				icon="pi pi-times"
+				(click)="showNewPastaSauceDialog.set(false)"
+				class="p-button-text"
+				title="Annulla creazione sugo per pasta"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Salva"
+				icon="pi pi-check"
+				(click)="saveNewPastaSauce()"
+				title="Salva nuovo sugo per pasta"
+			></button>
+		</ng-template>
+	</p-dialog>
 
-  <!-- Confirmation Dialog -->
-  <p-confirmDialog></p-confirmDialog>
+	<!-- Image Management Dialog -->
+	<p-dialog
+		[header]="'Gestione Immagini - ' + (selectedItemForImages()?.name || '')"
+		[(visible)]="showImageManagerDialog"
+		[modal]="true"
+		[style]="{ width: '70vw' }"
+		[draggable]="false"
+		[resizable]="false"
+	>
+		@if (selectedItemForImages(); as item) {
+		<div class="p-fluid">
+			<!-- Upload Section -->
+			<div class="p-field p-mb-4">
+				<h4>Carica Nuova Immagine</h4>
+				<p-fileUpload
+					mode="basic"
+					name="image"
+					accept="image/*"
+					[maxFileSize]="10000000"
+					[auto]="false"
+					chooseLabel="Scegli Immagine"
+					(onSelect)="onImageUpload($event)"
+					[disabled]="uploadingImage()"
+				>
+				</p-fileUpload>
+				@if (uploadingImage()) {
+				<p class="p-mt-2">
+					<i class="pi pi-spin pi-spinner"></i> Caricamento...
+				</p>
+				}
+			</div>
+
+			<!-- Current Image Section -->
+			<div class="p-field p-mb-4">
+				<h4>Immagine Attuale</h4>
+				@if (item.currentImage) {
+				<div class="flex align-items-center gap-3">
+					<img
+						[src]="item.currentImage"
+						[alt]="item.name + ' immagine attuale'"
+						title="Immagine attuale"
+						class="pasta-image"
+					/>
+					<span>{{ item.currentImage }}</span>
+				</div>
+				} @else {
+				<p>Nessuna immagine attuale impostata</p>
+				}
+			</div>
+
+			<!-- Available Images Section -->
+			<div class="p-field">
+				<h4>Immagini Disponibili ({{ item.availableImages.length }})</h4>
+				@if (item.availableImages.length > 0) {
+				<div class="grid">
+					@for (imageUrl of item.availableImages; track imageUrl) {
+					<div class="col-6 md:col-4 lg:col-3">
+						<div class="p-card p-2">
+							<img
+								[src]="imageUrl"
+								[alt]="item.name + ' immagine disponibile'"
+								title="Immagine disponibile"
+								class="w-full pasta-image p-mb-2"
+							/>
+							<div class="flex flex-column gap-2">
+								@if (imageUrl !== item.currentImage) {
+								<button
+									pButton
+									type="button"
+									label="Imposta come Attuale"
+									icon="pi pi-check"
+									class="p-button-sm p-button-success"
+									(click)="switchToImage(imageUrl)"
+									title="Imposta come immagine attuale"
+								></button>
+								} @else {
+								<span class="text-green-600 font-bold text-sm">
+									<i class="pi pi-check-circle"></i> Immagine Attuale
+								</span>
+								}
+								<button
+									pButton
+									type="button"
+									label="Elimina"
+									icon="pi pi-trash"
+									class="p-button-sm p-button-danger"
+									(click)="deleteImage(imageUrl)"
+									title="Elimina questa immagine"
+								></button>
+							</div>
+						</div>
+					</div>
+					}
+				</div>
+				} @else {
+				<p>Nessuna immagine disponibile. Carica un'immagine per iniziare.</p>
+				}
+			</div>
+		</div>
+		}
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Chiudi"
+				icon="pi pi-times"
+				(click)="showImageManagerDialog.set(false)"
+				title="Chiudi gestione immagini"
+			></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Confirmation Dialog -->
+	<p-confirmDialog></p-confirmDialog>
+
+	<!-- Saved Menus Section - Always visible at bottom -->
+	<div class="saved-menus-section">
+		@if (menuWsConnection) {
+			<app-saved-menus [menuConnection]="menuWsConnection"></app-saved-menus>
+		}
+	</div>
 </div>

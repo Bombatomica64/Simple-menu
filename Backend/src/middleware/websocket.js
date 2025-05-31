@@ -49,6 +49,18 @@ function setupWebSocket(server) {
           case "removeItem":
             updated = await menuService.removeItemFromMenu(message.itemId);
             break;
+          case "updateMenuItemImage":
+            updated = await menuService.updateMenuItemImage(message.itemId, message.imageUrl);
+            break;
+          case "toggleMenuItemShowImage":
+            updated = await menuService.toggleMenuItemShowImage(message.itemId, message.showImage);
+            break;
+          case "addImageToMenuItem":
+            updated = await menuService.addImageToMenuItem(message.itemId, message.imageUrl);
+            break;
+          case "removeImageFromMenuItem":
+            updated = await menuService.removeImageFromMenuItem(message.itemId, message.imageUrl);
+            break;
           case "addPastaTypeToMenu":
             updated = await menuService.addPastaTypeToMenu(message.pastaTypeId);
             break;
@@ -60,6 +72,66 @@ function setupWebSocket(server) {
             break;
           case "removePastaSauceFromMenu":
             updated = await menuService.removePastaSauceFromMenu(message.pastaSauceId);
+            break;
+          case "saveCurrentMenu":
+            try {
+              const savedMenu = await menuService.saveCurrentMenu(message.name);
+              if (savedMenu) {
+                // Send confirmation back to client
+                ws.send(JSON.stringify({
+                  type: "menuSaved",
+                  savedMenu: savedMenu
+                }));
+              }
+            } catch (error) {
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to save menu: " + error.message
+              }));
+            }
+            break;
+          case "loadSavedMenu":
+            try {
+              const loadedMenu = await menuService.loadSavedMenu(message.savedMenuId);
+              if (loadedMenu) {
+                updated = true; // Trigger broadcast of the new menu
+              }
+            } catch (error) {
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to load menu: " + error.message
+              }));
+            }
+            break;
+          case "deleteSavedMenu":
+            try {
+              const deleted = await menuService.deleteSavedMenu(message.savedMenuId);
+              if (deleted) {
+                ws.send(JSON.stringify({
+                  type: "menuDeleted",
+                  savedMenuId: message.savedMenuId
+                }));
+              }
+            } catch (error) {
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to delete menu: " + error.message
+              }));
+            }
+            break;
+          case "getAllSavedMenus":
+            try {
+              const savedMenus = await menuService.getAllSavedMenus();
+              ws.send(JSON.stringify({
+                type: "savedMenusList",
+                savedMenus: savedMenus
+              }));
+            } catch (error) {
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to get saved menus: " + error.message
+              }));
+            }
             break;
           default:
             console.warn("Unknown message type:", message.type);

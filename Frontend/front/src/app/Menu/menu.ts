@@ -3,6 +3,9 @@ export interface MenuItem {
     name: string;
     price: number;
     menuId?: number;
+    imageUrl?: string;
+    availableImages?: string;
+    showImage?: boolean;
 }
 
 export interface PastaType {

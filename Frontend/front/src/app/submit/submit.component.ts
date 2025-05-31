@@ -7,6 +7,7 @@ import {
 	computed,
 	Injector,
 	runInInjectionContext,
+	ViewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +18,10 @@ import {
 	MenuUpdateMessage,
 	AddItemMessage,
 	RemoveItemMessage,
+	UpdateMenuItemImageMessage,
+	ToggleMenuItemShowImageMessage,
+	AddImageToMenuItemMessage,
+	RemoveImageFromMenuItemMessage,
 	AddPastaTypeMessage,
 	RemovePastaTypeMessage,
 	AddPastaSauceMessage,
@@ -37,24 +42,28 @@ import { DialogModule } from 'primeng/dialog'; // For modal dialogs
 import { FileUploadModule } from 'primeng/fileupload'; // For file upload
 import { GalleriaModule } from 'primeng/galleria'; // For image gallery
 import { ConfirmDialogModule } from 'primeng/confirmdialog'; // For confirmation dialogs
+import { ToggleButtonModule } from 'primeng/togglebutton'; // For toggle switch
 import { ConfirmationService } from 'primeng/api'; // For confirmation service
+import { SavedMenusComponent } from '../saved-menus/saved-menus.component'; // Import SavedMenusComponent
 
 @Component({
 	selector: 'app-submit',
 	standalone: true,
 	imports: [
-    FormsModule,
-    PickListModule,
-    ButtonModule,
-    InputTextModule,
-    DialogModule,
-    FileUploadModule,
-    GalleriaModule,
-    ConfirmDialogModule
-],
+		FormsModule,
+		PickListModule,
+		ButtonModule,
+		InputTextModule,
+		DialogModule,
+		FileUploadModule,
+		GalleriaModule,
+		ConfirmDialogModule,
+		ToggleButtonModule,
+		SavedMenusComponent,
+	],
 	templateUrl: './submit.component.html',
 	styleUrls: ['./submit.component.scss'],
-	providers: [ConfirmationService]
+	providers: [ConfirmationService],
 })
 export class SubmitComponent implements OnInit {
 	private platformId = inject(PLATFORM_ID);
@@ -62,12 +71,13 @@ export class SubmitComponent implements OnInit {
 	private injector = inject(Injector);
 	private confirmationService = inject(ConfirmationService);
 	private apiUrl = 'http://localhost:3000';
-	menuWsConnection: MenuConnection | null = null;
 
+	@ViewChild(SavedMenusComponent) savedMenusComponent!: SavedMenusComponent;
+
+	menuWsConnection: MenuConnection | null = null;
 	// For adding new item
 	newItemName: string = '';
 	newItemPrice: number | null = null;
-	itemIdToRemove: number | null = null;
 
 	// --- Pasta Types Management ---
 	allPastaTypes = signal<AppPastaType[]>([]);
@@ -91,15 +101,51 @@ export class SubmitComponent implements OnInit {
 	});
 
 	// --- Pasta Sauces Management ---
-	allPastaSauces = signal<AppPastaSauce[]>([]);	// For creating new pasta sauce
+	allPastaSauces = signal<AppPastaSauce[]>([]); // For creating new pasta sauce
 	showNewPastaSauceDialog = signal(false);
 	newPastaSauceName = signal('');
 	newPastaSauceImageUrl = signal('');
-	
+
 	// Image management
 	showImageManagerDialog = signal(false);
-	selectedItemForImages = signal<{type: 'pastaType' | 'pastaSauce', id: number, name: string, availableImages: string[], currentImage: string} | null>(null);
+	selectedItemForImages = signal<{
+		type: 'pastaType' | 'pastaSauce' | 'menuItem';
+		id: number;
+		name: string;
+		availableImages: string[];
+		currentImage: string;
+	} | null>(null);
 	uploadingImage = signal(false);
+
+	// Helper method to check if menu item has available images
+	hasAvailableImages(item: MenuItem): boolean {
+		if (!item.availableImages) return false;
+		try {
+			const images = JSON.parse(item.availableImages);
+			return Array.isArray(images) && images.length > 0;
+		} catch {
+			return false;
+		}
+	}
+
+	// Helper method to get available images count
+	getAvailableImagesCount(item: MenuItem): number {
+		if (!item.availableImages) return 0;
+		try {
+			const images = JSON.parse(item.availableImages);
+			return Array.isArray(images) ? images.length : 0;
+		} catch {
+			return 0;
+		}
+	}
+
+	// Method to trigger save menu dialog
+	openSaveMenuDialog() {
+		if (this.savedMenusComponent) {
+			this.savedMenusComponent.openSaveDialog();
+		}
+	}
+
 	// Computed signals for Pasta Sauce PickList
 	pastaSaucesSource = computed(() => {
 		const currentMenu = this.menuWsConnection?.resource.value();
@@ -143,39 +189,64 @@ export class SubmitComponent implements OnInit {
 	}
 	// --- Menu Item Actions ---
 	addItem() {
-		if (!this.newItemName.trim() || this.newItemPrice === null || this.newItemPrice <= 0) {
-			alert('Please provide a valid item name and price.');
+		if (
+			!this.newItemName.trim() ||
+			this.newItemPrice === null ||
+			this.newItemPrice <= 0
+		) {
+			alert('Inserisci un nome valido e un prezzo per la voce.');
 			return;
 		}
-		
+
 		const message: AddItemMessage = {
 			type: 'addItem',
 			item: {
 				name: this.newItemName.trim(),
-				price: this.newItemPrice
-			}
+				price: this.newItemPrice,
+			},
 		};
 		this.menuWsConnection?.sendUpdate(message);
-		
+
 		// Clear the form
 		this.newItemName = '';
 		this.newItemPrice = null;
 	}
-	
-	removeItem() {
-		if (this.itemIdToRemove === null || this.itemIdToRemove <= 0) {
-			alert('Please provide a valid item ID to remove.');
-			return;
-		}
-		
+	removeItemById(itemId: number) {
 		const message: RemoveItemMessage = {
 			type: 'removeItem',
-			itemId: this.itemIdToRemove
+			itemId: itemId,
 		};
 		this.menuWsConnection?.sendUpdate(message);
-		
-		// Clear the form
-		this.itemIdToRemove = null;
+	}
+
+	// --- Menu Item Image Management ---
+	toggleMenuItemShowImage(itemId: number, showImage: boolean) {
+		const message: ToggleMenuItemShowImageMessage = {
+			type: 'toggleMenuItemShowImage',
+			itemId: itemId,
+			showImage: showImage,
+		};
+		this.menuWsConnection?.sendUpdate(message);
+	}
+
+	openMenuItemImageManager(item: MenuItem) {
+		let availableImages: string[] = [];
+		try {
+			availableImages = item.availableImages
+				? JSON.parse(item.availableImages)
+				: [];
+		} catch (e) {
+			availableImages = [];
+		}
+
+		this.selectedItemForImages.set({
+			type: 'menuItem',
+			id: item.id,
+			name: item.name,
+			availableImages: availableImages,
+			currentImage: item.imageUrl || '',
+		});
+		this.showImageManagerDialog.set(true);
 	}
 
 	// --- Pasta Type PickList Actions ---
@@ -204,9 +275,10 @@ export class SubmitComponent implements OnInit {
 		this.newPastaTypeImageUrl.set('');
 		this.showNewPastaTypeDialog.set(true);
 	}
+
 	saveNewPastaType() {
 		if (!this.newPastaTypeName().trim()) {
-			alert('Pasta type name is required.');
+			alert('Il nome del tipo di pasta è obbligatorio.');
 			return;
 		}
 		this.http
@@ -221,7 +293,11 @@ export class SubmitComponent implements OnInit {
 				},
 				error: (err) => {
 					console.error('Failed to create pasta type', err);
-					alert(`Error: ${err.error?.error || 'Could not create pasta type.'}`);
+					alert(
+						`Errore: ${
+							err.error?.error || 'Impossibile creare il tipo di pasta.'
+						}`
+					);
 				},
 			});
 	}
@@ -254,7 +330,7 @@ export class SubmitComponent implements OnInit {
 	}
 	saveNewPastaSauce() {
 		if (!this.newPastaSauceName().trim()) {
-			alert('Pasta sauce name is required.');
+			alert('Il nome del sugo per pasta è obbligatorio.');
 			return;
 		}
 		this.http
@@ -270,27 +346,32 @@ export class SubmitComponent implements OnInit {
 				error: (err) => {
 					console.error('Failed to create pasta sauce', err);
 					alert(
-						`Error: ${err.error?.error || 'Could not create pasta sauce.'}`
+						`Errore: ${
+							err.error?.error || 'Impossibile creare il sugo per pasta.'
+						}`
 					);
 				},
 			});
-	}	get currentMenuItemsForDisplay(): MenuItem[] {
+	}
+	get currentMenuItemsForDisplay(): MenuItem[] {
 		const menu = this.menuWsConnection?.resource.value();
 		return menu?.menuItems || [];
 	}
 
 	// --- Image Management ---
-	openImageManager(type: 'pastaType' | 'pastaSauce', item: AppPastaType | AppPastaSauce) {
+	openImageManager(
+		type: 'pastaType' | 'pastaSauce',
+		item: AppPastaType | AppPastaSauce
+	) {
 		this.selectedItemForImages.set({
 			type,
 			id: item.id,
 			name: item.name,
 			availableImages: JSON.parse((item as any).availableImages || '[]'),
-			currentImage: item.imageUrl || ''
+			currentImage: item.imageUrl || '',
 		});
 		this.showImageManagerDialog.set(true);
 	}
-
 	onImageUpload(event: any) {
 		const file = event.files[0];
 		if (!file || !this.selectedItemForImages()) return;
@@ -300,90 +381,192 @@ export class SubmitComponent implements OnInit {
 		const formData = new FormData();
 		formData.append('image', file);
 
-		const endpoint = selectedItem.type === 'pastaType' 
-			? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/upload`
-			: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/upload`;
+		if (selectedItem.type === 'menuItem') {
+			// Handle menu item via upload to images endpoint and then add to menu item
+			this.http.post<any>(`${this.apiUrl}/images/upload`, formData).subscribe({
+				next: (response) => {
+					console.log('Image uploaded successfully:', response);
+					const imageUrl = response.imageUrl;
 
-		this.http.post<any>(endpoint, formData).subscribe({
-			next: (response) => {
-				console.log('Image uploaded successfully:', response);
-				// Refresh the data
-				this.loadAllPastaTypes();
-				this.loadAllPastaSauces();
-				// Update the selected item
-				const updatedItem = response.pastaType || response.pastaSauce;
-				this.selectedItemForImages.set({
-					...selectedItem,
-					availableImages: JSON.parse(updatedItem.availableImages || '[]'),
-					currentImage: updatedItem.imageUrl || ''
-				});
-				this.uploadingImage.set(false);
-			},
-			error: (err) => {
-				console.error('Failed to upload image:', err);
-				alert(`Error: ${err.error?.error || 'Could not upload image.'}`);
-				this.uploadingImage.set(false);
-			}
-		});
+					// Add the image to the menu item via WebSocket
+					const message: AddImageToMenuItemMessage = {
+						type: 'addImageToMenuItem',
+						itemId: selectedItem.id,
+						imageUrl: imageUrl,
+					};
+					this.menuWsConnection?.sendUpdate(message);
+
+					// Update the selected item immediately for UI feedback
+					const updatedImages = [...selectedItem.availableImages, imageUrl];
+					const newCurrentImage = selectedItem.currentImage || imageUrl;
+					this.selectedItemForImages.update((item) =>
+						item
+							? {
+									...item,
+									availableImages: updatedImages,
+									currentImage: newCurrentImage,
+							  }
+							: null
+					);
+
+					this.uploadingImage.set(false);
+				},
+				error: (err) => {
+					console.error('Failed to upload image:', err);
+					alert(
+						`Errore: ${err.error?.error || "Impossibile caricare l'immagine."}`
+					);
+					this.uploadingImage.set(false);
+				},
+			});
+		} else {
+			// Handle pasta types and sauces via HTTP
+			const endpoint =
+				selectedItem.type === 'pastaType'
+					? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/upload`
+					: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/upload`;
+
+			this.http.post<any>(endpoint, formData).subscribe({
+				next: (response) => {
+					console.log('Image uploaded successfully:', response);
+					// Refresh the data
+					this.loadAllPastaTypes();
+					this.loadAllPastaSauces();
+					// Update the selected item
+					const updatedItem = response.pastaType || response.pastaSauce;
+					this.selectedItemForImages.set({
+						...selectedItem,
+						availableImages: JSON.parse(updatedItem.availableImages || '[]'),
+						currentImage: updatedItem.imageUrl || '',
+					});
+					this.uploadingImage.set(false);
+				},
+				error: (err) => {
+					console.error('Failed to upload image:', err);
+					alert(
+						`Errore: ${err.error?.error || "Impossibile caricare l'immagine."}`
+					);
+					this.uploadingImage.set(false);
+				},
+			});
+		}
 	}
-
 	switchToImage(imageUrl: string) {
 		if (!this.selectedItemForImages()) return;
 
 		const selectedItem = this.selectedItemForImages()!;
-		const endpoint = selectedItem.type === 'pastaType' 
-			? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/switch`
-			: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/switch`;
 
-		this.http.put<any>(endpoint, { imageUrl }).subscribe({
-			next: (response) => {
-				console.log('Image switched successfully:', response);
-				// Refresh the data
-				this.loadAllPastaTypes();
-				this.loadAllPastaSauces();
-				// Update the selected item
-				this.selectedItemForImages.update(item => item ? { ...item, currentImage: imageUrl } : null);
-			},
-			error: (err) => {
-				console.error('Failed to switch image:', err);
-				alert(`Error: ${err.error?.error || 'Could not switch image.'}`);
-			}
-		});
+		if (selectedItem.type === 'menuItem') {
+			// Handle menu item via WebSocket
+			const message: UpdateMenuItemImageMessage = {
+				type: 'updateMenuItemImage',
+				itemId: selectedItem.id,
+				imageUrl: imageUrl,
+			};
+			this.menuWsConnection?.sendUpdate(message);
+			// Update the selected item immediately for UI feedback
+			this.selectedItemForImages.update((item) =>
+				item ? { ...item, currentImage: imageUrl } : null
+			);
+		} else {
+			// Handle pasta types and sauces via HTTP
+			const endpoint =
+				selectedItem.type === 'pastaType'
+					? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/switch`
+					: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/switch`;
+
+			this.http.put<any>(endpoint, { imageUrl }).subscribe({
+				next: (response) => {
+					console.log('Image switched successfully:', response);
+					// Refresh the data
+					this.loadAllPastaTypes();
+					this.loadAllPastaSauces();
+					// Update the selected item
+					this.selectedItemForImages.update((item) =>
+						item ? { ...item, currentImage: imageUrl } : null
+					);
+				},
+				error: (err) => {
+					console.error('Failed to switch image:', err);
+					alert(
+						`Errore: ${err.error?.error || 'Impossibile cambiare immagine.'}`
+					);
+				},
+			});
+		}
 	}
-
 	deleteImage(imageUrl: string) {
 		if (!this.selectedItemForImages()) return;
 
 		this.confirmationService.confirm({
-			message: 'Are you sure you want to delete this image? This action cannot be undone.',
-			header: 'Delete Image',
+			message:
+				'Sei sicuro di voler eliminare questa immagine? Questa azione non può essere annullata.',
+			header: 'Elimina Immagine',
 			icon: 'pi pi-exclamation-triangle',
 			accept: () => {
 				const selectedItem = this.selectedItemForImages()!;
-				const endpoint = selectedItem.type === 'pastaType' 
-					? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/delete`
-					: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/delete`;
 
-				this.http.delete<any>(endpoint, { body: { imageUrl } }).subscribe({
-					next: (response) => {
-						console.log('Image deleted successfully:', response);
-						// Refresh the data
-						this.loadAllPastaTypes();
-						this.loadAllPastaSauces();
-						// Update the selected item
-						const updatedItem = response.pastaType || response.pastaSauce;
-						this.selectedItemForImages.set({
-							...selectedItem,
-							availableImages: JSON.parse(updatedItem.availableImages || '[]'),
-							currentImage: updatedItem.imageUrl || ''
-						});
-					},
-					error: (err) => {
-						console.error('Failed to delete image:', err);
-						alert(`Error: ${err.error?.error || 'Could not delete image.'}`);
-					}
-				});
-			}
+				if (selectedItem.type === 'menuItem') {
+					// Handle menu item via WebSocket
+					const message: RemoveImageFromMenuItemMessage = {
+						type: 'removeImageFromMenuItem',
+						itemId: selectedItem.id,
+						imageUrl: imageUrl,
+					};
+					this.menuWsConnection?.sendUpdate(message);
+					// Update the selected item immediately for UI feedback
+					const updatedImages = selectedItem.availableImages.filter(
+						(img) => img !== imageUrl
+					);
+					const newCurrentImage =
+						selectedItem.currentImage === imageUrl
+							? updatedImages.length > 0
+								? updatedImages[0]
+								: ''
+							: selectedItem.currentImage;
+					this.selectedItemForImages.update((item) =>
+						item
+							? {
+									...item,
+									availableImages: updatedImages,
+									currentImage: newCurrentImage,
+							  }
+							: null
+					);
+				} else {
+					// Handle pasta types and sauces via HTTP
+					const endpoint =
+						selectedItem.type === 'pastaType'
+							? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/delete`
+							: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/delete`;
+
+					this.http.delete<any>(endpoint, { body: { imageUrl } }).subscribe({
+						next: (response) => {
+							console.log('Image deleted successfully:', response);
+							// Refresh the data
+							this.loadAllPastaTypes();
+							this.loadAllPastaSauces();
+							// Update the selected item
+							const updatedItem = response.pastaType || response.pastaSauce;
+							this.selectedItemForImages.set({
+								...selectedItem,
+								availableImages: JSON.parse(
+									updatedItem.availableImages || '[]'
+								),
+								currentImage: updatedItem.imageUrl || '',
+							});
+						},
+						error: (err) => {
+							console.error('Failed to delete image:', err);
+							alert(
+								`Errore: ${
+									err.error?.error || "Impossibile eliminare l'immagine."
+								}`
+							);
+						},
+					});
+				}
+			},
 		});
 	}
 }
