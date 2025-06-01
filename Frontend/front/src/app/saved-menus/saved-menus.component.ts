@@ -98,7 +98,6 @@ export class SavedMenusComponent implements OnInit, OnDestroy {
     };
     this.menuConnection.sendUpdate(message);
   }
-
   loadSavedMenu(savedMenu: SavedMenu) {
     this.confirmationService.confirm({
       message: `Sei sicuro di voler caricare il menu "${savedMenu.name}"? Il menu attuale verrà sostituito.`,
@@ -117,9 +116,7 @@ export class SavedMenusComponent implements OnInit, OnDestroy {
         });
       }
     });
-  }
-
-  deleteSavedMenu(savedMenu: SavedMenu) {
+  }  deleteSavedMenu(savedMenu: SavedMenu) {
     this.confirmationService.confirm({
       message: `Sei sicuro di voler eliminare il menu salvato "${savedMenu.name}"? Questa azione non può essere annullata.`,
       header: 'Elimina Menu Salvato',
@@ -144,7 +141,7 @@ export class SavedMenusComponent implements OnInit, OnDestroy {
           summary: 'Menu Salvato',
           detail: `Menu "${response.savedMenu.name}" salvato con successo.`
         });
-        this.loadSavedMenus(); // Refresh the list
+        this.loadSavedMenus();
         break;
 
       case 'menuDeleted':
@@ -153,7 +150,7 @@ export class SavedMenusComponent implements OnInit, OnDestroy {
           summary: 'Menu Eliminato',
           detail: 'Menu salvato eliminato con successo.'
         });
-        this.loadSavedMenus(); // Refresh the list
+        this.loadSavedMenus();
         break;
 
       case 'savedMenusList':

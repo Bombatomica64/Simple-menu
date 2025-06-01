@@ -380,51 +380,54 @@ export class SubmitComponent implements OnInit {
 		const selectedItem = this.selectedItemForImages()!;
 		const formData = new FormData();
 		formData.append('image', file);
-
 		if (selectedItem.type === 'menuItem') {
 			// Handle menu item via upload to images endpoint and then add to menu item
-			this.http.post<any>(`${this.apiUrl}/images/upload`, formData).subscribe({
-				next: (response) => {
-					console.log('Image uploaded successfully:', response);
-					const imageUrl = response.imageUrl;
+			this.http
+				.post<any>(`${this.apiUrl}/images/menu-items/upload`, formData)
+				.subscribe({
+					next: (response) => {
+						console.log('Image uploaded successfully:', response);
+						const imageUrl = response.imageUrl;
 
-					// Add the image to the menu item via WebSocket
-					const message: AddImageToMenuItemMessage = {
-						type: 'addImageToMenuItem',
-						itemId: selectedItem.id,
-						imageUrl: imageUrl,
-					};
-					this.menuWsConnection?.sendUpdate(message);
+						// Add the image to the menu item via WebSocket
+						const message: AddImageToMenuItemMessage = {
+							type: 'addImageToMenuItem',
+							itemId: selectedItem.id,
+							imageUrl: imageUrl,
+						};
+						this.menuWsConnection?.sendUpdate(message);
 
-					// Update the selected item immediately for UI feedback
-					const updatedImages = [...selectedItem.availableImages, imageUrl];
-					const newCurrentImage = selectedItem.currentImage || imageUrl;
-					this.selectedItemForImages.update((item) =>
-						item
-							? {
-									...item,
-									availableImages: updatedImages,
-									currentImage: newCurrentImage,
-							  }
-							: null
-					);
+						// Update the selected item immediately for UI feedback
+						const updatedImages = [...selectedItem.availableImages, imageUrl];
+						const newCurrentImage = selectedItem.currentImage || imageUrl;
+						this.selectedItemForImages.update((item) =>
+							item
+								? {
+										...item,
+										availableImages: updatedImages,
+										currentImage: newCurrentImage,
+								  }
+								: null
+						);
 
-					this.uploadingImage.set(false);
-				},
-				error: (err) => {
-					console.error('Failed to upload image:', err);
-					alert(
-						`Errore: ${err.error?.error || "Impossibile caricare l'immagine."}`
-					);
-					this.uploadingImage.set(false);
-				},
-			});
+						this.uploadingImage.set(false);
+					},
+					error: (err) => {
+						console.error('Failed to upload image:', err);
+						alert(
+							`Errore: ${
+								err.error?.error || "Impossibile caricare l'immagine."
+							}`
+						);
+						this.uploadingImage.set(false);
+					},
+				});
 		} else {
 			// Handle pasta types and sauces via HTTP
 			const endpoint =
 				selectedItem.type === 'pastaType'
-					? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/upload`
-					: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/upload`;
+					? `${this.apiUrl}/images/pasta-types/${selectedItem.id}/upload`
+					: `${this.apiUrl}/images/pasta-sauces/${selectedItem.id}/upload`;
 
 			this.http.post<any>(endpoint, formData).subscribe({
 				next: (response) => {
@@ -472,8 +475,8 @@ export class SubmitComponent implements OnInit {
 			// Handle pasta types and sauces via HTTP
 			const endpoint =
 				selectedItem.type === 'pastaType'
-					? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/switch`
-					: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/switch`;
+					? `${this.apiUrl}/images/pasta-types/${selectedItem.id}/switch`
+					: `${this.apiUrl}/images/pasta-sauces/${selectedItem.id}/switch`;
 
 			this.http.put<any>(endpoint, { imageUrl }).subscribe({
 				next: (response) => {
@@ -494,8 +497,7 @@ export class SubmitComponent implements OnInit {
 				},
 			});
 		}
-	}
-	deleteImage(imageUrl: string) {
+	}	deleteImage(imageUrl: string) {
 		if (!this.selectedItemForImages()) return;
 
 		this.confirmationService.confirm({
@@ -503,9 +505,9 @@ export class SubmitComponent implements OnInit {
 				'Sei sicuro di voler eliminare questa immagine? Questa azione non può essere annullata.',
 			header: 'Elimina Immagine',
 			icon: 'pi pi-exclamation-triangle',
+			styleClass: 'confirmation-dialog',
 			accept: () => {
 				const selectedItem = this.selectedItemForImages()!;
-
 				if (selectedItem.type === 'menuItem') {
 					// Handle menu item via WebSocket
 					const message: RemoveImageFromMenuItemMessage = {
@@ -537,8 +539,8 @@ export class SubmitComponent implements OnInit {
 					// Handle pasta types and sauces via HTTP
 					const endpoint =
 						selectedItem.type === 'pastaType'
-							? `${this.apiUrl}/image-management/pasta-types/${selectedItem.id}/delete`
-							: `${this.apiUrl}/image-management/pasta-sauces/${selectedItem.id}/delete`;
+							? `${this.apiUrl}/images/pasta-types/${selectedItem.id}/delete`
+							: `${this.apiUrl}/images/pasta-sauces/${selectedItem.id}/delete`;
 
 					this.http.delete<any>(endpoint, { body: { imageUrl } }).subscribe({
 						next: (response) => {

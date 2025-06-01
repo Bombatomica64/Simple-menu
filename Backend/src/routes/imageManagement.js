@@ -14,6 +14,35 @@ function cleanupFile(filePath) {
   }
 }
 
+// Helper function to generate full image URL
+function getFullImageUrl(req, filename) {
+  const protocol = req.protocol;
+  const host = req.get('host');
+  return `${protocol}://${host}/assets/${filename}`;
+}
+
+// --- General Image Upload for Menu Items ---
+
+// Upload image for menu items (returns just the URL for further processing via WebSocket)
+router.post('/menu-items/upload', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image file provided' });
+  }
+
+  try {
+    const imageUrl = getFullImageUrl(req, req.file.filename);
+    
+    res.json({
+      message: 'Image uploaded successfully',
+      imageUrl: imageUrl
+    });
+  } catch (error) {
+    console.error('Error uploading image for menu item:', error);
+    if (req.file) cleanupFile(req.file.path);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
 // --- Pasta Types Image Management ---
 
 // Upload image for pasta type
@@ -32,7 +61,7 @@ router.post('/pasta-types/:id/upload', upload.single('image'), async (req, res) 
       return res.status(404).json({ error: 'Pasta type not found' });
     }
 
-    const imageUrl = `/assets/${req.file.filename}`;
+    const imageUrl = getFullImageUrl(req, req.file.filename);
     const currentImages = JSON.parse(pastaType.availableImages || '[]');
     const updatedImages = [...currentImages, imageUrl];
 
@@ -157,7 +186,7 @@ router.post('/pasta-sauces/:id/upload', upload.single('image'), async (req, res)
       return res.status(404).json({ error: 'Pasta sauce not found' });
     }
 
-    const imageUrl = `/assets/${req.file.filename}`;
+    const imageUrl = getFullImageUrl(req, req.file.filename);
     const currentImages = JSON.parse(pastaSauce.availableImages || '[]');
     const updatedImages = [...currentImages, imageUrl];
 

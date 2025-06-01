@@ -316,51 +316,21 @@
   }
 }
 
-// Image management button styling
-::ng-deep {
+// Image management button styling - using design tokens for better theme integration
+.image-management-buttons {
   .p-button-sm.p-button-text {
-    border: 1px solid var(--surface-border);
-    background: var(--surface-card);
-    color: var(--text-color);
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    border: 1px solid var(--p-button-text-border-color);
+    background: var(--p-button-text-background);
+    color: var(--p-button-text-color);
+    border-radius: var(--p-button-border-radius);
+    padding: var(--p-button-sm-padding-y) var(--p-button-sm-padding-x);
+    transition: all var(--p-transition-duration) ease;
 
     &:hover {
-      background: var(--primary-color);
-      color: var(--primary-color-text);
-      border-color: var(--primary-color);
+      background: var(--p-button-text-hover-background);
+      color: var(--p-button-text-hover-color);
+      border-color: var(--p-button-text-hover-border-color);
       transform: translateY(-1px);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-  }
-
-  // Dialog styling
-  .p-dialog {
-    .p-dialog-header {
-      background: var(--surface-section);
-      border-bottom: 2px solid var(--surface-border);
-    }
-
-    .p-dialog-content {
-      background: var(--surface-card);
-    }
-
-    .p-dialog-footer {
-      background: var(--surface-section);
-      border-top: 1px solid var(--surface-border);
-    }
-  }
-
-  // FileUpload styling
-  .p-fileupload {
-    border: 2px dashed var(--surface-border);
-    border-radius: 8px;
-    background: var(--surface-section);
-    transition: all 0.2s ease;
-
-    &:hover {
-      border-color: var(--primary-color);
-      background: var(--surface-card);
     }
   }
 }
@@ -396,19 +366,18 @@
   }
 }
 
-// Enhanced picklist styling
-::ng-deep {
+// Enhanced picklist styling using design tokens
+.picklist-container {
   .p-picklist {
-    background: var(--surface-ground);
-    border: 2px solid var(--surface-border);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: var(--p-picklist-background);
+    border: 1px solid var(--p-picklist-border-color);
+    border-radius: var(--p-picklist-border-radius);
+    box-shadow: var(--p-picklist-shadow);
 
     .p-picklist-list-container {
-      background: var(--surface-card);
-      border: 1px solid var(--surface-border);
-      border-radius: 6px;
+      background: var(--p-picklist-list-background);
+      border: 1px solid var(--p-picklist-list-border-color);
+      border-radius: var(--p-picklist-list-border-radius);
       margin: 0.5rem;
 
       .p-listbox {
@@ -416,44 +385,42 @@
         box-shadow: none;
 
         .p-listbox-header {
-          background: var(--surface-section);
-          border-bottom: 2px solid var(--surface-border);
-          padding: 1rem;
+          background: var(--p-listbox-header-background);
+          border-bottom: 1px solid var(--p-listbox-header-border-color);
+          padding: var(--p-listbox-header-padding);
 
           .p-picklist-title {
-            font-weight: 600;
-            color: var(--text-color);
-            font-size: 1rem;
+            font-weight: var(--p-listbox-header-font-weight);
+            color: var(--p-listbox-header-color);
           }
 
           .p-listbox-filter-container {
             margin-top: 0.75rem;
 
             .p-inputtext {
-              border: 2px solid var(--surface-border);
-              border-radius: 6px;
-              padding: 0.75rem;
+              border: 1px solid var(--p-inputtext-border-color);
+              border-radius: var(--p-inputtext-border-radius);
+              padding: var(--p-inputtext-padding-y) var(--p-inputtext-padding-x);
 
               &:focus {
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+                border-color: var(--p-inputtext-focus-border-color);
+                box-shadow: var(--p-inputtext-focus-shadow);
               }
             }
           }
         }
 
         .p-listbox-list-container {
-          background: var(--surface-card);
-          border-top: 1px solid var(--surface-border);
+          background: var(--p-listbox-background);
 
           .p-listbox-option {
-            border-bottom: 1px solid var(--surface-border);
-            padding: 1rem;
-            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--p-listbox-option-border-color);
+            padding: var(--p-listbox-option-padding);
+            transition: all var(--p-transition-duration) ease;
 
             &:hover {
-              background: var(--surface-hover);
-              transform: translateX(2px);
+              background: var(--p-listbox-option-hover-background);
+              color: var(--p-listbox-option-hover-color);
             }
 
             &:last-child {
@@ -461,21 +428,10 @@
             }
 
             &.p-focus {
-              background: var(--highlight-bg);
-              color: var(--highlight-text-color);
-              box-shadow: inset 3px 0 0 var(--primary-color);
+              background: var(--p-listbox-option-focus-background);
+              color: var(--p-listbox-option-focus-color);
             }
           }
-        }
-
-        .p-listbox-empty-message {
-          padding: 2rem;
-          text-align: center;
-          color: var(--text-color-secondary);
-          font-style: italic;
-          background: var(--surface-section);
-          border-radius: 6px;
-          margin: 1rem;
         }
       }
     }
@@ -486,70 +442,60 @@
       justify-content: center;
       gap: 0.5rem;
       padding: 1rem;
-      background: var(--surface-section);
-      border-left: 1px solid var(--surface-border);
-      border-right: 1px solid var(--surface-border);
+      background: var(--p-picklist-controls-background);
 
       .p-button {
-        border: 2px solid var(--surface-border);
-        background: var(--surface-card);
-        color: var(--text-color);
-        border-radius: 6px;
-        padding: 0.75rem;
-        transition: all 0.2s ease;
+        border: 1px solid var(--p-button-outlined-border-color);
+        background: var(--p-button-outlined-background);
+        color: var(--p-button-outlined-color);
+        border-radius: var(--p-button-border-radius);
+        padding: var(--p-button-sm-padding-y) var(--p-button-sm-padding-x);
+        transition: all var(--p-transition-duration) ease;
 
         &:hover:not(:disabled) {
-          background: var(--primary-color);
-          color: var(--primary-color-text);
-          border-color: var(--primary-color);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          background: var(--p-button-outlined-hover-background);
+          color: var(--p-button-outlined-hover-color);
+          border-color: var(--p-button-outlined-hover-border-color);
         }
 
         &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
+          opacity: var(--p-disabled-opacity);
         }
       }
     }
   }
 }
 
-// Save Menu Button Specific Styling
+// Save Menu Button using design tokens
 .save-menu-button {
   .p-button {
-    background: linear-gradient(135deg, var(--green-500), var(--green-800)) !important;
-    border: 2px solid var(--green-500) !important;
-    color: #ffffff !important;
-    font-weight: 600 !important;
-    font-size: 1rem !important;
-    padding: 1rem 2rem !important;
-    border-radius: 8px !important;
-    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3) !important;
-    transition: all 0.3s ease !important;
-    text-transform: none !important;
+    background: var(--p-button-success-background) !important;
+    border: 1px solid var(--p-button-success-border-color) !important;
+    color: var(--p-button-success-color) !important;
+    font-weight: var(--p-button-font-weight) !important;
+    padding: var(--p-button-lg-padding-y) var(--p-button-lg-padding-x) !important;
+    border-radius: var(--p-button-border-radius) !important;
+    transition: all var(--p-transition-duration) ease !important;
 
     &:hover {
-      background: linear-gradient(135deg, var(--green-800), var(--green-500)) !important;
-      border-color: var(--green-800) !important;
+      background: var(--p-button-success-hover-background) !important;
+      border-color: var(--p-button-success-hover-border-color) !important;
+      color: var(--p-button-success-hover-color) !important;
       transform: translateY(-2px) !important;
-      box-shadow: 0 6px 16px rgba(72, 187, 120, 0.4) !important;
     }
 
     .p-button-icon {
-      font-size: 1.2rem !important;
       margin-right: 0.5rem !important;
     }
 
     .p-button-label {
-      font-weight: 600 !important;
-      letter-spacing: 0.025em !important;
+      font-weight: var(--p-button-font-weight) !important;
     }
   }
 }
 
-// Ensure all buttons in this component render properly
-:host ::ng-deep {
+// Button styling using design tokens - no more ::ng-deep needed
+.component-buttons {
   button[pButton],
   .p-button {
     display: inline-flex !important;
@@ -558,57 +504,64 @@
     gap: 0.5rem !important;
     cursor: pointer !important;
     text-decoration: none !important;
-    border: none !important;
-    outline: none !important;
+    border: 1px solid var(--p-button-border-color) !important;
+    background: var(--p-button-background) !important;
+    color: var(--p-button-color) !important;
+    border-radius: var(--p-button-border-radius) !important;
+    padding: var(--p-button-padding-y) var(--p-button-padding-x) !important;
+    transition: all var(--p-transition-duration) ease !important;
 
     &:focus {
-      box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5) !important;
+      box-shadow: var(--p-button-focus-shadow) !important;
+    }
+
+    &:hover {
+      background: var(--p-button-hover-background) !important;
+      border-color: var(--p-button-hover-border-color) !important;
+      color: var(--p-button-hover-color) !important;
     }
   }
 }
 
-// Toggle Button Specific Styling
+// Toggle Button using design tokens
 .image-controls {
   .p-togglebutton {
-    background: var(--surface-section) !important;
-    border: 2px solid var(--surface-border) !important;
-    color: var(--text-color-secondary) !important;
-    border-radius: 6px !important;
-    padding: 0.4rem 0.8rem !important;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
-    transition: all 0.2s ease !important;
+    background: var(--p-togglebutton-background) !important;
+    border: 1px solid var(--p-togglebutton-border-color) !important;
+    color: var(--p-togglebutton-color) !important;
+    border-radius: var(--p-togglebutton-border-radius) !important;
+    padding: var(--p-togglebutton-padding-y) var(--p-togglebutton-padding-x) !important;
+    font-weight: var(--p-togglebutton-font-weight) !important;
+    transition: all var(--p-transition-duration) ease !important;
 
     &.p-highlight {
-      background: linear-gradient(135deg, var(--green-500), var(--green-800)) !important;
-      border-color: var(--green-500) !important;
-      color: #ffffff !important;
-      box-shadow: 0 2px 6px rgba(72, 187, 120, 0.3) !important;
+      background: var(--p-togglebutton-checked-background) !important;
+      border-color: var(--p-togglebutton-checked-border-color) !important;
+      color: var(--p-togglebutton-checked-color) !important;
     }
 
     &:hover {
-      background: var(--surface-hover) !important;
-      border-color: var(--primary-color) !important;
-      transform: translateY(-1px) !important;
+      background: var(--p-togglebutton-hover-background) !important;
+      border-color: var(--p-togglebutton-hover-border-color) !important;
+      color: var(--p-togglebutton-hover-color) !important;
     }
 
     &.p-highlight:hover {
-      background: linear-gradient(135deg, var(--green-800), var(--green-500)) !important;
-      border-color: var(--green-800) !important;
-      box-shadow: 0 3px 8px rgba(72, 187, 120, 0.4) !important;
+      background: var(--p-togglebutton-checked-hover-background) !important;
+      border-color: var(--p-togglebutton-checked-hover-border-color) !important;
+      color: var(--p-togglebutton-checked-hover-color) !important;
     }
 
     .p-togglebutton-label,
     .p-button-label,
     span {
-      font-weight: 600 !important;
+      font-weight: inherit !important;
       color: inherit !important;
-      font-size: 0.75rem !important;
     }
   }
 }
 
-// Responsive adjustments
+// Responsive adjustments using design tokens
 @media (max-width: 768px) {
   .menu-management-container {
     padding: 1rem;
@@ -639,7 +592,7 @@
     margin-top: 1rem;
   }
 
-  ::ng-deep .p-picklist {
+  .picklist-container .p-picklist {
     .p-picklist-controls {
       flex-direction: row;
       justify-content: center;
@@ -647,8 +600,8 @@
       gap: 0.25rem;
 
       .p-button {
-        padding: 0.5rem;
-        font-size: 0.875rem;
+        padding: var(--p-button-sm-padding-y) var(--p-button-sm-padding-x);
+        font-size: var(--p-button-sm-font-size);
       }
     }
   }
@@ -728,12 +681,11 @@
 }
 
 .saved-menus-section {
-	margin: 0;
-	:host ::ng-deep {
-		app-saved-menus {
-			.saved-menus-container {
-				background: transparent;
-			}
-		}
-	}
+  margin: 0;
+
+  app-saved-menus {
+    .saved-menus-container {
+      background: transparent;
+    }
+  }
 }

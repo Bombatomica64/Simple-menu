@@ -44,7 +44,7 @@
 							placeholder="Prezzo della voce"
 						/>
 					</div>
-					<div class="p-field p-col-12 p-md-2">
+					<div class="p-field p-col-12 p-md-2 component-buttons">
 						<button
 							pButton
 							type="button"
@@ -191,7 +191,8 @@
 				class="p-mb-3"
 				title="Crea un nuovo tipo di pasta"
 			></button>
-			<p-pickList
+			<div class="picklist-container">
+				<p-pickList
 				[source]="pastaTypesSource()"
 				[target]="pastaTypesTarget()"
 				sourceHeader="Tipi di Pasta Disponibili"
@@ -224,7 +225,7 @@
 						<div class="flex-1 flex flex-col">
 							<span class="font-bold text-sm">{{ type.name }}</span>
 						</div>
-						<div class="flex gap-1">
+						<div class="flex gap-1 image-management-buttons">
 							<button
 								pButton
 								type="button"
@@ -238,6 +239,7 @@
 					</div>
 				</ng-template>
 			</p-pickList>
+			</div>
 		</div>
 
 		<!-- Pasta Sauces Section -->
@@ -252,7 +254,8 @@
 				class="p-mb-3"
 				title="Crea un nuovo sugo per pasta"
 			></button>
-			<p-pickList
+			<div class="picklist-container">
+				<p-pickList
 				[source]="pastaSaucesSource()"
 				[target]="pastaSaucesTarget()"
 				sourceHeader="Sughi per Pasta Disponibili"
@@ -285,7 +288,7 @@
 						<div class="flex-1 flex flex-col">
 							<span class="font-bold text-sm">{{ sauce.name }}</span>
 						</div>
-						<div class="flex gap-1">
+						<div class="flex gap-1 image-management-buttons">
 							<button
 								pButton
 								type="button"
@@ -299,6 +302,7 @@
 					</div>
 				</ng-template>
 			</p-pickList>
+			</div>
 		</div>
 	</div>
 	}
@@ -311,6 +315,7 @@
 		[style]="{ width: '50vw' }"
 		[draggable]="false"
 		[resizable]="false"
+		styleClass="create-pasta-type-dialog"
 	>
 		<div class="p-fluid">
 			<div class="p-field p-mb-3">
@@ -363,6 +368,7 @@
 		[style]="{ width: '50vw' }"
 		[draggable]="false"
 		[resizable]="false"
+		styleClass="create-pasta-sauce-dialog"
 	>
 		<div class="p-fluid">
 			<div class="p-field p-mb-3">
@@ -415,6 +421,7 @@
 		[style]="{ width: '70vw' }"
 		[draggable]="false"
 		[resizable]="false"
+		styleClass="image-management-dialog"
 	>
 		@if (selectedItemForImages(); as item) {
 		<div class="p-fluid">

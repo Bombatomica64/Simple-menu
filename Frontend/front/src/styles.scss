@@ -2,9 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-// PrimeNG Dark Theme Configuration
+/*
+ * ========================================
+ * PRIMENG V19 DIALOG & THEME INTEGRATION
+ * ========================================
+ *
+ * Clean integration with PrimeNG v19 theme system using Aura preset.
+ * This file replaces all hardcoded CSS overrides with proper theme integration.
+ */
+
 :root {
-	// Override PrimeNG design tokens for dark theme
+	/* Primary color palette */
 	--p-primary-50: #dbeafe;
 	--p-primary-100: #bfdbfe;
 	--p-primary-200: #93c5fd;
@@ -17,7 +25,7 @@
 	--p-primary-900: #1e3a8a;
 	--p-primary-950: #172554;
 
-	// Surface colors for dark theme
+	/* Surface colors for dark theme */
 	--p-surface-0: #ffffff;
 	--p-surface-50: #f8fafc;
 	--p-surface-100: #f1f5f9;
@@ -31,14 +39,14 @@
 	--p-surface-900: #0f172a;
 	--p-surface-950: #020617;
 
-	// Dark mode surface mappings
+	/* Dark mode surface mappings */
 	--p-content-background: var(--p-surface-900);
 	--p-content-color: var(--p-surface-0);
 	--p-content-border-color: var(--p-surface-700);
 	--p-content-hover-background: var(--p-surface-800);
 	--p-content-hover-color: var(--p-surface-0);
 
-	// Component specific overrides
+	/* Component specific overrides */
 	--p-button-primary-background: var(--p-primary-500);
 	--p-button-primary-border-color: var(--p-primary-500);
 	--p-button-primary-color: var(--p-surface-0);
@@ -47,27 +55,38 @@
 	--p-button-primary-active-background: var(--p-primary-700);
 	--p-button-primary-active-border-color: var(--p-primary-700);
 
-	// Input fields
+	/* Input fields */
 	--p-inputtext-background: var(--p-surface-800);
 	--p-inputtext-border-color: var(--p-surface-700);
 	--p-inputtext-color: var(--p-surface-0);
 	--p-inputtext-focus-border-color: var(--p-primary-500);
 
-	// Dialogs
+	/* Dialogs - Enhanced with more specific tokens */
 	--p-dialog-background: var(--p-surface-900);
 	--p-dialog-border-color: var(--p-surface-700);
 	--p-dialog-color: var(--p-surface-0);
 	--p-dialog-header-background: var(--p-surface-800);
 	--p-dialog-header-border-color: var(--p-surface-700);
 	--p-dialog-header-color: var(--p-surface-0);
+	--p-dialog-content-background: var(--p-surface-900);
+	--p-dialog-footer-background: var(--p-surface-900);
 
-	// Success/Error colors
+	/* Toast messages */
+	--p-toast-background: var(--p-surface-800);
+	--p-toast-border-color: var(--p-surface-700);
+	--p-toast-color: var(--p-surface-0);
+
+	/* Overlay and masks */
+	--p-overlay-background: rgba(0, 0, 0, 0.4);
+	--p-dialog-mask-background: rgba(0, 0, 0, 0.4);
+
+	/* Success/Error colors */
 	--p-green-500: #22c55e;
 	--p-green-600: #16a34a;
 	--p-red-500: #ef4444;
 	--p-red-600: #dc2626;
 
-	// App-specific CSS variables for compatibility
+	/* App-specific CSS variables for compatibility */
 	--surface-ground: var(--p-surface-900);
 	--surface-card: var(--p-surface-800);
 	--surface-border: var(--p-surface-700);
@@ -88,9 +107,11 @@
 body {
 	margin: 0;
 	padding: 0;
-	font-family: var(--font-family);
-	background-color: var(--surface-b);
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+		Arial, sans-serif;
+	background-color: var(--p-surface-900);
 	color: var(--text-color);
+	min-height: 100vh;
 }
 
 /* PrimeNG global dark theme overrides */
@@ -150,176 +171,176 @@ body {
 ::ng-deep .p-button-icon,
 ::ng-deep .p-button-outlined,
 ::ng-deep .p-component.p-button {
-  /* Base button styling */
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-  text-decoration: none !important;
-  outline: none !important;
-  border: 1px solid !important;
-  border-radius: 6px !important;
-  transition: all 0.2s ease !important;
-  font-family: inherit !important;
-  font-weight: 500 !important;
-  vertical-align: middle !important;
-  position: relative !important;
-  overflow: hidden !important;
-  min-height: 2.5rem !important;
-  padding: 0.5rem 1rem !important;
-  font-size: 0.875rem !important;
-  gap: 0.5rem !important;
+	/* Base button styling */
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	cursor: pointer !important;
+	text-decoration: none !important;
+	outline: none !important;
+	border: 1px solid !important;
+	border-radius: 6px !important;
+	transition: all 0.2s ease !important;
+	font-family: inherit !important;
+	font-weight: 500 !important;
+	vertical-align: middle !important;
+	position: relative !important;
+	overflow: hidden !important;
+	min-height: 2.5rem !important;
+	padding: 0.5rem 1rem !important;
+	font-size: 0.875rem !important;
+	gap: 0.5rem !important;
 
-  /* Default colors */
-  background-color: #4299e1 !important;
-  border-color: #4299e1 !important;
-  color: #ffffff !important;
+	/* Default colors */
+	background-color: #4299e1 !important;
+	border-color: #4299e1 !important;
+	color: #ffffff !important;
 }
 
 /* Small button variant */
 ::ng-deep .p-button-sm,
 ::ng-deep .p-button.p-button-sm {
-  padding: 0.375rem 0.75rem !important;
-  font-size: 0.75rem !important;
-  min-height: 2rem !important;
+	padding: 0.375rem 0.75rem !important;
+	font-size: 0.75rem !important;
+	min-height: 2rem !important;
 }
 
 /* Icon-only button variant */
 ::ng-deep .p-button-icon,
 ::ng-deep .p-button.p-button-icon {
-  width: 2.5rem !important;
-  height: 2.5rem !important;
-  padding: 0 !important;
-  border-radius: 50% !important;
+	width: 2.5rem !important;
+	height: 2.5rem !important;
+	padding: 0 !important;
+	border-radius: 50% !important;
 }
 
 ::ng-deep .p-button-icon.p-button-sm {
-  width: 2rem !important;
-  height: 2rem !important;
+	width: 2rem !important;
+	height: 2rem !important;
 }
 
 /* Rounded button variant */
 ::ng-deep .p-button-rounded,
 ::ng-deep .p-button.p-button-rounded {
-  border-radius: 2rem !important;
+	border-radius: 2rem !important;
 }
 
 /* Danger button variant */
 ::ng-deep .p-button-danger,
 ::ng-deep .p-button.p-button-danger {
-  background-color: #f56565 !important;
-  border-color: #f56565 !important;
-  color: #ffffff !important;
+	background-color: #f56565 !important;
+	border-color: #f56565 !important;
+	color: #ffffff !important;
 }
 
 ::ng-deep .p-button-danger:hover,
 ::ng-deep .p-button.p-button-danger:hover {
-  background-color: #e53e3e !important;
-  border-color: #e53e3e !important;
+	background-color: #e53e3e !important;
+	border-color: #e53e3e !important;
 }
 
 /* Outlined button variant */
 ::ng-deep .p-button-outlined,
 ::ng-deep .p-button.p-button-outlined {
-  background-color: transparent !important;
-  border-color: #4299e1 !important;
-  color: #4299e1 !important;
+	background-color: transparent !important;
+	border-color: #4299e1 !important;
+	color: #4299e1 !important;
 }
 
 ::ng-deep .p-button-outlined:hover,
 ::ng-deep .p-button.p-button-outlined:hover {
-  background-color: #4299e1 !important;
-  border-color: #4299e1 !important;
-  color: #ffffff !important;
+	background-color: #4299e1 !important;
+	border-color: #4299e1 !important;
+	color: #ffffff !important;
 }
 
 /* Success button variant */
 ::ng-deep .p-button-success,
 ::ng-deep .p-button.p-button-success {
-  background-color: #48bb78 !important;
-  border-color: #48bb78 !important;
-  color: #ffffff !important;
+	background-color: #48bb78 !important;
+	border-color: #48bb78 !important;
+	color: #ffffff !important;
 }
 
 ::ng-deep .p-button-success:hover,
 ::ng-deep .p-button.p-button-success:hover {
-  background-color: #38a169 !important;
-  border-color: #38a169 !important;
+	background-color: #38a169 !important;
+	border-color: #38a169 !important;
 }
 
 /* Button content styling */
 ::ng-deep .p-button .p-button-icon,
 ::ng-deep .p-button .pi {
-  font-size: 1rem !important;
-  line-height: 1 !important;
+	font-size: 1rem !important;
+	line-height: 1 !important;
 }
 
 ::ng-deep .p-button .p-button-label {
-  font-weight: 500 !important;
-  color: inherit !important;
-  line-height: 1 !important;
+	font-weight: 500 !important;
+	color: inherit !important;
+	line-height: 1 !important;
 }
 
 ::ng-deep .p-button span,
 ::ng-deep .p-button i {
-  color: inherit !important;
+	color: inherit !important;
 }
 
 /* Hover effects for all buttons */
 ::ng-deep .p-button:hover,
 ::ng-deep button[pButton]:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+	transform: translateY(-1px) !important;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Focus state */
 ::ng-deep .p-button:focus,
 ::ng-deep button[pButton]:focus {
-  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5) !important;
+	box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5) !important;
 }
 
 /* Disabled state */
 ::ng-deep .p-button:disabled,
 ::ng-deep button[pButton]:disabled {
-  background-color: #4a5568 !important;
-  border-color: #4a5568 !important;
-  color: #a0aec0 !important;
-  cursor: not-allowed !important;
-  transform: none !important;
-  box-shadow: none !important;
+	background-color: #4a5568 !important;
+	border-color: #4a5568 !important;
+	color: #a0aec0 !important;
+	cursor: not-allowed !important;
+	transform: none !important;
+	box-shadow: none !important;
 }
 
 /* Force button appearance for any element with pButton directive */
 ::ng-deep [pButton] {
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  appearance: none !important;
+	-webkit-appearance: none !important;
+	-moz-appearance: none !important;
+	appearance: none !important;
 }
 
 /* Additional button selectors to catch all cases */
 ::ng-deep button {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0.5rem 1rem !important;
-  border-radius: 6px !important;
-  border: 1px solid #4299e1 !important;
-  background-color: #4299e1 !important;
-  color: #ffffff !important;
-  font-family: inherit !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  text-decoration: none !important;
-  min-height: 2.5rem !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	padding: 0.5rem 1rem !important;
+	border-radius: 6px !important;
+	border: 1px solid #4299e1 !important;
+	background-color: #4299e1 !important;
+	color: #ffffff !important;
+	font-family: inherit !important;
+	font-size: 0.875rem !important;
+	font-weight: 500 !important;
+	cursor: pointer !important;
+	transition: all 0.2s ease !important;
+	text-decoration: none !important;
+	min-height: 2.5rem !important;
 }
 
 ::ng-deep button:hover {
-  background-color: #3182ce !important;
-  border-color: #3182ce !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+	background-color: #3182ce !important;
+	border-color: #3182ce !important;
+	transform: translateY(-1px) !important;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Specific targeting for Angular Material/PrimeNG buttons */
@@ -330,22 +351,22 @@ body {
 ::ng-deep .btn,
 ::ng-deep input[type="button"],
 ::ng-deep input[type="submit"] {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0.5rem 1rem !important;
-  border-radius: 6px !important;
-  border: 1px solid #4299e1 !important;
-  background-color: #4299e1 !important;
-  color: #ffffff !important;
-  font-family: inherit !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  text-decoration: none !important;
-  min-height: 2.5rem !important;
-  box-sizing: border-box !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	padding: 0.5rem 1rem !important;
+	border-radius: 6px !important;
+	border: 1px solid #4299e1 !important;
+	background-color: #4299e1 !important;
+	color: #ffffff !important;
+	font-family: inherit !important;
+	font-size: 0.875rem !important;
+	font-weight: 500 !important;
+	cursor: pointer !important;
+	transition: all 0.2s ease !important;
+	text-decoration: none !important;
+	min-height: 2.5rem !important;
+	box-sizing: border-box !important;
 }
 
 ::ng-deep .p-element.p-button:hover,
@@ -355,44 +376,44 @@ body {
 ::ng-deep .btn:hover,
 ::ng-deep input[type="button"]:hover,
 ::ng-deep input[type="submit"]:hover {
-  background-color: #3182ce !important;
-  border-color: #3182ce !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+	background-color: #3182ce !important;
+	border-color: #3182ce !important;
+	transform: translateY(-1px) !important;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Critical fix for pButton directive elements */
 ::ng-deep button[pButton],
 ::ng-deep *[pButton] {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0.5rem 1rem !important;
-  border-radius: 6px !important;
-  border: 1px solid #4299e1 !important;
-  background-color: #4299e1 !important;
-  color: #ffffff !important;
-  font-family: inherit !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  text-decoration: none !important;
-  min-height: 2.5rem !important;
-  box-sizing: border-box !important;
-  outline: none !important;
-  vertical-align: middle !important;
-  position: relative !important;
-  overflow: hidden !important;
-  gap: 0.5rem !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	padding: 0.5rem 1rem !important;
+	border-radius: 6px !important;
+	border: 1px solid #4299e1 !important;
+	background-color: #4299e1 !important;
+	color: #ffffff !important;
+	font-family: inherit !important;
+	font-size: 0.875rem !important;
+	font-weight: 500 !important;
+	cursor: pointer !important;
+	transition: all 0.2s ease !important;
+	text-decoration: none !important;
+	min-height: 2.5rem !important;
+	box-sizing: border-box !important;
+	outline: none !important;
+	vertical-align: middle !important;
+	position: relative !important;
+	overflow: hidden !important;
+	gap: 0.5rem !important;
 }
 
 ::ng-deep button[pButton]:hover,
 ::ng-deep *[pButton]:hover {
-  background-color: #3182ce !important;
-  border-color: #3182ce !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+	background-color: #3182ce !important;
+	border-color: #3182ce !important;
+	transform: translateY(-1px) !important;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Fix for button icons and labels */
@@ -400,148 +421,446 @@ body {
 ::ng-deep button[pButton] span,
 ::ng-deep *[pButton] .pi,
 ::ng-deep *[pButton] span {
-  color: inherit !important;
-  font-size: inherit !important;
+	color: inherit !important;
+	font-size: inherit !important;
 }
 
 /* Override any inherited styles that might interfere */
 ::ng-deep button[pButton],
 ::ng-deep *[pButton] {
-  background-image: none !important;
-  text-shadow: none !important;
-  -webkit-box-shadow: none !important;
-  -moz-box-shadow: none !important;
-  box-shadow: none !important;
+	background-image: none !important;
+	text-shadow: none !important;
+	-webkit-box-shadow: none !important;
+	-moz-box-shadow: none !important;
+	box-shadow: none !important;
 }
 
 ::ng-deep button[pButton]:not(:disabled):not(.p-disabled):hover,
 ::ng-deep *[pButton]:not(:disabled):not(.p-disabled):hover {
-  background-color: #3182ce !important;
-  border-color: #3182ce !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+	background-color: #3182ce !important;
+	border-color: #3182ce !important;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Dialog styling */
+/* Dialog styling - Enhanced for PrimeNG v19 */
 ::ng-deep .p-dialog {
-	background: #2d3748 !important;
-	border: 1px solid #4a5568 !important;
+	background: var(--p-dialog-background) !important;
+	border: 1px solid var(--p-dialog-border-color) !important;
 	border-radius: 12px !important;
-	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+	box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+	color: var(--p-dialog-color) !important;
+	max-height: 90vh !important;
+	overflow: hidden !important;
 }
 
 ::ng-deep .p-dialog-header {
-	background: #374151 !important;
-	border-bottom: 1px solid #4a5568 !important;
-	color: #f7fafc !important;
+	background: var(--p-dialog-header-background) !important;
+	border-bottom: 1px solid var(--p-dialog-header-border-color) !important;
+	color: var(--p-dialog-header-color) !important;
 	border-radius: 12px 12px 0 0 !important;
+	padding: 1.25rem 1.5rem !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: space-between !important;
+}
+
+::ng-deep .p-dialog-header .p-dialog-title {
+	font-weight: 600 !important;
+	font-size: 1.125rem !important;
+	color: var(--p-dialog-header-color) !important;
 }
 
 ::ng-deep .p-dialog-content {
-	background: #2d3748 !important;
-	color: #f7fafc !important;
+	background: var(--p-dialog-background) !important;
+	color: var(--p-dialog-color) !important;
+	padding: 1.5rem !important;
+	max-height: calc(90vh - 120px) !important;
+	overflow-y: auto !important;
 }
 
 ::ng-deep .p-dialog-footer {
-	background: #2d3748 !important;
-	border-top: 1px solid #4a5568 !important;
+	background: var(--p-dialog-background) !important;
+	border-top: 1px solid var(--p-dialog-border-color) !important;
 	border-radius: 0 0 12px 12px !important;
+	padding: 1rem 1.5rem !important;
+	display: flex !important;
+	justify-content: flex-end !important;
+	gap: 0.5rem !important;
+	align-items: center !important;
 }
 
-/* Toast messages */
+/* Dialog mask overlay styling */
+::ng-deep .p-dialog-mask {
+	background: var(--p-dialog-mask-background) !important;
+	-webkit-backdrop-filter: blur(3px) !important;
+	backdrop-filter: blur(3px) !important;
+	z-index: 1000 !important;
+}
+
+/* Dialog close button styling */
+::ng-deep .p-dialog-header-icon {
+	width: 2rem !important;
+	height: 2rem !important;
+	color: var(--p-dialog-header-color) !important;
+	border: 1px solid transparent !important;
+	border-radius: 50% !important;
+	transition: all 0.2s ease !important;
+}
+
+::ng-deep .p-dialog-header-icon:hover {
+	background: rgba(255, 255, 255, 0.1) !important;
+	border-color: var(--p-dialog-border-color) !important;
+}
+
+/* Dialog animations and transitions */
+::ng-deep .p-dialog {
+	animation: dialogShow 0.2s ease-out !important;
+}
+
+@keyframes dialogShow {
+	from {
+		opacity: 0;
+		transform: scale(0.9) translateY(-20px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+/* Dialog responsiveness */
+@media (max-width: 768px) {
+	::ng-deep .p-dialog {
+		width: 90vw !important;
+		max-width: none !important;
+		margin: 1rem !important;
+	}
+
+	::ng-deep .p-dialog-content {
+		padding: 1rem !important;
+	}
+
+	::ng-deep .p-dialog-footer {
+		padding: 1rem !important;
+		flex-direction: column !important;
+		gap: 0.5rem !important;
+	}
+
+	::ng-deep .p-dialog-footer .p-button {
+		width: 100% !important;
+	}
+}
+
+/* Toast messages - Enhanced styling with design tokens */
+::ng-deep .p-toast {
+	z-index: 9999 !important;
+}
+
 ::ng-deep .p-toast .p-toast-message {
-	background: #2d3748 !important;
-	border: 1px solid #4a5568 !important;
-	color: #f7fafc !important;
+	background: var(--p-surface-800) !important;
+	border: 1px solid var(--p-surface-700) !important;
+	color: var(--p-surface-0) !important;
 	border-radius: 8px !important;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+	margin-bottom: 1rem !important;
+}
+
+::ng-deep .p-toast .p-toast-message-content {
+	padding: 1rem !important;
 }
 
 ::ng-deep .p-toast .p-toast-message.p-toast-message-success {
-	background: rgba(72, 187, 120, 0.2) !important;
-	border-color: #48bb78 !important;
+	background: rgba(34, 197, 94, 0.15) !important;
+	border-color: var(--p-green-500) !important;
+	color: var(--p-surface-0) !important;
+}
+
+::ng-deep
+	.p-toast
+	.p-toast-message.p-toast-message-success
+	.p-toast-message-icon {
+	color: var(--p-green-500) !important;
 }
 
 ::ng-deep .p-toast .p-toast-message.p-toast-message-error {
-	background: rgba(245, 101, 101, 0.2) !important;
-	border-color: #f56565 !important;
+	background: rgba(239, 68, 68, 0.15) !important;
+	border-color: var(--p-red-500) !important;
+	color: var(--p-surface-0) !important;
+}
+
+::ng-deep
+	.p-toast
+	.p-toast-message.p-toast-message-error
+	.p-toast-message-icon {
+	color: var(--p-red-500) !important;
+}
+
+::ng-deep .p-toast .p-toast-message.p-toast-message-warn {
+	background: rgba(245, 158, 11, 0.15) !important;
+	border-color: #f59e0b !important;
+	color: var(--p-surface-0) !important;
+}
+
+::ng-deep .p-toast .p-toast-message.p-toast-message-warn .p-toast-message-icon {
+	color: #f59e0b !important;
+}
+
+::ng-deep .p-toast .p-toast-message .p-toast-summary {
+	font-weight: 600 !important;
+	margin-bottom: 0.25rem !important;
+}
+
+::ng-deep .p-toast .p-toast-message .p-toast-detail {
+	opacity: 0.9 !important;
+}
+
+/* Confirmation Dialog specific styling */
+::ng-deep .p-confirm-dialog {
+	.p-dialog-header {
+		padding: 1.5rem !important;
+	}
+
+	.p-dialog-content {
+		padding: 1.5rem !important;
+	}
+
+	.p-confirm-dialog-message {
+		margin-left: 1rem !important;
+		font-size: 1rem !important;
+		line-height: 1.5 !important;
+	}
+
+	.p-confirm-dialog-icon {
+		font-size: 1.5rem !important;
+		color: var(--p-primary-500) !important;
+	}
+
+	&.p-confirm-dialog-reject .p-confirm-dialog-icon {
+		color: var(--p-red-500) !important;
+	}
+}
+
+/* Dialog Form Content Styling - Critical for proper spacing and layout */
+::ng-deep .p-dialog .p-dialog-content {
+	.p-fluid {
+		.p-field,
+		.p-field-group {
+			margin-bottom: 1.25rem !important;
+
+			&:last-child {
+				margin-bottom: 0 !important;
+			}
+
+			label {
+				display: block !important;
+				font-weight: 600 !important;
+				margin-bottom: 0.5rem !important;
+				color: var(--p-dialog-color) !important;
+				font-size: 0.875rem !important;
+			}
+
+			.p-inputtext,
+			.p-dropdown,
+			.p-multiselect,
+			.p-calendar,
+			.p-inputnumber input {
+				width: 100% !important;
+				padding: 0.75rem !important;
+				border: 1px solid var(--p-inputtext-border-color) !important;
+				border-radius: 6px !important;
+				background: var(--p-inputtext-background) !important;
+				color: var(--p-inputtext-color) !important;
+				font-size: 0.875rem !important;
+				transition: all 0.2s ease !important;
+
+				&:focus {
+					border-color: var(--p-inputtext-focus-border-color) !important;
+					box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2) !important;
+					outline: none !important;
+				}
+			}
+
+			small {
+				color: var(--p-surface-400) !important;
+				font-size: 0.75rem !important;
+				margin-top: 0.25rem !important;
+				display: block !important;
+			}
+		}
+
+		.p-mb-3,
+		.p-mb-2 {
+			margin-bottom: 1.25rem !important;
+		}
+
+		.p-mt-1 {
+			margin-top: 0.5rem !important;
+		}
+	}
+
+	/* Specific spacing for different dialog sections */
+	.form-section,
+	.dialog-section {
+		margin-bottom: 1.5rem !important;
+
+		&:last-child {
+			margin-bottom: 0 !important;
+		}
+	}
+
+	/* Image upload section styling */
+	.image-upload-section {
+		border: 2px dashed var(--p-surface-700) !important;
+		border-radius: 8px !important;
+		padding: 1.5rem !important;
+		text-align: center !important;
+		background: var(--p-surface-800) !important;
+		margin: 1rem 0 !important;
+
+		&:hover {
+			border-color: var(--p-primary-500) !important;
+			background: var(--p-surface-700) !important;
+		}
+	}
+	/* Button groups in dialogs */
+	.button-group {
+		display: flex !important;
+		gap: 0.75rem !important;
+		align-items: center !important;
+		margin-top: 1rem !important;
+	}
 }
 
 /* Additional PrimeNG dark theme overrides */
+/* Data Table styling with design tokens */
 ::ng-deep .p-datatable {
-	background: #2d3748 !important;
-	color: #f7fafc !important;
-	border: 1px solid #4a5568 !important;
+	background: var(--p-surface-800) !important;
+	color: var(--p-surface-0) !important;
+	border: 1px solid var(--p-surface-700) !important;
+	border-radius: 8px !important;
 
 	.p-datatable-wrapper {
-		background: #2d3748 !important;
+		background: var(--p-surface-800) !important;
 	}
 
 	.p-datatable-thead > tr > th {
-		background: #374151 !important;
-		border: 1px solid #4a5568 !important;
-		color: #f7fafc !important;
+		background: var(--p-surface-700) !important;
+		border: 1px solid var(--p-surface-600) !important;
+		color: var(--p-surface-0) !important;
+		font-weight: 600 !important;
+		padding: 1rem !important;
 	}
 
 	.p-datatable-tbody > tr {
-		background: #2d3748 !important;
-		color: #f7fafc !important;
-		border: 1px solid #4a5568 !important;
+		background: var(--p-surface-800) !important;
+		border-bottom: 1px solid var(--p-surface-700) !important;
 
 		&:hover {
-			background: #374151 !important;
+			background: var(--p-surface-700) !important;
 		}
 
-		td {
-			border: 1px solid #4a5568 !important;
-			color: #f7fafc !important;
+		> td {
+			border: 1px solid var(--p-surface-700) !important;
+			color: var(--p-surface-0) !important;
+			padding: 1rem !important;
+		}
+	}
+
+	.p-paginator {
+		background: var(--p-surface-800) !important;
+		border-color: var(--p-surface-700) !important;
+		color: var(--p-surface-0) !important;
+		border-top: 1px solid var(--p-surface-700) !important;
+
+		.p-paginator-page,
+		.p-paginator-next,
+		.p-paginator-prev,
+		.p-paginator-first,
+		.p-paginator-last {
+			color: var(--p-surface-0) !important;
+			background: transparent !important;
+			border: 1px solid var(--p-surface-700) !important;
+
+			&:hover {
+				background: var(--p-surface-700) !important;
+			}
+
+			&.p-highlight {
+				background: var(--p-primary-500) !important;
+				color: var(--p-surface-0) !important;
+			}
 		}
 	}
 }
 
-::ng-deep .p-paginator {
-	background: #374151 !important;
-	border: 1px solid #4a5568 !important;
-	color: #f7fafc !important;
+/* Input text styling with design tokens */
+::ng-deep .p-inputtext {
+	background: var(--p-inputtext-background) !important;
+	border: 1px solid var(--p-inputtext-border-color) !important;
+	color: var(--p-inputtext-color) !important;
+	padding: 0.75rem !important;
+	border-radius: 6px !important;
+	transition: all 0.2s ease !important;
 
-	.p-paginator-page,
-	.p-paginator-next,
-	.p-paginator-prev,
-	.p-paginator-first,
-	.p-paginator-last {
-		color: #f7fafc !important;
-		background: transparent !important;
-		border: 1px solid #4a5568 !important;
+	&:focus {
+		border-color: var(--p-inputtext-focus-border-color) !important;
+		box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2) !important;
+		outline: none !important;
+	}
+
+	&::placeholder {
+		color: var(--p-surface-400) !important;
+		opacity: 0.7 !important;
+	}
+}
+
+/* Dropdown styling with design tokens */
+::ng-deep .p-dropdown {
+	background: var(--p-surface-800) !important;
+	border: 1px solid var(--p-surface-700) !important;
+	color: var(--p-surface-0) !important;
+	border-radius: 6px !important;
+
+	&:hover {
+		border-color: var(--p-surface-600) !important;
+	}
+
+	&:focus-within {
+		border-color: var(--p-primary-500) !important;
+		box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2) !important;
+	}
+
+	.p-dropdown-label {
+		color: var(--p-surface-0) !important;
+	}
+
+	.p-dropdown-trigger {
+		color: var(--p-surface-300) !important;
+	}
+}
+
+::ng-deep .p-dropdown-panel {
+	background: var(--p-surface-800) !important;
+	border: 1px solid var(--p-surface-700) !important;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+
+	.p-dropdown-item {
+		color: var(--p-surface-0) !important;
 
 		&:hover {
-			background: #4a5568 !important;
+			background: var(--p-surface-700) !important;
 		}
 
 		&.p-highlight {
-			background: #3182ce !important;
-			color: #f7fafc !important;
+			background: var(--p-primary-500) !important;
+			color: var(--p-surface-0) !important;
 		}
-	}
-
-	.p-dropdown {
-		background: #2d3748 !important;
-		border: 1px solid #4a5568 !important;
-		color: #f7fafc !important;
-	}
-}
-
-::ng-deep .p-inputtext {
-	background: #2d3748 !important;
-	border: 1px solid #4a5568 !important;
-	color: #f7fafc !important;
-
-	&:focus {
-		border-color: #3182ce !important;
-		box-shadow: 0 0 0 0.2rem rgba(49, 130, 206, 0.2) !important;
 	}
 }
 
 ::ng-deep .p-button {
 	&.p-button-text {
-		color: #f7fafc !important;
+		color: var(--p-surface-0) !important;
 
 		&:hover {
 			background: rgba(255, 255, 255, 0.1) !important;
@@ -549,42 +868,42 @@ body {
 	}
 }
 
-/* Toggle Button Styling - Fix for toggle buttons appearing as text */
+/* Toggle Button Styling with design tokens */
 ::ng-deep .p-togglebutton,
 ::ng-deep .p-togglebutton.p-button {
-  background-color: #4a5568 !important;
-  border: 1px solid #4a5568 !important;
-  color: #cbd5e0 !important;
-  border-radius: 6px !important;
-  padding: 0.375rem 0.75rem !important;
-  font-size: 0.75rem !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 0.25rem !important;
-  transition: all 0.2s ease !important;
-  text-decoration: none !important;
-  min-height: 2rem !important;
-  min-width: 3rem !important;
+	background-color: var(--p-surface-700) !important;
+	border: 1px solid var(--p-surface-600) !important;
+	color: var(--p-surface-200) !important;
+	border-radius: 6px !important;
+	padding: 0.375rem 0.75rem !important;
+	font-size: 0.75rem !important;
+	font-weight: 500 !important;
+	cursor: pointer !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 0.25rem !important;
+	transition: all 0.2s ease !important;
+	text-decoration: none !important;
+	min-height: 2rem !important;
+	min-width: 3rem !important;
 }
 
 ::ng-deep .p-togglebutton:hover {
-  background-color: #718096 !important;
-  border-color: #718096 !important;
+	background-color: var(--p-surface-600) !important;
+	border-color: var(--p-surface-600) !important;
 }
 
 ::ng-deep .p-togglebutton.p-highlight,
 ::ng-deep .p-togglebutton.p-highlight.p-button {
-  background-color: #48bb78 !important;
-  border-color: #48bb78 !important;
-  color: #ffffff !important;
+	background-color: var(--p-green-500) !important;
+	border-color: var(--p-green-500) !important;
+	color: var(--p-surface-0) !important;
 }
 
 ::ng-deep .p-togglebutton.p-highlight:hover {
-  background-color: #38a169 !important;
-  border-color: #38a169 !important;
+	background-color: var(--p-green-600) !important;
+	border-color: var(--p-green-600) !important;
 }
 
 ::ng-deep .p-togglebutton .p-button-label {
@@ -596,26 +915,26 @@ body {
 ::ng-deep p-togglebutton,
 ::ng-deep p-togglebutton .p-togglebutton,
 ::ng-deep [ptogglebutton] {
-  display: inline-block !important;
+	display: inline-block !important;
 }
 
 ::ng-deep .p-togglebutton-label.ng-star-inserted {
-  display: inline !important;
-  color: inherit !important;
-  font-weight: 500 !important;
+	display: inline !important;
+	color: inherit !important;
+	font-weight: 500 !important;
 }
 
 /* Fix for any remaining text-only toggle buttons */
 ::ng-deep p-togglebutton .p-element {
-  background: #4a5568 !important;
-  border: 1px solid #4a5568 !important;
-  border-radius: 6px !important;
-  padding: 0.375rem 0.75rem !important;
-  cursor: pointer !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.2s ease !important;
+	background: var(--p-surface-700) !important;
+	border: 1px solid var(--p-surface-600) !important;
+	border-radius: 6px !important;
+	padding: 0.375rem 0.75rem !important;
+	cursor: pointer !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	transition: all 0.2s ease !important;
 }
 
 /* Ensure no white backgrounds anywhere */
@@ -627,7 +946,7 @@ body {
 }
 
 ::ng-deep app-saved-menus .saved-menus-container {
-	background: var(--surface-card) !important;
+	background: var(--p-surface-800) !important;
 }
 
 /* Fix any remaining white backgrounds */
@@ -636,25 +955,415 @@ body {
 }
 
 ::ng-deep .p-table-wrapper {
-	background: var(--surface-card) !important;
+	background: var(--p-surface-800) !important;
 }
 
-/* Scrollbar styling for dark theme */
+/* Scrollbar styling for dark theme with design tokens */
 ::-webkit-scrollbar {
 	width: 8px;
 	height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-	background: #374151;
+	background: var(--p-surface-700);
 	border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-	background: #4a5568;
+	background: var(--p-surface-600);
 	border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: #cbd5e0;
+	background: var(--p-surface-500);
 }
+
+/* ==============================================
+ * SPECIFIC DIALOG CLASSES FOR TARGETED STYLING
+ * ==============================================
+ * These classes provide fine-grained control over individual dialog types
+ */
+
+/* Create Pasta Type Dialog */
+.create-pasta-type-dialog {
+	.p-dialog {
+		background: var(--p-surface-900) !important;
+		border: 1px solid var(--p-surface-700) !important;
+		border-radius: 12px !important;
+		box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+		color: var(--p-surface-0) !important;
+		max-width: 500px !important;
+		width: 90vw !important;
+	}
+
+	.p-dialog-header {
+		background: var(--p-surface-800) !important;
+		border-bottom: 1px solid var(--p-surface-700) !important;
+		color: var(--p-surface-0) !important;
+		border-radius: 12px 12px 0 0 !important;
+		padding: 1.25rem 1.5rem !important;
+	}
+
+	.p-dialog-header .p-dialog-title {
+		font-weight: 600 !important;
+		font-size: 1.125rem !important;
+		color: var(--p-surface-0) !important;
+	}
+
+	.p-dialog-content {
+		background: var(--p-surface-900) !important;
+		color: var(--p-surface-0) !important;
+		padding: 1.5rem !important;
+	}
+
+	.p-dialog-footer {
+		background: var(--p-surface-900) !important;
+		border-top: 1px solid var(--p-surface-700) !important;
+		border-radius: 0 0 12px 12px !important;
+		padding: 1rem 1.5rem !important;
+		display: flex !important;
+		justify-content: flex-end !important;
+		gap: 0.75rem !important;
+	}
+
+	.p-field label {
+		color: var(--p-surface-0) !important;
+		font-weight: 600 !important;
+		margin-bottom: 0.5rem !important;
+		display: block !important;
+	}
+
+	.p-inputtext {
+		background: var(--p-surface-800) !important;
+		border: 1px solid var(--p-surface-700) !important;
+		color: var(--p-surface-0) !important;
+		border-radius: 6px !important;
+		padding: 0.75rem !important;
+
+		&:focus {
+			border-color: var(--p-primary-500) !important;
+			box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2) !important;
+		}
+	}
+}
+
+/* Create Pasta Sauce Dialog */
+.create-pasta-sauce-dialog {
+	.p-dialog {
+		background: var(--p-surface-900) !important;
+		border: 1px solid var(--p-surface-700) !important;
+		border-radius: 12px !important;
+		box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+		color: var(--p-surface-0) !important;
+		max-width: 500px !important;
+		width: 90vw !important;
+	}
+
+	.p-dialog-header {
+		background: var(--p-surface-800) !important;
+		border-bottom: 1px solid var(--p-surface-700) !important;
+		color: var(--p-surface-0) !important;
+		border-radius: 12px 12px 0 0 !important;
+		padding: 1.25rem 1.5rem !important;
+	}
+
+	.p-dialog-header .p-dialog-title {
+		font-weight: 600 !important;
+		font-size: 1.125rem !important;
+		color: var(--p-surface-0) !important;
+	}
+
+	.p-dialog-content {
+		background: var(--p-surface-900) !important;
+		color: var(--p-surface-0) !important;
+		padding: 1.5rem !important;
+	}
+
+	.p-dialog-footer {
+		background: var(--p-surface-900) !important;
+		border-top: 1px solid var(--p-surface-700) !important;
+		border-radius: 0 0 12px 12px !important;
+		padding: 1rem 1.5rem !important;
+		display: flex !important;
+		justify-content: flex-end !important;
+		gap: 0.75rem !important;
+	}
+
+	.p-field label {
+		color: var(--p-surface-0) !important;
+		font-weight: 600 !important;
+		margin-bottom: 0.5rem !important;
+		display: block !important;
+	}
+
+	.p-inputtext {
+		background: var(--p-surface-800) !important;
+		border: 1px solid var(--p-surface-700) !important;
+		color: var(--p-surface-0) !important;
+		border-radius: 6px !important;
+		padding: 0.75rem !important;
+
+		&:focus {
+			border-color: var(--p-primary-500) !important;
+			box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2) !important;
+		}
+	}
+}
+
+/* Image Management Dialog */
+.image-management-dialog {
+	.p-dialog {
+		background: var(--p-surface-900) !important;
+		border: 1px solid var(--p-surface-700) !important;
+		border-radius: 12px !important;
+		box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+		color: var(--p-surface-0) !important;
+		max-width: 800px !important;
+		width: 90vw !important;
+		max-height: 90vh !important;
+	}
+
+	.p-dialog-header {
+		background: var(--p-surface-800) !important;
+		border-bottom: 1px solid var(--p-surface-700) !important;
+		color: var(--p-surface-0) !important;
+		border-radius: 12px 12px 0 0 !important;
+		padding: 1.25rem 1.5rem !important;
+	}
+
+	.p-dialog-header .p-dialog-title {
+		font-weight: 600 !important;
+		font-size: 1.125rem !important;
+		color: var(--p-surface-0) !important;
+	}
+
+	.p-dialog-content {
+		background: var(--p-surface-900) !important;
+		color: var(--p-surface-0) !important;
+		padding: 1.5rem !important;
+		max-height: calc(90vh - 140px) !important;
+		overflow-y: auto !important;
+	}
+
+	.p-dialog-footer {
+		background: var(--p-surface-900) !important;
+		border-top: 1px solid var(--p-surface-700) !important;
+		border-radius: 0 0 12px 12px !important;
+		padding: 1rem 1.5rem !important;
+		display: flex !important;
+		justify-content: flex-end !important;
+		gap: 0.75rem !important;
+	}
+
+	.p-field h4 {
+		color: var(--p-surface-0) !important;
+		margin-bottom: 1rem !important;
+		font-weight: 600 !important;
+	}
+
+	.p-card {
+		background: var(--p-surface-800) !important;
+		border: 1px solid var(--p-surface-700) !important;
+		border-radius: 8px !important;
+		padding: 0.75rem !important;
+	}
+
+	.pasta-image {
+		border-radius: 6px !important;
+		border: 1px solid var(--p-surface-700) !important;
+		max-height: 150px !important;
+		object-fit: cover !important;
+	}
+
+	.p-fileupload .p-button {
+		background: var(--p-primary-500) !important;
+		border-color: var(--p-primary-500) !important;
+		color: var(--p-surface-0) !important;
+
+		&:hover {
+			background: var(--p-primary-600) !important;
+			border-color: var(--p-primary-600) !important;
+		}
+	}
+}
+
+/* Save Menu Dialog */
+.save-menu-dialog {
+	.p-dialog {
+		background: var(--p-surface-900) !important;
+		border: 1px solid var(--p-surface-700) !important;
+		border-radius: 12px !important;
+		box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+		color: var(--p-surface-0) !important;
+		max-width: 450px !important;
+		width: 90vw !important;
+	}
+
+	.p-dialog-header {
+		background: var(--p-surface-800) !important;
+		border-bottom: 1px solid var(--p-surface-700) !important;
+		color: var(--p-surface-0) !important;
+		border-radius: 12px 12px 0 0 !important;
+		padding: 1.25rem 1.5rem !important;
+	}
+
+	.p-dialog-header .p-dialog-title {
+		font-weight: 600 !important;
+		font-size: 1.125rem !important;
+		color: var(--p-surface-0) !important;
+	}
+
+	.p-dialog-content {
+		background: var(--p-surface-900) !important;
+		color: var(--p-surface-0) !important;
+		padding: 1.5rem !important;
+	}
+
+	.p-dialog-footer {
+		background: var(--p-surface-900) !important;
+		border-top: 1px solid var(--p-surface-700) !important;
+		border-radius: 0 0 12px 12px !important;
+		padding: 1rem 1.5rem !important;
+		display: flex !important;
+		justify-content: flex-end !important;
+		gap: 0.75rem !important;
+	}
+
+	.p-field label {
+		color: var(--p-surface-0) !important;
+		font-weight: 600 !important;
+		margin-bottom: 0.5rem !important;
+		display: block !important;
+	}
+
+	.p-inputtext {
+		background: var(--p-surface-800) !important;
+		border: 1px solid var(--p-surface-700) !important;
+		color: var(--p-surface-0) !important;
+		border-radius: 6px !important;
+		padding: 0.75rem !important;
+
+		&:focus {
+			border-color: var(--p-primary-500) !important;
+			box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2) !important;
+		}
+	}
+
+	small {
+		color: var(--p-surface-400) !important;
+		font-size: 0.75rem !important;
+	}
+}
+
+/* Confirmation Dialog */
+.confirmation-dialog {
+	.p-dialog {
+		background: var(--p-surface-900) !important;
+		border: 1px solid var(--p-surface-700) !important;
+		border-radius: 12px !important;
+		box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+		color: var(--p-surface-0) !important;
+		max-width: 450px !important;
+		width: 90vw !important;
+	}
+
+	.p-dialog-header {
+		background: var(--p-surface-800) !important;
+		border-bottom: 1px solid var(--p-surface-700) !important;
+		color: var(--p-surface-0) !important;
+		border-radius: 12px 12px 0 0 !important;
+		padding: 1.25rem 1.5rem !important;
+	}
+
+	.p-dialog-header .p-dialog-title {
+		font-weight: 600 !important;
+		font-size: 1.125rem !important;
+		color: var(--p-surface-0) !important;
+	}
+
+	.p-dialog-content {
+		background: var(--p-surface-900) !important;
+		color: var(--p-surface-0) !important;
+		padding: 1.5rem !important;
+	}
+
+	.p-dialog-footer {
+		background: var(--p-surface-900) !important;
+		border-top: 1px solid var(--p-surface-700) !important;
+		border-radius: 0 0 12px 12px !important;
+		padding: 1rem 1.5rem !important;
+		display: flex !important;
+		justify-content: flex-end !important;
+		gap: 0.75rem !important;
+	}
+
+	.p-confirm-dialog-message {
+		color: var(--p-surface-0) !important;
+		font-size: 1rem !important;
+		line-height: 1.5 !important;
+		margin-left: 1rem !important;
+	}
+
+	.p-confirm-dialog-icon {
+		color: var(--p-primary-500) !important;
+		font-size: 1.5rem !important;
+	}
+
+	&.p-confirm-dialog-reject .p-confirm-dialog-icon {
+		color: var(--p-red-500) !important;
+	}
+}
+
+/* Dialog Mask Styling */
+.p-dialog-mask {
+	background: rgba(0, 0, 0, 0.5) !important;
+	-webkit-backdrop-filter: blur(3px) !important;
+	backdrop-filter: blur(3px) !important;
+}
+
+/* Mobile Responsiveness for All Dialog Classes */
+@media (max-width: 768px) {
+	.create-pasta-type-dialog,
+	.create-pasta-sauce-dialog,
+	.save-menu-dialog,
+	.confirmation-dialog {
+		.p-dialog {
+			width: 95vw !important;
+			margin: 1rem !important;
+		}
+		
+		.p-dialog-content {
+			padding: 1rem !important;
+		}
+		
+		.p-dialog-footer {
+			padding: 1rem !important;
+			flex-direction: column !important;
+			gap: 0.5rem !important;
+		}
+		
+		.p-dialog-footer .p-button {
+			width: 100% !important;
+		}
+	}
+	
+	.image-management-dialog {
+		.p-dialog {
+			width: 95vw !important;
+			margin: 1rem !important;
+		}
+		
+		.p-dialog-content {
+			padding: 1rem !important;
+		}
+		
+		.grid .col-6 {
+			flex: 0 0 100% !important;
+			width: 100% !important;
+		}
+	}
+}
+
+/* ==============================================
+ * END SPECIFIC DIALOG CLASSES
+ * ============================================== */
