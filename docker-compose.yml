@@ -1,0 +1,51 @@
+
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./Backend/prisma:/app/prisma
+      - ./Backend/assets:/app/assets
+      - backend_data:/app/data
+    networks:
+      - simple-menu-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./Frontend/front
+      dockerfile: Dockerfile
+      args:
+        - BACKEND_HOST=backend
+        - BACKEND_PORT=3000
+    ports:
+      - "4200:80"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - simple-menu-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  backend_data:
+
+networks:
+  simple-menu-network:
+    driver: bridge

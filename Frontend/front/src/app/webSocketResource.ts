@@ -1,4 +1,5 @@
-import { computed, resource, ResourceRef, signal, Signal } from '@angular/core';
+import { computed, resource, ResourceRef, signal, Signal, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Menu } from './Menu/menu';
 
 export interface AddItemMessage {
@@ -152,6 +153,7 @@ export type MenuConnection = {
 };
 
 export function menuConnection(websocketUrl: string): MenuConnection {
+	const platformId = inject(PLATFORM_ID);
 	let wsConnectionInstance: WebSocket | null = null; // Store the active WebSocket instance
 	const connected = signal(false);
 	const responseMessages = signal<MenuResponseMessage | null>(null);
@@ -163,6 +165,13 @@ export function menuConnection(websocketUrl: string): MenuConnection {
 				const resourceResult = signal<ResourceStreamItem<Menu | undefined>>({
 					value: undefined,
 				});
+
+				// Only create WebSocket in browser environment
+				if (!isPlatformBrowser(platformId)) {
+					console.log('[WebSocket] Server-side rendering detected, skipping WebSocket connection');
+					resolve(resourceResult);
+					return;
+				}
 
 				// Close existing connection if any
 				if (wsConnectionInstance) {
@@ -236,6 +245,11 @@ export function menuConnection(websocketUrl: string): MenuConnection {
 	});
 
 	const sendUpdate: SendUpdateFn = (message: MenuUpdateMessage) => {
+		if (!isPlatformBrowser(platformId)) {
+			console.log('[WebSocket] Cannot send message during server-side rendering');
+			return;
+		}
+		
 		if (
 			wsConnectionInstance &&
 			wsConnectionInstance.readyState === WebSocket.OPEN

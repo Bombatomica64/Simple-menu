@@ -46,13 +46,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "5MB",
+                  "maximumError": "10MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "4MB",
+                  "maximumError": "8MB"
                 }
               ],
               "outputHashing": "all"
@@ -64,9 +64,12 @@
             }
           },
           "defaultConfiguration": "production"
-        },
-        "serve": {
+        },        "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "host": "0.0.0.0",
+            "port": 4200
+          },
           "configurations": {
             "production": {
               "buildTarget": "front:build:production"

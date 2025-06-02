@@ -12,6 +12,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http'; // Import HttpClient & HttpClientModule
+import { environment } from '../../environments/environment.dynamic';
 import {
 	menuConnection,
 	MenuConnection,
@@ -74,7 +75,7 @@ export class SubmitComponent implements OnInit {
 	private http = inject(HttpClient);
 	private injector = inject(Injector);
 	private confirmationService = inject(ConfirmationService);
-	private apiUrl = 'http://localhost:3000';
+	private apiUrl = environment.apiUrl;
 
 	@ViewChild(SavedMenusComponent) savedMenusComponent!: SavedMenusComponent;
 
@@ -191,10 +192,9 @@ export class SubmitComponent implements OnInit {
 	});
 
 	ngOnInit() {
-		if (isPlatformBrowser(this.platformId)) {
-			runInInjectionContext(this.injector, () => {
+		if (isPlatformBrowser(this.platformId)) {			runInInjectionContext(this.injector, () => {
 				this.menuWsConnection = menuConnection(
-					'ws://localhost:3000/menu-updates'
+					environment.wsUrl
 				);
 			});
 			this.loadAllPastaTypes();

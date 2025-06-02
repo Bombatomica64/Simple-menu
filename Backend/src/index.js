@@ -50,9 +50,22 @@ async function startServer() {
     await menuService.loadInitialMenu();
     
     // Start server
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
+      const os = require('os');
+      const networkInterfaces = os.networkInterfaces();
+      
       console.log(`Server is running on port ${PORT}`);
-      console.log(`WebSocket server is running on ws://localhost:${PORT}/menu-updates`);
+      console.log(`Local access: http://localhost:${PORT}`);
+      
+      // Show all network interfaces
+      Object.keys(networkInterfaces).forEach((interfaceName) => {
+        networkInterfaces[interfaceName].forEach((details) => {
+          if (details.family === 'IPv4' && !details.internal) {
+            console.log(`LAN access: http://${details.address}:${PORT}`);
+            console.log(`WebSocket: ws://${details.address}:${PORT}/menu-updates`);
+          }
+        });
+      });
     });
   } catch (error) {
     console.error("Failed to start server:", error);

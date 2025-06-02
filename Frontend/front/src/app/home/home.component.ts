@@ -3,6 +3,7 @@ import { MultiPageMenuComponent } from '../multi-page-menu/multi-page-menu.compo
 import { Menu } from '../Menu/menu';
 import { isPlatformBrowser } from '@angular/common';
 import { menuConnection, MenuConnection } from '../webSocketResource';
+import { environment } from '../../environments/environment.dynamic';
 
 @Component({
   selector: 'app-home',
@@ -28,11 +29,10 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
-    if (isPlatformBrowser(this.platformId)) {
+  ngOnInit() {    if (isPlatformBrowser(this.platformId)) {
       // Connect to WebSocket for real-time menu updates
       runInInjectionContext(this.injector, () => {
-        this.menuConnection = menuConnection('ws://localhost:3000/menu-updates');
+        this.menuConnection = menuConnection(environment.wsUrl);
       });
     }
   }
