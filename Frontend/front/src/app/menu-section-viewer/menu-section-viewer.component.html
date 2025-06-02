@@ -1,0 +1,19 @@
+<p-panel [header]="section().name" styleClass="menu-section-panel">
+  <div class="grid">
+    @for (item of items(); track item.id) {
+      <div class="col-12 mb-3">
+        <div class="menu-item-row">
+          @if (item.imageUrl && item.showImage) {
+            <img [src]="item.imageUrl" [alt]="item.name" [title]="item.name" class="menu-item-image"/>
+          }
+          <div class="menu-item-content">
+            <h4>{{ item.name }}</h4>
+          </div>
+          <div class="menu-item-price">
+            <span class="price">€{{ item.price }}</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</p-panel>

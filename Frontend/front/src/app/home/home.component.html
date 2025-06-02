@@ -1,14 +1,18 @@
 @if (menuConnection) {
   <div>
-    @if (menuConnection.connected()) {
+    @if (menuConnection.connected() && showConnectionStatus()) {
       <div class="connection-status connected">Connected to menu updates</div>
-    } @else {
+    } @else if (!menuConnection.connected()) {
       <div class="connection-status disconnected">Connecting to menu updates...</div>
     }
-    @if (menuConnection.resource(); as menuResource) {
-      <app-pasta [menu]="menuResource"></app-pasta>
+    @if (menuConnection.resource.value(); as menuResource) {
+      <app-multi-page-menu [menu]="menuResource"></app-multi-page-menu>
     } @else {
       <div class="loading">Loading menu...</div>
     }
+  </div>
+} @else {
+  <div class="no-connection">
+    <div class="loading">Initializing menu connection...</div>
   </div>
 }

@@ -73,6 +73,25 @@ function setupWebSocket(server) {
           case "removePastaSauceFromMenu":
             updated = await menuService.removePastaSauceFromMenu(message.pastaSauceId);
             break;
+          // Section management cases
+          case "addSection":
+            const newSection = await menuService.addSectionToMenu(message.section);
+            if (newSection) {
+              updated = true;
+            }
+            break;
+          case "removeSection":
+            updated = await menuService.removeSectionFromMenu(message.sectionId);
+            break;
+          case "updateSectionOrder":
+            updated = await menuService.updateSectionOrder(message.sectionUpdates);
+            break;
+          case "moveItemToSection":
+            updated = await menuService.moveItemToSection(message.itemId, message.sectionId, message.position);
+            break;
+          case "updateItemPositions":
+            updated = await menuService.updateItemPositions(message.itemUpdates);
+            break;
           case "saveCurrentMenu":
             try {
               const savedMenu = await menuService.saveCurrentMenu(message.name);

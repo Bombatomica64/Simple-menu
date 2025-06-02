@@ -46,6 +46,30 @@ export interface RemovePastaSauceMessage {
 	pastaSauceId: number;
 }
 
+// Section management message types
+export interface AddSectionMessage {
+	type: 'addSection';
+	section: { name: string };
+}
+export interface RemoveSectionMessage {
+	type: 'removeSection';
+	sectionId: number;
+}
+export interface UpdateSectionOrderMessage {
+	type: 'updateSectionOrder';
+	sectionUpdates: { id: number; position: number }[];
+}
+export interface MoveItemToSectionMessage {
+	type: 'moveItemToSection';
+	itemId: number;
+	sectionId: number | null;
+	position?: number;
+}
+export interface UpdateItemPositionsMessage {
+	type: 'updateItemPositions';
+	itemUpdates: { itemId: number; position: number; sectionId?: number | null }[];
+}
+
 // Saved menu message types
 export interface SaveCurrentMenuMessage {
 	type: 'saveCurrentMenu';
@@ -99,6 +123,11 @@ export type MenuUpdateMessage =
 	| RemovePastaTypeMessage
 	| AddPastaSauceMessage
 	| RemovePastaSauceMessage
+	| AddSectionMessage
+	| RemoveSectionMessage
+	| UpdateSectionOrderMessage
+	| MoveItemToSectionMessage
+	| UpdateItemPositionsMessage
 	| SaveCurrentMenuMessage
 	| LoadSavedMenuMessage
 	| DeleteSavedMenuMessage

@@ -8,7 +8,17 @@ async function loadInitialMenu() {
     const latestMenuFromDB = await prisma.menu.findFirst({
       orderBy: { createdAt: "desc" },
       include: {
-        menuItems: true,
+        menuItems: {
+          orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+        },
+        menuSections: {
+          orderBy: { position: 'asc' },
+          include: {
+            menuItems: {
+              orderBy: { position: 'asc' }
+            }
+          }
+        },
         pastaTypes: { include: { pastaType: true } },
         pastaSauces: { include: { pastaSauce: true } },
       },
@@ -23,6 +33,7 @@ async function loadInitialMenu() {
       currentInMemoryMenu = {
         createdAt: new Date().toISOString(),
         menuItems: [],
+        menuSections: [],
         pastaTypes: [],
         pastaSauces: [],
       };
@@ -33,6 +44,7 @@ async function loadInitialMenu() {
     currentInMemoryMenu = {
       createdAt: new Date().toISOString(),
       menuItems: [],
+      menuSections: [],
       pastaTypes: [],
       pastaSauces: [],
     };
@@ -51,13 +63,27 @@ async function addItemToMenu(item) {
   if (!currentInMemoryMenu) return false;
   
   if (item && typeof item.name === "string" && typeof item.price === "number") {
+    // Determine position within section or overall menu
+    let position = 0;
+    if (item.sectionId) {
+      // Find max position in the specific section
+      const sectionItems = currentInMemoryMenu.menuItems.filter(i => i.sectionId === item.sectionId);
+      position = sectionItems.length > 0 ? Math.max(...sectionItems.map(i => i.position || 0)) + 1 : 0;
+    } else {
+      // Find max position overall if no section specified
+      const unsectionedItems = currentInMemoryMenu.menuItems.filter(i => !i.sectionId);
+      position = unsectionedItems.length > 0 ? Math.max(...unsectionedItems.map(i => i.position || 0)) + 1 : 0;
+    }
+
     const newItem = {
       id: Date.now(), // Temporary in-memory ID
       name: item.name,
       price: item.price,
+      position: position,
       imageUrl: item.imageUrl || null,
       availableImages: item.availableImages || "[]",
       showImage: item.showImage || false,
+      sectionId: item.sectionId || null,
     };
     currentInMemoryMenu.menuItems.push(newItem);
     return true;
@@ -230,9 +256,17 @@ async function saveCurrentMenu(name) {
           create: currentInMemoryMenu.menuItems.map(item => ({
             name: item.name,
             price: item.price,
+            position: item.position || 0,
             imageUrl: item.imageUrl,
             availableImages: item.availableImages,
             showImage: item.showImage,
+            sectionId: item.sectionId,
+          }))
+        },
+        menuSections: {
+          create: (currentInMemoryMenu.menuSections || []).map(section => ({
+            name: section.name,
+            position: section.position || 0,
           }))
         },
         pastaTypes: {
@@ -247,7 +281,17 @@ async function saveCurrentMenu(name) {
         }
       },
       include: {
-        menuItems: true,
+        menuItems: {
+          orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+        },
+        menuSections: {
+          orderBy: { position: 'asc' },
+          include: {
+            menuItems: {
+              orderBy: { position: 'asc' }
+            }
+          }
+        },
         pastaTypes: { include: { pastaType: true } },
         pastaSauces: { include: { pastaSauce: true } },
       }
@@ -262,7 +306,17 @@ async function saveCurrentMenu(name) {
       include: {
         menu: {
           include: {
-            menuItems: true,
+            menuItems: {
+              orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+            },
+            menuSections: {
+              orderBy: { position: 'asc' },
+              include: {
+                menuItems: {
+                  orderBy: { position: 'asc' }
+                }
+              }
+            },
             pastaTypes: { include: { pastaType: true } },
             pastaSauces: { include: { pastaSauce: true } },
           }
@@ -285,7 +339,17 @@ async function getAllSavedMenus() {
       include: {
         menu: {
           include: {
-            menuItems: true,
+            menuItems: {
+              orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+            },
+            menuSections: {
+              orderBy: { position: 'asc' },
+              include: {
+                menuItems: {
+                  orderBy: { position: 'asc' }
+                }
+              }
+            },
             pastaTypes: { include: { pastaType: true } },
             pastaSauces: { include: { pastaSauce: true } },
           }
@@ -307,7 +371,17 @@ async function loadSavedMenu(savedMenuId) {
       include: {
         menu: {
           include: {
-            menuItems: true,
+            menuItems: {
+              orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+            },
+            menuSections: {
+              orderBy: { position: 'asc' },
+              include: {
+                menuItems: {
+                  orderBy: { position: 'asc' }
+                }
+              }
+            },
             pastaTypes: { include: { pastaType: true } },
             pastaSauces: { include: { pastaSauce: true } },
           }
@@ -321,6 +395,7 @@ async function loadSavedMenu(savedMenuId) {
         id: savedMenu.menu.id,
         createdAt: savedMenu.menu.createdAt,
         menuItems: savedMenu.menu.menuItems,
+        menuSections: savedMenu.menu.menuSections || [],
         pastaTypes: savedMenu.menu.pastaTypes,
         pastaSauces: savedMenu.menu.pastaSauces,
       };
@@ -347,6 +422,154 @@ async function deleteSavedMenu(savedMenuId) {
   }
 }
 
+// Menu Section Management Functions
+
+async function addSectionToMenu(sectionData) {
+  if (!currentInMemoryMenu) return false;
+  
+  if (sectionData && typeof sectionData.name === "string") {
+    // Determine position for new section
+    const existingSections = currentInMemoryMenu.menuSections || [];
+    const maxPosition = existingSections.length > 0 ? Math.max(...existingSections.map(s => s.position || 0)) : -1;
+    
+    const newSection = {
+      id: Date.now(), // Temporary in-memory ID
+      name: sectionData.name,
+      position: maxPosition + 1,
+      menuItems: [],
+    };
+    
+    if (!currentInMemoryMenu.menuSections) {
+      currentInMemoryMenu.menuSections = [];
+    }
+    currentInMemoryMenu.menuSections.push(newSection);
+    return newSection;
+  }
+  return false;
+}
+
+async function removeSectionFromMenu(sectionId) {
+  if (!currentInMemoryMenu || !currentInMemoryMenu.menuSections) return false;
+  
+  if (typeof sectionId === "number") {
+    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
+    if (sectionIndex !== -1) {
+      const removedSection = currentInMemoryMenu.menuSections[sectionIndex];
+      
+      // Move items from removed section to first section or make them unsectioned
+      if (removedSection.menuItems && removedSection.menuItems.length > 0) {
+        if (currentInMemoryMenu.menuSections.length > 1) {
+          // Move to first remaining section
+          const targetSection = currentInMemoryMenu.menuSections.find(s => s.id !== sectionId);
+          if (targetSection) {
+            targetSection.menuItems = targetSection.menuItems || [];
+            targetSection.menuItems.push(...removedSection.menuItems);
+          }
+        } else {
+          // Make items unsectioned (remove sectionId)
+          removedSection.menuItems.forEach(item => {
+            item.sectionId = null;
+            const menuItem = currentInMemoryMenu.menuItems.find(mi => mi.id === item.id);
+            if (menuItem) {
+              menuItem.sectionId = null;
+            }
+          });
+        }
+      }
+      
+      currentInMemoryMenu.menuSections.splice(sectionIndex, 1);
+      return true;
+    }
+  }
+  return false;
+}
+
+async function updateSectionOrder(sectionUpdates) {
+  if (!currentInMemoryMenu || !currentInMemoryMenu.menuSections) return false;
+  
+  try {
+    // Update positions for each section
+    sectionUpdates.forEach(update => {
+      const section = currentInMemoryMenu.menuSections.find(s => s.id === update.id);
+      if (section) {
+        section.position = update.position;
+      }
+    });
+    
+    // Sort sections by position
+    currentInMemoryMenu.menuSections.sort((a, b) => a.position - b.position);
+    return true;
+  } catch (error) {
+    console.error("Error updating section order:", error);
+    return false;
+  }
+}
+
+async function moveItemToSection(itemId, targetSectionId, position) {
+  if (!currentInMemoryMenu) return false;
+  
+  const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
+  if (item) {
+    // Remove from current section if it has one
+    if (item.sectionId && currentInMemoryMenu.menuSections) {
+      const currentSection = currentInMemoryMenu.menuSections.find(s => s.id === item.sectionId);
+      if (currentSection && currentSection.menuItems) {
+        currentSection.menuItems = currentSection.menuItems.filter(i => i.id !== itemId);
+      }
+    }
+    
+    // Update item's section
+    item.sectionId = targetSectionId;
+    item.position = position || 0;
+    
+    // Add to target section
+    if (targetSectionId && currentInMemoryMenu.menuSections) {
+      const targetSection = currentInMemoryMenu.menuSections.find(s => s.id === targetSectionId);
+      if (targetSection) {
+        if (!targetSection.menuItems) {
+          targetSection.menuItems = [];
+        }
+        targetSection.menuItems.push(item);
+        // Sort items in section by position
+        targetSection.menuItems.sort((a, b) => (a.position || 0) - (b.position || 0));
+      }
+    }
+    
+    return true;
+  }
+  return false;
+}
+
+async function updateItemPositions(itemUpdates) {
+  if (!currentInMemoryMenu) return false;
+  
+  try {
+    itemUpdates.forEach(update => {
+      const item = currentInMemoryMenu.menuItems.find(item => item.id === update.itemId);
+      if (item) {
+        item.position = update.position;
+        if (update.sectionId !== undefined) {
+          item.sectionId = update.sectionId;
+        }
+      }
+    });
+    
+    // Update section menuItems arrays
+    if (currentInMemoryMenu.menuSections) {
+      currentInMemoryMenu.menuSections.forEach(section => {
+        section.menuItems = currentInMemoryMenu.menuItems
+          .filter(item => item.sectionId === section.id)
+          .sort((a, b) => (a.position || 0) - (b.position || 0));
+      });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error updating item positions:", error);
+    return false;
+  }
+}
+
 module.exports = {
   loadInitialMenu,
   getCurrentMenu,
@@ -365,4 +588,10 @@ module.exports = {
   getAllSavedMenus,
   loadSavedMenu,
   deleteSavedMenu,
+  // Section management functions
+  addSectionToMenu,
+  removeSectionFromMenu,
+  updateSectionOrder,
+  moveItemToSection,
+  updateItemPositions,
 };

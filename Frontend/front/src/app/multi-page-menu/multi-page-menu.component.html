@@ -1,0 +1,149 @@
+<!-- Multi-page menu display with timer-based transitions -->
+<div class="multi-page-menu-container" [class.transitioning]="isTransitioning()">
+
+  <!-- Current page content -->
+  @if (currentPage(); as page) {
+    <div class="menu-page-content">
+
+      <!-- Header -->
+      <div class="col-12">
+        <div class="card menu-header">
+          <h2>Our Menu</h2>
+          <p>Enjoy our delicious selection of dishes, updated daily</p>
+          @if (showPageIndicator()) {
+            <div class="auto-transition-info">
+              <i class="pi pi-clock"></i>
+              <span>Pages change automatically every {{ pageTransitionTime() / 1000 }} seconds</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Pasta Selection Section -->
+      @if (page.pastaTypes.length > 0 || page.pastaSauces.length > 0) {
+        <div class="col-12">
+          <div class="card pasta-selection-card">
+            <h3>Create Your Pasta Dish</h3>
+            <p>Choose any pasta and combine it with any sauce for a perfect meal</p>
+
+            <div class="grid">
+              <!-- Pasta Types -->
+              @if (page.pastaTypes.length > 0) {
+                <div class="col-12 md:col-5">
+                  <div class="pasta-selection">
+                    <h4>Step 1: Choose Your Pasta</h4>
+                    <div class="grid">
+                      @for (pasta of page.pastaTypes; track pasta.name) {
+                        <div class="col-6 mb-3">
+                          <p-card [header]="pasta.name" styleClass="pasta-card">
+                            <ng-template pTemplate="header">
+                              <img [alt]="pasta.name" [title]="pasta.name" [src]="pasta.image" class="pasta-image"/>
+                            </ng-template>
+                          </p-card>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- Arrows Section -->
+              @if (page.pastaTypes.length > 0 && page.pastaSauces.length > 0) {
+                <div class="col-12 md:col-2 flex align-items-center justify-content-center">
+                  <div class="arrows-container">
+                    <i class="pi pi-arrow-right text-5xl"></i>
+                    <i class="pi pi-arrow-left text-5xl"></i>
+                  </div>
+                </div>
+              }
+
+              <!-- Sauces -->
+              @if (page.pastaSauces.length > 0) {
+                <div class="col-12 md:col-5">
+                  <div class="sauce-selection">
+                    <h4>Step 2: Choose Your Sauce</h4>
+                    <div class="grid">
+                      @for (sauce of page.pastaSauces; track sauce.name) {
+                        <div class="col-6 mb-3">
+                          <p-card [header]="sauce.name" styleClass="sauce-card">
+                            <ng-template pTemplate="header">
+                              <img [alt]="sauce.name" [src]="sauce.image" [title]="sauce.name" class="sauce-image"/>
+                            </ng-template>
+                          </p-card>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Menu Sections using MenuSectionViewerComponent -->
+      @for (section of page.sections; track section.id) {
+        <div class="col-12">
+          <app-menu-section-viewer
+            [section]="section"
+            [items]="getItemsForSection(section.id)">
+          </app-menu-section-viewer>
+        </div>
+      }
+
+      <!-- Other Menu Items (not in sections) -->
+      @if (page.itemsWithoutSections.length > 0) {
+        <div class="col-12">
+          <p-panel header="Special Items" styleClass="menu-section-panel">
+            <div class="grid">
+              @for (item of page.itemsWithoutSections; track item.id) {
+                <div class="col-12 mb-3">
+                  <div class="menu-item-row">
+                    @if (item.imageUrl && item.showImage) {
+                      <img [src]="item.imageUrl" [alt]="item.name" [title]="item.name" class="menu-item-image"/>
+                    }
+                    <div class="menu-item-content">
+                      <h4>{{ item.name }}</h4>
+                    </div>
+                    <div class="menu-item-price">
+                      <span class="price">€{{ item.price }}</span>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </p-panel>
+        </div>
+      }
+
+    </div>
+  } @else {
+    <div class="col-12">
+      <div class="card">
+        <div class="no-content">
+          <i class="pi pi-info-circle text-4xl mb-3"></i>
+          <h3>No menu content available</h3>
+          <p>Please check back later for our delicious offerings!</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Simple page indicator at bottom -->
+  @if (showPageIndicator()) {
+    <div class="bottom-page-indicator">
+      <div class="page-dots">
+        @for (page of menuPages(); track $index) {
+          <div
+            class="page-dot"
+            [class.active]="currentPageIndex() === $index">
+          </div>
+        }
+      </div>
+      <div class="page-info">
+        Page {{ currentPageIndex() + 1 }} of {{ totalPages() }}
+      </div>
+    </div>
+  }
+
+</div>

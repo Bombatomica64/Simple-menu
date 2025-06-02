@@ -635,24 +635,131 @@
     transform: translateY(-2px);
   }
 
-  h5 {
-    color: var(--text-color);
-    font-weight: 600;
+  // New responsive menu item content layout
+  .menu-item-content {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    gap: 1rem;
+
+    // Desktop and tablet: horizontal layout
+    @media (min-width: 768px) {
+      align-items: center;
+      justify-content: space-between;
+
+      .menu-item-remove-btn {
+        order: 1; // Move button to the right
+        width: 2.5rem;
+        height: 2.5rem;
+        margin-left: 1rem;
+        flex-shrink: 0;
+
+        // Ensure X icon is visible
+        .pi-times {
+          font-size: 1rem;
+          color: inherit;
+        }
+      }
+
+      .menu-item-info {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex: 1;
+        order: 0;
+
+        .menu-item-name {
+          margin: 0;
+          font-weight: 600;
+          color: var(--text-color);
+          font-size: 1.1rem; // Increased from default
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 200px; // Increased max width
+        }
+
+        .menu-item-price {
+          margin: 0;
+          font-size: 1.3rem; // Increased from 1.1rem
+          font-weight: 700;
+          color: var(--primary-color);
+          white-space: nowrap;
+        }
+      }
+    }
+
+    // Mobile: better mobile layout
+    @media (max-width: 767px) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+
+      .menu-item-remove-btn {
+        order: 1; // Move button to the right on mobile too
+        width: 2.25rem;
+        height: 2.25rem;
+        flex-shrink: 0;
+
+        // Ensure X icon is visible on mobile
+        .pi-times {
+          font-size: 0.9rem;
+          color: inherit;
+        }
+      }
+
+      .menu-item-info {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        flex: 1;
+        gap: 0.75rem;
+        order: 0;
+
+        .menu-item-name {
+          margin: 0;
+          font-weight: 600;
+          color: var(--text-color);
+          font-size: 1rem; // Increased from 0.95rem
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          padding-right: 0.5rem;
+        }
+
+        .menu-item-price {
+          margin: 0;
+          font-size: 1.1rem; // Increased from 1rem
+          font-weight: 700;
+          color: var(--primary-color);
+          white-space: nowrap;
+        }
+      }
+    }
   }
 
-  .text-primary {
-    font-size: 1.1rem;
-    font-weight: 700;
-  }
+  // Keep hover effect for remove button
+  .menu-item-remove-btn {
+    // Ensure the X icon is always visible and properly styled
+    .pi, .pi-times {
+      font-family: 'PrimeIcons' !important;
+      font-size: 1rem !important;
+      color: inherit !important;
+      display: inline-block !important;
+      line-height: 1 !important;
+    }
 
-  small {
-    font-size: 0.8rem;
-    opacity: 0.7;
-  }
-
-  .p-button-danger {
     &:hover {
       transform: scale(1.1);
+    }
+
+    // Additional icon styling for better visibility
+    &.p-button-danger {
+      .pi-times {
+        color: #ffffff !important;
+      }
     }
   }
 }

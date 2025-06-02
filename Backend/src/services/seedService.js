@@ -23,7 +23,7 @@ async function seedDefaultData() {
 
     // Map existing assets to pasta types
     const assetMapping = {
-      "Gnocchi": "/assets/gnocchi1.jpeg.jpg",
+      "Gnocchi": "/assets/gnocchi1.jpg",
       "Penne": "/assets/penne.jpg", 
       "Pici": "/assets/pici.jpg",
       "Trofie": "/assets/trofie.png",

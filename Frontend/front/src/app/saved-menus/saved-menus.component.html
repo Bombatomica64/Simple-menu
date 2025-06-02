@@ -7,15 +7,14 @@
 
 	<!-- Saved Menus Table -->
 	<div class="saved-menus-list">
-		@if (savedMenus().length > 0) {
-		<p-table
+		@if (savedMenus().length > 0) {		<p-table
 			[value]="savedMenus()"
 			[paginator]="true"
 			[rows]="5"
 			[showCurrentPageReport]="true"
 			currentPageReportTemplate="Mostrando {first} a {last} di {totalRecords} menu"
 			[rowsPerPageOptions]="[5, 10, 20]"
-			styleClass="p-datatable-sm"
+			styleClass="p-datatable-sm saved-menus-table"
 		>
 			<ng-template pTemplate="header">
 				<tr>
@@ -103,9 +102,6 @@
 					placeholder="Inserisci un nome per il menu"
 					[disabled]="loading()"
 				/>
-				<small class="p-mt-1 text-500">
-					Inserisci un nome descrittivo per identificare questo menu in seguito.
-				</small>
 			</div>
 		</div>
 		<ng-template pTemplate="footer">
@@ -134,7 +130,6 @@
 
 	<!-- Toast Messages -->
 	<p-toast></p-toast>
-
 	<!-- Confirmation Dialog -->
-	<p-confirmDialog></p-confirmDialog>
+	<p-confirmDialog styleClass="confirmation-dialog"></p-confirmDialog>
 </div>
