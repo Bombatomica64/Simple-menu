@@ -3,43 +3,6 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  background: #0f172a;
-  min-height: 100vh;
-  color: #f8fafc;
-}
-
-.header-section {
-  background: #1e293b;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-}
-
-.form-section {
-  background: #1e293b;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-}
-
-.menu-items-section {
-  background: #1e293b;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-}
-
-.save-section {
-  background: #1e293b;
-  padding: 1.5rem;
-  border-radius: 8px;
-}
-
-// Component-specific styles
-.menu-management-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
   background: var(--surface-ground);
   min-height: 100vh;
 }

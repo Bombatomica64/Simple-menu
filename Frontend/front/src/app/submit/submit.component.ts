@@ -505,7 +505,6 @@ export class SubmitComponent implements OnInit {
 				'Sei sicuro di voler eliminare questa immagine? Questa azione non può essere annullata.',
 			header: 'Elimina Immagine',
 			icon: 'pi pi-exclamation-triangle',
-			styleClass: 'confirmation-dialog',
 			accept: () => {
 				const selectedItem = this.selectedItemForImages()!;
 				if (selectedItem.type === 'menuItem') {
