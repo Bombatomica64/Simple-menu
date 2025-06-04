@@ -246,62 +246,127 @@ async function removeImageFromMenuItem(itemId, imageUrl) {
 
 // Save current menu to database
 async function saveCurrentMenu(name) {
-  if (!currentInMemoryMenu || !name) return null;
-  
   try {
-    // First create the menu in the database
-    const savedMenu = await prisma.menu.create({
-      data: {
-        menuItems: {
-          create: currentInMemoryMenu.menuItems.map(item => ({
+    const result = await prisma.$transaction(async (tx) => {
+      // First create the base menu (no name field in Menu model)
+      const savedMenu = await tx.menu.create({
+        data: {}
+      });
+
+      // Create section mapping from temp IDs to real IDs
+      const sectionIdMapping = new Map();
+      
+      // Create sections first
+      for (const section of currentInMemoryMenu.menuSections) {
+        const createdSection = await tx.menuSection.create({
+          data: {
+            name: section.name,
+            position: section.position || 0,
+            menuId: savedMenu.id
+          }
+        });
+        sectionIdMapping.set(section.id, createdSection.id);
+      }
+
+      // Create menu items with correct section references
+      // Collect all items from sections and standalone menuItems
+      const allItems = [];
+      
+      // Add items from sections
+      if (currentInMemoryMenu.menuSections) {
+        currentInMemoryMenu.menuSections.forEach(section => {
+          if (section.menuItems && section.menuItems.length > 0) {
+            section.menuItems.forEach(item => {
+              allItems.push({
+                ...item,
+                sectionId: section.id // Ensure section reference
+              });
+            });
+          }
+        });
+      }
+      
+      // Add standalone items (not in sections)
+      if (currentInMemoryMenu.menuItems) {
+        currentInMemoryMenu.menuItems.forEach(item => {
+          // Only add if not already added from sections
+          if (!allItems.find(existingItem => existingItem.id === item.id)) {
+            allItems.push(item);
+          }
+        });
+      }
+
+      // Create menu items in database
+      for (const item of allItems) {
+        let finalSectionId = null;
+        if (item.sectionId) {
+          finalSectionId = sectionIdMapping.get(item.sectionId) || null;
+        }
+
+        await tx.menuItem.create({
+          data: {
             name: item.name,
             price: item.price,
             position: item.position || 0,
-            imageUrl: item.imageUrl,
-            availableImages: item.availableImages,
-            showImage: item.showImage,
-            sectionId: item.sectionId,
-          }))
-        },
-        menuSections: {
-          create: (currentInMemoryMenu.menuSections || []).map(section => ({
-            name: section.name,
-            position: section.position || 0,
-          }))
-        },
-        pastaTypes: {
-          create: currentInMemoryMenu.pastaTypes.map(pt => ({
-            pastaTypeId: pt.pastaType.id,
-          }))
-        },
-        pastaSauces: {
-          create: currentInMemoryMenu.pastaSauces.map(ps => ({
-            pastaSauceId: ps.pastaSauce.id,
-          }))
-        }
-      },
-      include: {
-        menuItems: {
-          orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
-        },
-        menuSections: {
-          orderBy: { position: 'asc' },
-          include: {
-            menuItems: {
-              orderBy: { position: 'asc' }
-            }
+            imageUrl: item.imageUrl || '',
+            availableImages: item.availableImages || '[]',
+            showImage: item.showImage || false,
+            sectionId: finalSectionId,
+            menuId: savedMenu.id
           }
-        },
-        pastaTypes: { include: { pastaType: true } },
-        pastaSauces: { include: { pastaSauce: true } },
+        });
       }
+
+      // Create pasta type relations
+      if (currentInMemoryMenu.pastaTypes && currentInMemoryMenu.pastaTypes.length > 0) {
+        for (const pastaType of currentInMemoryMenu.pastaTypes) {
+          await tx.menuToPastaType.create({
+            data: {
+              menuId: savedMenu.id,
+              pastaTypeId: pastaType.pastaType ? pastaType.pastaType.id : pastaType.id
+            }
+          });
+        }
+      }
+
+      // Create pasta sauce relations
+      if (currentInMemoryMenu.pastaSauces && currentInMemoryMenu.pastaSauces.length > 0) {
+        for (const pastaSauce of currentInMemoryMenu.pastaSauces) {
+          await tx.menuToPastaSauce.create({
+            data: {
+              menuId: savedMenu.id,
+              pastaSauceId: pastaSauce.pastaSauce ? pastaSauce.pastaSauce.id : pastaSauce.id
+            }
+          });
+        }
+      }
+
+      // Return the complete saved menu with all relations
+      return await tx.menu.findUnique({
+        where: { id: savedMenu.id },
+        include: {
+          menuItems: {
+            orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+          },
+          menuSections: {
+            orderBy: { position: 'asc' },
+            include: {
+              menuItems: {
+                orderBy: { position: 'asc' }
+              }
+            }
+          },
+          pastaTypes: { include: { pastaType: true } },
+          pastaSauces: { include: { pastaSauce: true } },
+        }
+      });
     });
 
-    // Then create the SavedMenu entry that references this menu
+    // Create the SavedMenu entry that references this menu
     const savedMenuEntry = await prisma.savedMenu.create({
       data: {
         name: name,
-        menuId: savedMenu.id,
+        menuId: result.id,
       },
       include: {
         menu: {
@@ -324,9 +389,11 @@ async function saveCurrentMenu(name) {
       }
     });
 
+    console.log('Menu saved successfully:', savedMenuEntry.name);
     return savedMenuEntry;
+
   } catch (error) {
-    console.error("Error saving menu:", error);
+    console.error('Error saving menu:', error);
     throw error;
   }
 }

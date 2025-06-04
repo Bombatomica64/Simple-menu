@@ -24,7 +24,7 @@
 			<div class="form-section">
 				<h4>Aggiungi nuovo piatto</h4>
 				<div class="p-fluid p-formgrid p-grid">
-					<div class="p-field p-col-12 p-md-5">
+					<div class="p-field p-col-12 p-md-4">
 						<label for="itemName">Nome:</label>
 						<input
 							id="itemName"
@@ -34,7 +34,7 @@
 							placeholder="Nome della voce"
 						/>
 					</div>
-					<div class="p-field p-col-12 p-md-5">
+					<div class="p-field p-col-12 p-md-3">
 						<label for="itemPrice">Prezzo:</label>
 						<input
 							id="itemPrice"
@@ -43,6 +43,18 @@
 							[(ngModel)]="newItemPrice"
 							placeholder="Prezzo della voce"
 						/>
+					</div>
+					<div class="p-field p-col-12 p-md-3">
+						<label for="itemSection">Sezione:</label>
+						<p-dropdown
+							id="itemSection"
+							[(ngModel)]="newItemSectionId"
+							[options]="availableSections()"
+							optionLabel="label"
+							optionValue="value"
+							placeholder="Seleziona sezione"
+							[showClear]="true">
+						</p-dropdown>
 					</div>
 					<div class="p-field p-col-12 p-md-2 component-buttons">
 						<button
@@ -63,6 +75,7 @@
 			@defer { @if (menuWsConnection?.resource?.value(); as menu) {
 			<app-menu-sections
 				[menuItems]="menu.menuItems"
+				[sections]="menu.menuSections || []"
 				(removeItem)="removeItemById($event)"
 				(toggleShowImage)="toggleMenuItemShowImage($event.itemId, $event.showImage)"
 				(openImageManager)="openMenuItemImageManager($event)"
@@ -243,14 +256,27 @@
 				/>
 			</div>
 			<div class="p-field">
-				<label for="newPastaTypeImageUrl">URL Immagine (Opzionale)</label>
-				<input
-					id="newPastaTypeImageUrl"
-					type="text"
-					pInputText
-					[ngModel]="newPastaTypeImageUrl()"
-					(ngModelChange)="newPastaTypeImageUrl.set($event)"
-				/>
+				<label for="newPastaTypeImage">Carica Immagine (Opzionale)</label>
+				<p-fileUpload
+					mode="basic"
+					name="image"
+					accept="image/*"
+					[maxFileSize]="10000000"
+					[auto]="false"
+					chooseLabel="Scegli Immagine"
+					(onSelect)="onNewPastaTypeImageSelect($event)"
+					[disabled]="uploadingNewPastaTypeImage()"
+				></p-fileUpload>
+				@if (uploadingNewPastaTypeImage()) {
+				<p class="p-mt-2">
+					<i class="pi pi-spin pi-spinner"></i> Caricamento...
+				</p>
+				}
+				@if (newPastaTypeSelectedFile()) {
+				<p class="p-mt-2 text-green-600">
+					<i class="pi pi-check"></i> Immagine selezionata: {{ newPastaTypeSelectedFile()?.name }}
+				</p>
+				}
 			</div>
 		</div>
 		<ng-template pTemplate="footer">
@@ -296,14 +322,27 @@
 				/>
 			</div>
 			<div class="p-field">
-				<label for="newPastaSauceImageUrl">URL Immagine (Opzionale)</label>
-				<input
-					id="newPastaSauceImageUrl"
-					type="text"
-					pInputText
-					[ngModel]="newPastaSauceImageUrl()"
-					(ngModelChange)="newPastaSauceImageUrl.set($event)"
-				/>
+				<label for="newPastaSauceImage">Carica Immagine (Opzionale)</label>
+				<p-fileUpload
+					mode="basic"
+					name="image"
+					accept="image/*"
+					[maxFileSize]="10000000"
+					[auto]="false"
+					chooseLabel="Scegli Immagine"
+					(onSelect)="onNewPastaSauceImageSelect($event)"
+					[disabled]="uploadingNewPastaSauceImage()"
+				></p-fileUpload>
+				@if (uploadingNewPastaSauceImage()) {
+				<p class="p-mt-2">
+					<i class="pi pi-spin pi-spinner"></i> Caricamento...
+				</p>
+				}
+				@if (newPastaSauceSelectedFile()) {
+				<p class="p-mt-2 text-green-600">
+					<i class="pi pi-check"></i> Immagine selezionata: {{ newPastaSauceSelectedFile()?.name }}
+				</p>
+				}
 			</div>
 		</div>
 		<ng-template pTemplate="footer">

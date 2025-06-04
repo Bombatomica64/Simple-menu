@@ -1,12 +1,12 @@
-<!-- Multi-page menu display with timer-based transitions -->
+<!-- Multi-page menu display with 3-column grid layout -->
 <div class="multi-page-menu-container" [class.transitioning]="isTransitioning()">
 
   <!-- Current page content -->
   @if (currentPage(); as page) {
     <div class="menu-page-content">
 
-      <!-- Header -->
-      <div class="col-12">
+      <!-- Header (full width) -->
+      <div class="menu-header-container">
         <div class="card menu-header">
           <h2>Our Menu</h2>
           <p>Enjoy our delicious selection of dishes, updated daily</p>
@@ -19,9 +19,9 @@
         </div>
       </div>
 
-      <!-- Pasta Selection Section -->
+      <!-- Pasta Selection Section (full width if present) -->
       @if (page.pastaTypes.length > 0 || page.pastaSauces.length > 0) {
-        <div class="col-12">
+        <div class="pasta-section-container">
           <div class="card pasta-selection-card">
             <h3>Create Your Pasta Dish</h3>
             <p>Choose any pasta and combine it with any sauce for a perfect meal</p>
@@ -37,7 +37,7 @@
                         <div class="col-6 mb-3">
                           <p-card [header]="pasta.name" styleClass="pasta-card">
                             <ng-template pTemplate="header">
-                              <img [alt]="pasta.name" [title]="pasta.name" [src]="pasta.image" class="pasta-image"/>
+                              <img [alt]="pasta.name" [title]="pasta.name" [src]="pasta.image" class="pasta-image" alt="Pasta type"/>
                             </ng-template>
                           </p-card>
                         </div>
@@ -67,7 +67,7 @@
                         <div class="col-6 mb-3">
                           <p-card [header]="sauce.name" styleClass="sauce-card">
                             <ng-template pTemplate="header">
-                              <img [alt]="sauce.name" [src]="sauce.image" [title]="sauce.name" class="sauce-image"/>
+                              <img [alt]="sauce.name" [src]="sauce.image" [title]="sauce.name" class="sauce-image" alt="Pasta sauce"/>
                             </ng-template>
                           </p-card>
                         </div>
@@ -81,44 +81,36 @@
         </div>
       }
 
-      <!-- Menu Sections using MenuSectionViewerComponent -->
-      @for (section of page.sections; track section.id) {
-        <div class="col-12">
-          <app-menu-section-viewer
-            [section]="section"
-            [items]="getItemsForSection(section.id)">
-          </app-menu-section-viewer>
-        </div>
-      }
+      <!-- 2-Column Grid for Menu Sections -->
+      @if (page.sections.length > 0) {
+        <div class="two-column-grid">
 
-      <!-- Other Menu Items (not in sections) -->
-      @if (page.itemsWithoutSections.length > 0) {
-        <div class="col-12">
-          <p-panel header="Special Items" styleClass="menu-section-panel">
-            <div class="grid">
-              @for (item of page.itemsWithoutSections; track item.id) {
-                <div class="col-12 mb-3">
-                  <div class="menu-item-row">
-                    @if (item.imageUrl && item.showImage) {
-                      <img [src]="item.imageUrl" [alt]="item.name" [title]="item.name" class="menu-item-image"/>
-                    }
-                    <div class="menu-item-content">
-                      <h4>{{ item.name }}</h4>
-                    </div>
-                    <div class="menu-item-price">
-                      <span class="price">€{{ item.price }}</span>
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-          </p-panel>
+          <!-- Column 1 -->
+          <div class="grid-column column-1">
+            @for (section of page.sectionsColumn1; track section.id) {
+              <app-menu-section-viewer
+                [section]="section"
+                [items]="getItemsForSection(section.id)">
+              </app-menu-section-viewer>
+            }
+          </div>
+
+          <!-- Column 2 -->
+          <div class="grid-column column-2">
+            @for (section of page.sectionsColumn2; track section.id) {
+              <app-menu-section-viewer
+                [section]="section"
+                [items]="getItemsForSection(section.id)">
+              </app-menu-section-viewer>
+            }
+          </div>
+
         </div>
       }
 
     </div>
   } @else {
-    <div class="col-12">
+    <div class="menu-page-content">
       <div class="card">
         <div class="no-content">
           <i class="pi pi-info-circle text-4xl mb-3"></i>

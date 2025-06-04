@@ -61,13 +61,11 @@
   <div class="image-toggle-section">
     <div class="flex align-items-center justify-content-center gap-3 flex-wrap">
       <label class="text-sm font-medium text-center">Mostra immagine:</label>
-      <p-toggleButton
+      <p-toggleSwitch
         [ngModel]="effectiveShowImage()"
-        (onChange)="onToggleShowImage($event.checked!)"
-        onLabel="Sì"
-        offLabel="No"
-        class="flex-shrink-0 p-button-sm"
-      ></p-toggleButton>
+        (ngModelChange)="onToggleShowImage($event)"
+        class="flex-shrink-0"
+      ></p-toggleSwitch>
     </div>
   </div>
 </div>

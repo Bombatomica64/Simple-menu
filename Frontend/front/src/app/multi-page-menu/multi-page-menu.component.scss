@@ -3,6 +3,8 @@
 	padding: 1rem;
 	color: #333333; // Charcoal text
 	min-height: 100vh;
+	max-width: 1400px; // Fixed maximum width
+	margin: 0 auto; // Center the container
 
 	&.transitioning {
 		.menu-page-content {
@@ -10,6 +12,42 @@
 			transform: scale(0.98);
 		}
 	}
+}
+
+// 2-Column Grid Layout
+.two-column-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 2rem;
+	margin-top: 1rem;
+
+	@media screen and (max-width: 768px) {
+		grid-template-columns: 1fr;
+	}
+}
+
+.grid-column {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+// Header and pasta section containers
+.menu-header-container {
+	width: 100%;
+	margin-bottom: 1rem;
+}
+
+.pasta-section-container {
+	width: 100%;
+	margin-bottom: 1rem;
+}
+
+// Menu items grid within sections
+.menu-items-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
 }
 
 // Bottom page indicator styling
@@ -58,8 +96,8 @@
 }
 
 .menu-page-content {
-	display: grid;
-	grid-template-columns: 1fr;
+	display: flex;
+	flex-direction: column;
 	gap: 1.5rem;
 	animation: fadeIn 0.3s ease-in-out;
 	transition: all 0.3s ease;

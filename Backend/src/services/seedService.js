@@ -21,15 +21,6 @@ async function seedDefaultData() {
       console.log("init.json not found, using fallback data");
     }
 
-    // Map existing assets to pasta types
-    const assetMapping = {
-      "Gnocchi": "/assets/gnocchi1.jpg",
-      "Penne": "/assets/penne.jpg", 
-      "Pici": "/assets/pici.jpg",
-      "Trofie": "/assets/trofie.png",
-      "Tagliatelle": "/assets/tagliatelle.jpg"
-    };
-
     if (existingPastaTypes === 0) {
       console.log("Seeding default pasta types...");
       const pastaTypesToSeed = initData.pastaTypes || [
@@ -38,10 +29,8 @@ async function seedDefaultData() {
       
       const pastaTypeData = pastaTypesToSeed.map(name => ({
         name,
-        imageUrl: assetMapping[name] || "", // Use mapped asset or empty string
-        availableImages: JSON.stringify([
-          ...(assetMapping[name] ? [assetMapping[name]] : [])
-        ]) // Store available images as JSON array
+        imageUrl: "", // No default images
+        availableImages: JSON.stringify([]) // Empty array for images
       }));
 
       await prisma.pastaType.createMany({

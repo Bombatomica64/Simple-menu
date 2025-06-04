@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed, effect, OnInit } from '@angular/core';
+import { Component, input, output, signal, computed, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -33,6 +33,7 @@ import { MenuItemCardComponent } from '../menu-item-card/menu-item-card.componen
 export class MenuSectionsComponent implements OnInit {
   // Input signals
   menuItems = input<MenuItem[]>([]);
+  sections = input<MenuSection[]>([]);
 
   // Output signals
   removeItem = output<number>();
@@ -42,8 +43,8 @@ export class MenuSectionsComponent implements OnInit {
   moveItemToSection = output<{itemId: number, sectionId: number | null, position?: number}>();
   updateItemPositions = output<{itemUpdates: {itemId: number, position: number, sectionId?: number | null}[]}>();
 
-  // Sections management
-  sections = signal<MenuSection[]>([]);
+  // Internal signals for dialog state management
+  internalSections = signal<MenuSection[]>([]);
   showAddSectionDialog = signal(false);
   showManageSectionsDialog = signal(false);
   showMoveItemDialog = signal(false);
@@ -52,7 +53,7 @@ export class MenuSectionsComponent implements OnInit {
 
   // Available sections for dropdown (computed)
   availableSectionsForMove = computed(() => {
-    return this.sections().map(section => ({
+    return this.internalSections().map(section => ({
       label: section.name,
       value: section.id
     }));
@@ -60,18 +61,8 @@ export class MenuSectionsComponent implements OnInit {
 
   // Computed values
   sectionsWithItems = computed((): MenuSectionWithItems[] => {
-    const currentSections = this.sections();
+    const currentSections = this.internalSections();
     const currentMenuItems = this.menuItems();
-
-    if (currentSections.length === 0) {
-      // If no sections, create a default section with all items
-      return [{
-        id: 1,
-        name: 'Menu Principale',
-        position: 1,
-        menuItems: currentMenuItems
-      }];
-    }
 
     // Distribute items to sections
     return currentSections.map(section => ({
@@ -83,30 +74,15 @@ export class MenuSectionsComponent implements OnInit {
   });
 
   constructor() {
-    // Effect to initialize sections when menu items change
+    // Sync input sections with internal signal
     effect(() => {
-      const items = this.menuItems();
-      if (items.length > 0 && this.sections().length === 0) {
-        this.initializeDefaultSection();
-      }
+      const inputSections = this.sections();
+      this.internalSections.set(inputSections);
     });
   }
 
   ngOnInit() {
-    // Initialize with a default section if no sections exist
-    if (this.sections().length === 0) {
-      this.initializeDefaultSection();
-    }
-  }
-
-  private initializeDefaultSection() {
-    const defaultSection: MenuSection = {
-      id: 1,
-      name: 'Menu Principale',
-      position: 1,
-      menuItems: []
-    };
-    this.sections.set([defaultSection]);
+    // No default section initialization
   }
 
   // Section management methods
@@ -119,7 +95,7 @@ export class MenuSectionsComponent implements OnInit {
     const name = this.newSectionName().trim();
     if (!name) return;
 
-    const currentSections = this.sections();
+    const currentSections = this.internalSections();
     const maxPosition = Math.max(0, ...currentSections.map(s => s.position));
     const newSection: MenuSection = {
       id: Date.now(), // Simple ID generation
@@ -128,13 +104,13 @@ export class MenuSectionsComponent implements OnInit {
       menuItems: []
     };
 
-    this.sections.update(sections => [...sections, newSection]);
+    this.internalSections.update(sections => [...sections, newSection]);
     this.showAddSectionDialog.set(false);
-    this.sectionsChanged.emit(this.sections());
+    this.sectionsChanged.emit(this.internalSections());
   }
 
   removeSection(sectionId: number) {
-    const currentSections = this.sections();
+    const currentSections = this.internalSections();
     if (currentSections.length <= 1) return; // Don't allow removing the last section
 
     const sectionToRemove = currentSections.find(s => s.id === sectionId);
@@ -149,8 +125,8 @@ export class MenuSectionsComponent implements OnInit {
       remainingSections[0].menuItems.push(...sectionToRemove.menuItems);
     }
 
-    this.sections.set(remainingSections);
-    this.sectionsChanged.emit(this.sections());
+    this.internalSections.set(remainingSections);
+    this.sectionsChanged.emit(this.internalSections());
   }
 
   openManageSectionsDialog() {
@@ -159,7 +135,7 @@ export class MenuSectionsComponent implements OnInit {
 
   // Ordering methods
   moveSectionUp(sectionId: number) {
-    const currentSections = [...this.sections()];
+    const currentSections = [...this.internalSections()];
     const sectionIndex = currentSections.findIndex(s => s.id === sectionId);
 
     if (sectionIndex > 0) {
@@ -172,13 +148,13 @@ export class MenuSectionsComponent implements OnInit {
         section.position = index + 1;
       });
 
-      this.sections.set(currentSections);
-      this.sectionsChanged.emit(this.sections());
+      this.internalSections.set(currentSections);
+      this.sectionsChanged.emit(this.internalSections());
     }
   }
 
   moveSectionDown(sectionId: number) {
-    const currentSections = [...this.sections()];
+    const currentSections = [...this.internalSections()];
     const sectionIndex = currentSections.findIndex(s => s.id === sectionId);
 
     if (sectionIndex < currentSections.length - 1) {
@@ -191,8 +167,8 @@ export class MenuSectionsComponent implements OnInit {
         section.position = index + 1;
       });
 
-      this.sections.set(currentSections);
-      this.sectionsChanged.emit(this.sections());
+      this.internalSections.set(currentSections);
+      this.sectionsChanged.emit(this.internalSections());
     }
   }
 
@@ -217,11 +193,11 @@ export class MenuSectionsComponent implements OnInit {
 
   // Helper methods
   getSectionById(id: number): MenuSection | undefined {
-    return this.sections().find(s => s.id === id);
+    return this.internalSections().find(s => s.id === id);
   }
 
   getSortedSections(): MenuSection[] {
-    return [...this.sections()].sort((a, b) => a.position - b.position);
+    return [...this.internalSections()].sort((a, b) => a.position - b.position);
   }
 
   // Drag & Drop Methods
@@ -243,7 +219,7 @@ export class MenuSectionsComponent implements OnInit {
         menuId: s.menuId
       } as MenuSection));
 
-      this.sections.set(updatedBaseSections);
+      this.internalSections.set(updatedBaseSections);
       this.sectionsChanged.emit(updatedBaseSections);
     }
   }
@@ -302,6 +278,6 @@ export class MenuSectionsComponent implements OnInit {
 
   // Get drag drop connection IDs for sections
   getSectionConnectedTo(): string[] {
-    return this.sections().map(section => `section-${section.id}`);
+    return this.internalSections().map(section => `section-${section.id}`);
   }
 }

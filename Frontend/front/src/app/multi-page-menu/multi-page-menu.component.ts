@@ -10,7 +10,9 @@ interface MenuPage {
   pastaTypes: { name: string; image?: string }[];
   pastaSauces: { name: string; image?: string }[];
   sections: MenuSection[];
-  itemsWithoutSections: MenuItem[];
+  // 2-column layout distribution
+  sectionsColumn1: MenuSection[];
+  sectionsColumn2: MenuSection[];
 }
 
 @Component({
@@ -22,13 +24,14 @@ interface MenuPage {
 })
 export class MultiPageMenuComponent implements OnDestroy {
   menu = input<Menu | null | undefined>();
-  
+
   // Pagination state
   currentPageIndex = signal(0);
   isTransitioning = signal(false);
   private pageTimer: any = null;
   private readonly PAGE_TRANSITION_TIME = 20000; // 20 seconds
-  private readonly MAX_SECTIONS_PER_PAGE = 4;
+  private readonly MAX_SECTIONS_PER_PAGE = 6; // 2 columns x 3 sections each
+  private readonly MAX_SECTIONS_PER_COLUMN = 3;
 
   constructor() {
     // Auto-advance pages when there are multiple pages
@@ -40,6 +43,27 @@ export class MultiPageMenuComponent implements OnDestroy {
         this.stopPageTimer();
       }
     });
+  }
+
+  // Helper function to distribute sections across 2 columns
+  private distributeSectionsAcrossColumns(sections: MenuSection[]): {
+    column1: MenuSection[];
+    column2: MenuSection[];
+  } {
+    const column1: MenuSection[] = [];
+    const column2: MenuSection[] = [];
+
+    // Distribute sections evenly across columns
+    sections.forEach((section, index) => {
+      const columnIndex = index % 2;
+      if (columnIndex === 0) {
+        column1.push(section);
+      } else {
+        column2.push(section);
+      }
+    });
+
+    return { column1, column2 };
   }
 
   ngOnDestroy() {
@@ -77,43 +101,29 @@ export class MultiPageMenuComponent implements OnDestroy {
   menuSections = computed<MenuSection[]>(() => {
     const currentMenu = this.menu();
     return currentMenu?.menuSections || [];
-  });
-
-  // Computed for menu items without sections
-  menuItemsWithoutSections = computed(() => {
-    const items = this.menuItems();
-    return items.filter(item => !item.sectionId);
-  });
-
-  // Create pages with pasta always first and max 3-4 sections per page
+  });  // Create pages with pasta always first and max 6 sections per page (2x3 grid)
   menuPages = computed<MenuPage[]>(() => {
     const pastaTypes = this.pastaTypes();
     const pastaSauces = this.pastaSauces();
     const sections = this.menuSections();
-    const itemsWithoutSections = this.menuItemsWithoutSections();
 
-    if (sections.length === 0 && pastaTypes.length === 0 && pastaSauces.length === 0 && itemsWithoutSections.length === 0) {
+    if (sections.length === 0 && pastaTypes.length === 0 && pastaSauces.length === 0) {
       return [];
     }
 
     const pages: MenuPage[] = [];
-    
+
     // First page always includes pasta if available
+    const sectionsForFirstPage = sections.slice(0, this.MAX_SECTIONS_PER_PAGE);
+    const sectionDistribution = this.distributeSectionsAcrossColumns(sectionsForFirstPage);
+
     const firstPage: MenuPage = {
       pastaTypes: pastaTypes,
       pastaSauces: pastaSauces,
-      sections: [],
-      itemsWithoutSections: []
+      sections: sectionsForFirstPage,
+      sectionsColumn1: sectionDistribution.column1,
+      sectionsColumn2: sectionDistribution.column2,
     };
-
-    // Add first few sections to first page
-    const sectionsForFirstPage = sections.slice(0, this.MAX_SECTIONS_PER_PAGE);
-    firstPage.sections = sectionsForFirstPage;
-    
-    // If there are items without sections and space on first page
-    if (itemsWithoutSections.length > 0 && firstPage.sections.length < this.MAX_SECTIONS_PER_PAGE) {
-      firstPage.itemsWithoutSections = itemsWithoutSections;
-    }
 
     pages.push(firstPage);
 
@@ -121,28 +131,17 @@ export class MultiPageMenuComponent implements OnDestroy {
     const remainingSections = sections.slice(this.MAX_SECTIONS_PER_PAGE);
     for (let i = 0; i < remainingSections.length; i += this.MAX_SECTIONS_PER_PAGE) {
       const sectionsForPage = remainingSections.slice(i, i + this.MAX_SECTIONS_PER_PAGE);
+      const pageSectionDistribution = this.distributeSectionsAcrossColumns(sectionsForPage);
+
       const page: MenuPage = {
         pastaTypes: [],
         pastaSauces: [],
         sections: sectionsForPage,
-        itemsWithoutSections: []
+        sectionsColumn1: pageSectionDistribution.column1,
+        sectionsColumn2: pageSectionDistribution.column2,
       };
 
-      // If this is the last page and we haven't placed items without sections yet
-      if (i + this.MAX_SECTIONS_PER_PAGE >= remainingSections.length && 
-          itemsWithoutSections.length > 0 && 
-          firstPage.itemsWithoutSections.length === 0) {
-        page.itemsWithoutSections = itemsWithoutSections;
-      }
-
       pages.push(page);
-    }
-
-    // If we only have items without sections and no pasta/sections, create a page for them
-    if (pages.length === 1 && firstPage.sections.length === 0 && 
-        firstPage.pastaTypes.length === 0 && firstPage.pastaSauces.length === 0 &&
-        itemsWithoutSections.length > 0) {
-      firstPage.itemsWithoutSections = itemsWithoutSections;
     }
 
     return pages;
@@ -162,7 +161,7 @@ export class MultiPageMenuComponent implements OnDestroy {
   // Simple auto-transition without visual progress bar
   private startPageTimer() {
     this.stopPageTimer();
-    
+
     this.pageTimer = setTimeout(() => {
       this.nextPage();
     }, this.PAGE_TRANSITION_TIME);
@@ -177,19 +176,19 @@ export class MultiPageMenuComponent implements OnDestroy {
 
   nextPage() {
     if (this.isTransitioning()) return;
-    
+
     const totalPages = this.totalPages();
     if (totalPages <= 1) return;
-    
+
     this.isTransitioning.set(true);
     this.stopPageTimer();
-    
+
     setTimeout(() => {
       const currentIndex = this.currentPageIndex();
       const nextIndex = (currentIndex + 1) % totalPages;
       this.currentPageIndex.set(nextIndex);
       this.isTransitioning.set(false);
-      
+
       if (totalPages > 1) {
         this.startPageTimer();
       }
@@ -198,19 +197,19 @@ export class MultiPageMenuComponent implements OnDestroy {
 
   previousPage() {
     if (this.isTransitioning()) return;
-    
+
     const totalPages = this.totalPages();
     if (totalPages <= 1) return;
-    
+
     this.isTransitioning.set(true);
     this.stopPageTimer();
-    
+
     setTimeout(() => {
       const currentIndex = this.currentPageIndex();
       const prevIndex = currentIndex === 0 ? totalPages - 1 : currentIndex - 1;
       this.currentPageIndex.set(prevIndex);
       this.isTransitioning.set(false);
-      
+
       if (totalPages > 1) {
         this.startPageTimer();
       }
@@ -219,14 +218,14 @@ export class MultiPageMenuComponent implements OnDestroy {
 
   goToPage(pageIndex: number) {
     if (this.isTransitioning() || pageIndex === this.currentPageIndex()) return;
-    
+
     this.isTransitioning.set(true);
     this.stopPageTimer();
-    
+
     setTimeout(() => {
       this.currentPageIndex.set(pageIndex);
       this.isTransitioning.set(false);
-      
+
       if (this.totalPages() > 1) {
         this.startPageTimer();
       }

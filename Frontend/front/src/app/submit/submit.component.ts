@@ -29,6 +29,8 @@ import {
 	RemovePastaSauceMessage,
 	MoveItemToSectionMessage,
 	UpdateItemPositionsMessage,
+	AddSectionMessage,
+	RemoveSectionMessage,
 } from '../webSocketResource';
 import {
 	Menu,
@@ -47,13 +49,16 @@ import { FileUploadModule } from 'primeng/fileupload'; // For file upload
 import { GalleriaModule } from 'primeng/galleria'; // For image gallery
 import { ConfirmDialogModule } from 'primeng/confirmdialog'; // For confirmation dialogs
 import { ToggleButtonModule } from 'primeng/togglebutton'; // For toggle switch
+import { DropdownModule } from 'primeng/dropdown'; // For dropdown
 import { ConfirmationService } from 'primeng/api'; // For confirmation service
 import { SavedMenusComponent } from '../saved-menus/saved-menus.component'; // Import SavedMenusComponent
+import { ToggleSwitchModule } from 'primeng/toggleswitch'; // For toggle switch
 import { MenuSectionsComponent } from '../menu-sections/menu-sections.component'; // Import MenuSectionsComponent
 
 @Component({
 	selector: 'app-submit',
-	standalone: true,	imports: [
+	standalone: true,
+	imports: [
 		FormsModule,
 		PickListModule,
 		ButtonModule,
@@ -62,7 +67,8 @@ import { MenuSectionsComponent } from '../menu-sections/menu-sections.component'
 		FileUploadModule,
 		GalleriaModule,
 		ConfirmDialogModule,
-		ToggleButtonModule,
+		ToggleSwitchModule,
+		DropdownModule,
 		SavedMenusComponent,
 		MenuSectionsComponent,
 	],
@@ -83,6 +89,7 @@ export class SubmitComponent implements OnInit {
 	// For adding new item
 	newItemName: string = '';
 	newItemPrice: number | null = null;
+	newItemSectionId: number | null = null;
 
 	// --- Pasta Types Management ---
 	allPastaTypes = signal<AppPastaType[]>([]);
@@ -90,6 +97,8 @@ export class SubmitComponent implements OnInit {
 	showNewPastaTypeDialog = signal(false);
 	newPastaTypeName = signal('');
 	newPastaTypeImageUrl = signal('');
+	newPastaTypeSelectedFile = signal<File | null>(null);
+	uploadingNewPastaTypeImage = signal(false);
 	// Computed signals for Pasta Type PickList
 	pastaTypesSource = computed(() => {
 		const currentMenu = this.menuWsConnection?.resource.value();
@@ -110,6 +119,8 @@ export class SubmitComponent implements OnInit {
 	showNewPastaSauceDialog = signal(false);
 	newPastaSauceName = signal('');
 	newPastaSauceImageUrl = signal('');
+	newPastaSauceSelectedFile = signal<File | null>(null);
+	uploadingNewPastaSauceImage = signal(false);
 
 	// Image management
 	showImageManagerDialog = signal(false);
@@ -149,29 +160,70 @@ export class SubmitComponent implements OnInit {
 			this.savedMenusComponent.openSaveDialog();
 		}
 	}
-	// Handle sections changes (for future backend integration)
+	// Handle sections changes - sync with backend
 	onSectionsChanged(sections: MenuSection[]) {
-		// Currently just log the sections change
-		// This can be extended to save section structure to backend
 		console.log('Sections changed:', sections);
+
+		const currentMenu = this.menuWsConnection?.resource.value();
+		if (!currentMenu) return;
+
+		const existingSections = currentMenu.menuSections || [];
+		const existingSectionIds = new Set(existingSections.map((s) => s.id));
+		const newSectionIds = new Set(sections.map((s) => s.id));
+
+		// Find new sections (sections that exist in the new list but not in existing)
+		const newSections = sections.filter((s) => !existingSectionIds.has(s.id));
+
+		// Find removed sections (sections that exist in existing but not in new list)
+		const removedSections = existingSections.filter(
+			(s) => !newSectionIds.has(s.id)
+		);
+
+		// Send new sections to backend
+		newSections.forEach((section) => {
+			const message: AddSectionMessage = {
+				type: 'addSection',
+				section: { name: section.name },
+			};
+			this.menuWsConnection?.sendUpdate(message);
+		});
+
+		// Send section removals to backend
+		removedSections.forEach((section) => {
+			const message: RemoveSectionMessage = {
+				type: 'removeSection',
+				sectionId: section.id,
+			};
+			this.menuWsConnection?.sendUpdate(message);
+		});
 	}
 
 	// Handle moving item to different section
-	onMoveItemToSection(event: {itemId: number, sectionId: number | null, position?: number}) {
+	onMoveItemToSection(event: {
+		itemId: number;
+		sectionId: number | null;
+		position?: number;
+	}) {
 		const message: MoveItemToSectionMessage = {
 			type: 'moveItemToSection',
 			itemId: event.itemId,
 			sectionId: event.sectionId,
-			position: event.position
+			position: event.position,
 		};
 		this.menuWsConnection?.sendUpdate(message);
 	}
 
 	// Handle updating item positions within sections
-	onUpdateItemPositions(event: {itemUpdates: {itemId: number, position: number, sectionId?: number | null}[]}) {
+	onUpdateItemPositions(event: {
+		itemUpdates: {
+			itemId: number;
+			position: number;
+			sectionId?: number | null;
+		}[];
+	}) {
 		const message: UpdateItemPositionsMessage = {
 			type: 'updateItemPositions',
-			itemUpdates: event.itemUpdates
+			itemUpdates: event.itemUpdates,
 		};
 		this.menuWsConnection?.sendUpdate(message);
 	}
@@ -191,11 +243,23 @@ export class SubmitComponent implements OnInit {
 		return currentMenu?.pastaSauces.map((psEntry) => psEntry.pastaSauce) || [];
 	});
 
+	// Computed signal for available sections (for dropdown when adding items)
+	availableSections = computed(() => {
+		const currentMenu = this.menuWsConnection?.resource.value();
+		const sections = currentMenu?.menuSections || [];
+		return [
+			{ label: 'No Section', value: null },
+			...sections.map((section) => ({
+				label: section.name,
+				value: section.id,
+			})),
+		];
+	});
+
 	ngOnInit() {
-		if (isPlatformBrowser(this.platformId)) {			runInInjectionContext(this.injector, () => {
-				this.menuWsConnection = menuConnection(
-					environment.wsUrl
-				);
+		if (isPlatformBrowser(this.platformId)) {
+			runInInjectionContext(this.injector, () => {
+				this.menuWsConnection = menuConnection(environment.wsUrl);
 			});
 			this.loadAllPastaTypes();
 			this.loadAllPastaSauces();
@@ -227,11 +291,31 @@ export class SubmitComponent implements OnInit {
 			return;
 		}
 
+		// Get available sections from current menu
+		const currentMenu = this.menuWsConnection?.resource.value();
+		const sections = currentMenu?.menuSections || [];
+
+		// Prevent item creation if no sections exist
+		if (sections.length === 0) {
+			alert(
+				'Non è possibile aggiungere voci al menu. Crea prima almeno una sezione.'
+			);
+			return;
+		}
+
+		// Determine section ID: use selected section or default to first section
+		let finalSectionId = this.newItemSectionId;
+		if (!finalSectionId) {
+			// Default to first section if no section is selected
+			finalSectionId = sections[0].id;
+		}
+
 		const message: AddItemMessage = {
 			type: 'addItem',
 			item: {
 				name: this.newItemName.trim(),
 				price: this.newItemPrice,
+				sectionId: finalSectionId,
 			},
 		};
 		this.menuWsConnection?.sendUpdate(message);
@@ -239,6 +323,7 @@ export class SubmitComponent implements OnInit {
 		// Clear the form
 		this.newItemName = '';
 		this.newItemPrice = null;
+		this.newItemSectionId = null;
 	}
 	removeItemById(itemId: number) {
 		const message: RemoveItemMessage = {
@@ -302,7 +387,16 @@ export class SubmitComponent implements OnInit {
 	openNewPastaTypeDialog() {
 		this.newPastaTypeName.set('');
 		this.newPastaTypeImageUrl.set('');
+		this.newPastaTypeSelectedFile.set(null);
+		this.uploadingNewPastaTypeImage.set(false);
 		this.showNewPastaTypeDialog.set(true);
+	}
+
+	onNewPastaTypeImageSelect(event: any) {
+		const file = event.files[0];
+		if (file) {
+			this.newPastaTypeSelectedFile.set(file);
+		}
 	}
 
 	saveNewPastaType() {
@@ -310,15 +404,57 @@ export class SubmitComponent implements OnInit {
 			alert('Il nome del tipo di pasta è obbligatorio.');
 			return;
 		}
+
+		// Create pasta type first without image
 		this.http
 			.post<AppPastaType>(`${this.apiUrl}/pasta-types`, {
 				name: this.newPastaTypeName(),
-				imageUrl: this.newPastaTypeImageUrl(),
+				imageUrl: '', // Start with empty image
 			})
 			.subscribe({
 				next: (newType) => {
-					this.loadAllPastaTypes(); // Refresh list
-					this.showNewPastaTypeDialog.set(false);
+					// If there's a selected file, upload it
+					const selectedFile = this.newPastaTypeSelectedFile();
+					if (selectedFile) {
+						this.uploadingNewPastaTypeImage.set(true);
+						const formData = new FormData();
+						formData.append('image', selectedFile);
+
+						this.http
+							.post<any>(
+								`${this.apiUrl}/images/pasta-types/${newType.id}/upload`,
+								formData
+							)
+							.subscribe({
+								next: (uploadResponse) => {
+									console.log(
+										'Image uploaded for new pasta type:',
+										uploadResponse
+									);
+									this.uploadingNewPastaTypeImage.set(false);
+									this.loadAllPastaTypes(); // Refresh list
+									this.showNewPastaTypeDialog.set(false);
+								},
+								error: (uploadErr) => {
+									console.error(
+										'Failed to upload image for pasta type',
+										uploadErr
+									);
+									this.uploadingNewPastaTypeImage.set(false);
+									// Still close dialog since pasta type was created successfully
+									this.loadAllPastaTypes();
+									this.showNewPastaTypeDialog.set(false);
+									alert(
+										`Tipo di pasta creato ma errore nel caricamento immagine: ${
+											uploadErr.error?.error || 'Errore sconosciuto'
+										}`
+									);
+								},
+							});
+					} else {
+						this.loadAllPastaTypes(); // Refresh list
+						this.showNewPastaTypeDialog.set(false);
+					}
 				},
 				error: (err) => {
 					console.error('Failed to create pasta type', err);
@@ -355,22 +491,73 @@ export class SubmitComponent implements OnInit {
 	openNewPastaSauceDialog() {
 		this.newPastaSauceName.set('');
 		this.newPastaSauceImageUrl.set('');
+		this.newPastaSauceSelectedFile.set(null);
+		this.uploadingNewPastaSauceImage.set(false);
 		this.showNewPastaSauceDialog.set(true);
+	}
+
+	onNewPastaSauceImageSelect(event: any) {
+		const file = event.files[0];
+		if (file) {
+			this.newPastaSauceSelectedFile.set(file);
+		}
 	}
 	saveNewPastaSauce() {
 		if (!this.newPastaSauceName().trim()) {
 			alert('Il nome del sugo per pasta è obbligatorio.');
 			return;
 		}
+
+		// Create pasta sauce first without image
 		this.http
 			.post<AppPastaSauce>(`${this.apiUrl}/pasta-sauces`, {
 				name: this.newPastaSauceName(),
-				imageUrl: this.newPastaSauceImageUrl(),
+				imageUrl: '', // Start with empty image
 			})
 			.subscribe({
 				next: (newSauce) => {
-					this.loadAllPastaSauces(); // Refresh list
-					this.showNewPastaSauceDialog.set(false);
+					// If there's a selected file, upload it
+					const selectedFile = this.newPastaSauceSelectedFile();
+					if (selectedFile) {
+						this.uploadingNewPastaSauceImage.set(true);
+						const formData = new FormData();
+						formData.append('image', selectedFile);
+
+						this.http
+							.post<any>(
+								`${this.apiUrl}/images/pasta-sauces/${newSauce.id}/upload`,
+								formData
+							)
+							.subscribe({
+								next: (uploadResponse) => {
+									console.log(
+										'Image uploaded for new pasta sauce:',
+										uploadResponse
+									);
+									this.uploadingNewPastaSauceImage.set(false);
+									this.loadAllPastaSauces(); // Refresh list
+									this.showNewPastaSauceDialog.set(false);
+								},
+								error: (uploadErr) => {
+									console.error(
+										'Failed to upload image for pasta sauce',
+										uploadErr
+									);
+									this.uploadingNewPastaSauceImage.set(false);
+									// Still close dialog since pasta sauce was created successfully
+									this.loadAllPastaSauces();
+									this.showNewPastaSauceDialog.set(false);
+									alert(
+										`Sugo per pasta creato ma errore nel caricamento immagine: ${
+											uploadErr.error?.error || 'Errore sconosciuto'
+										}`
+									);
+								},
+							});
+					} else {
+						this.loadAllPastaSauces(); // Refresh list
+						this.showNewPastaSauceDialog.set(false);
+					}
 				},
 				error: (err) => {
 					console.error('Failed to create pasta sauce', err);
@@ -513,10 +700,10 @@ export class SubmitComponent implements OnInit {
 					// Refresh the data
 					this.loadAllPastaTypes();
 					this.loadAllPastaSauces();
-								},
+				},
 				error: (error) => {
 					console.error('Error switching image:', error);
-				}
+				},
 			});
 		}
 	}
@@ -537,13 +724,16 @@ export class SubmitComponent implements OnInit {
 			// Update the selected item immediately for UI feedback
 			this.selectedItemForImages.update((item) => {
 				if (!item) return null;
-				const updatedImages = item.availableImages.filter(img => img !== imageUrl);
+				const updatedImages = item.availableImages.filter(
+					(img) => img !== imageUrl
+				);
 				return {
 					...item,
 					availableImages: updatedImages,
-					currentImage: item.currentImage === imageUrl
-						? (updatedImages[0] || '')
-						: item.currentImage
+					currentImage:
+						item.currentImage === imageUrl
+							? updatedImages[0] || ''
+							: item.currentImage,
 				};
 			});
 		} else {
@@ -553,32 +743,37 @@ export class SubmitComponent implements OnInit {
 					? `${this.apiUrl}/images/pasta-types/${selectedItem.id}/delete`
 					: `${this.apiUrl}/images/pasta-sauces/${selectedItem.id}/delete`;
 
-			this.http.delete<any>(endpoint, {
-				body: { imageUrl },
-				headers: { 'Content-Type': 'application/json' }
-			}).subscribe({
-				next: (response) => {
-					console.log('Image deleted successfully:', response);
-					// Update the selected item immediately for UI feedback
-					this.selectedItemForImages.update((item) => {
-						if (!item) return null;
-						const updatedImages = item.availableImages.filter(img => img !== imageUrl);
-						return {
-							...item,
-							availableImages: updatedImages,
-							currentImage: item.currentImage === imageUrl
-								? (updatedImages[0] || '')
-								: item.currentImage
-						};
-					});
-					// Refresh the data
-					this.loadAllPastaTypes();
-					this.loadAllPastaSauces();
-				},
-				error: (error) => {
-					console.error('Error deleting image:', error);
-				}
-			});
+			this.http
+				.delete<any>(endpoint, {
+					body: { imageUrl },
+					headers: { 'Content-Type': 'application/json' },
+				})
+				.subscribe({
+					next: (response) => {
+						console.log('Image deleted successfully:', response);
+						// Update the selected item immediately for UI feedback
+						this.selectedItemForImages.update((item) => {
+							if (!item) return null;
+							const updatedImages = item.availableImages.filter(
+								(img) => img !== imageUrl
+							);
+							return {
+								...item,
+								availableImages: updatedImages,
+								currentImage:
+									item.currentImage === imageUrl
+										? updatedImages[0] || ''
+										: item.currentImage,
+							};
+						});
+						// Refresh the data
+						this.loadAllPastaTypes();
+						this.loadAllPastaSauces();
+					},
+					error: (error) => {
+						console.error('Error deleting image:', error);
+					},
+				});
 		}
 	}
 }

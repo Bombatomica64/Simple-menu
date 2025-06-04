@@ -4,7 +4,7 @@ import { Menu } from './Menu/menu';
 
 export interface AddItemMessage {
 	type: 'addItem';
-	item: { name: string; price: number };
+	item: { name: string; price: number; sectionId?: number | null };
 }
 export interface RemoveItemMessage {
 	type: 'removeItem';
@@ -249,7 +249,7 @@ export function menuConnection(websocketUrl: string): MenuConnection {
 			console.log('[WebSocket] Cannot send message during server-side rendering');
 			return;
 		}
-		
+
 		if (
 			wsConnectionInstance &&
 			wsConnectionInstance.readyState === WebSocket.OPEN

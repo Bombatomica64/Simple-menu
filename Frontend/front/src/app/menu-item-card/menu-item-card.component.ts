@@ -2,7 +2,7 @@ import { Component, input, output, model, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { ToggleButtonModule } from 'primeng/togglebutton';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { MenuItem } from '../Menu/menu';
 
 @Component({
@@ -12,7 +12,7 @@ import { MenuItem } from '../Menu/menu';
     CommonModule,
     FormsModule,
     ButtonModule,
-    ToggleButtonModule
+    ToggleSwitchModule
   ],
   templateUrl: './menu-item-card.component.html',
   styleUrls: ['./menu-item-card.component.scss']
