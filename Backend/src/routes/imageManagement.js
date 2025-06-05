@@ -293,4 +293,29 @@ router.delete('/pasta-sauces/:id/delete', async (req, res) => {
   }
 });
 
+// --- Background Image Upload ---
+
+// Upload background image
+router.post('/backgrounds/upload', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No background image file provided' });
+  }
+
+  try {
+    const imageUrl = getFullImageUrl(req, req.file.filename);
+    
+    res.json({
+      message: 'Background image uploaded successfully',
+      imageUrl: imageUrl
+    });
+  } catch (error) {
+    console.error('Error uploading background image:', error);
+    if (req.file) cleanupFile(req.file.path);
+    res.status(500).json({ 
+      error: 'Failed to upload background image',
+      details: error.message 
+    });
+  }
+});
+
 module.exports = router;

@@ -143,6 +143,19 @@ export class SubmitComponent implements OnInit {
 	} | null>(null);
 	uploadingImage = signal(false);
 
+	// --- Background Configuration Management ---
+	showBackgroundConfigDialog = signal(false);
+	backgroundConfigs = signal<{id: number, page: string, background: string}[]>([]);
+	selectedPage = signal('');
+	newBackgroundValue = signal('');
+	backgroundPages = [
+		{ label: 'Pasta Page', value: 'pasta' },
+		{ label: 'Main Page', value: 'main' },
+		{ label: 'Sections Page', value: 'sections' },
+		{ label: 'Menu Page', value: 'menu' }
+	];
+	uploadingBackground = signal(false);
+
 	// Helper method to check if menu item has available images
 	hasAvailableImages(item: MenuItem): boolean {
 		if (!item.availableImages) return false;
@@ -273,6 +286,7 @@ export class SubmitComponent implements OnInit {
 			});
 			this.loadAllPastaTypes();
 			this.loadAllPastaSauces();
+			this.loadBackgroundConfigs();
 		}
 	}
 
@@ -722,18 +736,33 @@ export class SubmitComponent implements OnInit {
 					// Refresh the data
 					this.loadAllPastaTypes();
 					this.loadAllPastaSauces();
+					// Update the selected item
+					const updatedItem = response.pastaType || response.pastaSauce;
+					this.selectedItemForImages.set({
+						...selectedItem,
+						availableImages: JSON.parse(updatedItem.availableImages || '[]'),
+						currentImage: updatedItem.imageUrl || '',
+					});
 				},
-				error: (error) => {
-					console.error('Error switching image:', error);
+				error: (err) => {
+					console.error('Failed to switch image:', err);
+					alert(
+						`Errore: ${err.error?.error || "Impossibile cambiare l'immagine."}`
+					);
 				},
 			});
 		}
 	}
 
+	// --- Delete Image ---
 	deleteImage(imageUrl: string) {
 		if (!this.selectedItemForImages()) return;
 
 		const selectedItem = this.selectedItemForImages()!;
+
+		if (!confirm(`Sei sicuro di voler eliminare questa immagine?`)) {
+			return;
+		}
 
 		if (selectedItem.type === 'menuItem') {
 			// Handle menu item via WebSocket
@@ -746,16 +775,11 @@ export class SubmitComponent implements OnInit {
 			// Update the selected item immediately for UI feedback
 			this.selectedItemForImages.update((item) => {
 				if (!item) return null;
-				const updatedImages = item.availableImages.filter(
-					(img) => img !== imageUrl
-				);
+				const updatedAvailableImages = item.availableImages.filter(img => img !== imageUrl);
 				return {
 					...item,
-					availableImages: updatedImages,
-					currentImage:
-						item.currentImage === imageUrl
-							? updatedImages[0] || ''
-							: item.currentImage,
+					availableImages: updatedAvailableImages,
+					currentImage: item.currentImage === imageUrl ? (updatedAvailableImages[0] || '') : item.currentImage
 				};
 			});
 		} else {
@@ -765,37 +789,110 @@ export class SubmitComponent implements OnInit {
 					? `${this.apiUrl}/images/pasta-types/${selectedItem.id}/delete`
 					: `${this.apiUrl}/images/pasta-sauces/${selectedItem.id}/delete`;
 
-			this.http
-				.delete<any>(endpoint, {
-					body: { imageUrl },
-					headers: { 'Content-Type': 'application/json' },
-				})
+			this.http.delete<any>(endpoint, { body: { imageUrl } }).subscribe({
+				next: (response) => {
+					console.log('Image deleted successfully:', response);
+					// Refresh the data
+					this.loadAllPastaTypes();
+					this.loadAllPastaSauces();
+					// Update the selected item
+					const updatedItem = response.pastaType || response.pastaSauce;
+					this.selectedItemForImages.set({
+						...selectedItem,
+						availableImages: JSON.parse(updatedItem.availableImages || '[]'),
+						currentImage: updatedItem.imageUrl || '',
+					});
+				},
+				error: (err) => {
+					console.error('Failed to delete image:', err);
+					alert(
+						`Errore: ${err.error?.error || "Impossibile eliminare l'immagine."}`
+					);
+				},
+			});
+		}
+	}
+
+	// --- Background Configuration Management ---
+	loadBackgroundConfigs() {
+		this.http.get<{id: number, page: string, background: string}[]>(`${this.apiUrl}/api/backgrounds`)
+			.subscribe({
+				next: (configs) => {
+					this.backgroundConfigs.set(configs);
+				},
+				error: (error) => {
+					console.error('Error loading background configs:', error);
+				}
+			});
+	}
+
+	openBackgroundConfigDialog() {
+		this.loadBackgroundConfigs();
+		this.showBackgroundConfigDialog.set(true);
+	}
+
+	saveBackgroundConfig() {
+		if (!this.selectedPage() || !this.newBackgroundValue()) {
+			alert('Seleziona una pagina e inserisci un valore di sfondo.');
+			return;
+		}
+
+		const config = {
+			page: this.selectedPage(),
+			background: this.newBackgroundValue()
+		};
+
+		this.http.post(`${this.apiUrl}/api/backgrounds`, config)
+			.subscribe({
+				next: () => {
+					console.log('Background configuration saved successfully');
+					this.loadBackgroundConfigs();
+					this.selectedPage.set('');
+					this.newBackgroundValue.set('');
+				},
+				error: (error) => {
+					console.error('Error saving background config:', error);
+					alert('Errore nel salvare la configurazione dello sfondo');
+				}
+			});
+	}
+
+	deleteBackgroundConfig(page: string) {
+		if (confirm(`Sei sicuro di voler eliminare la configurazione dello sfondo per "${page}"?`)) {
+			this.http.delete(`${this.apiUrl}/api/backgrounds/${page}`)
 				.subscribe({
-					next: (response) => {
-						console.log('Image deleted successfully:', response);
-						// Update the selected item immediately for UI feedback
-						this.selectedItemForImages.update((item) => {
-							if (!item) return null;
-							const updatedImages = item.availableImages.filter(
-								(img) => img !== imageUrl
-							);
-							return {
-								...item,
-								availableImages: updatedImages,
-								currentImage:
-									item.currentImage === imageUrl
-										? updatedImages[0] || ''
-										: item.currentImage,
-							};
-						});
-						// Refresh the data
-						this.loadAllPastaTypes();
-						this.loadAllPastaSauces();
+					next: () => {
+						console.log('Background configuration deleted successfully');
+						this.loadBackgroundConfigs();
 					},
 					error: (error) => {
-						console.error('Error deleting image:', error);
-					},
+						console.error('Error deleting background config:', error);
+						alert('Errore nell\'eliminare la configurazione dello sfondo');
+					}
 				});
 		}
+	}
+
+	onBackgroundImageUpload(event: any) {
+		const file = event.files[0];
+		if (!file) return;
+
+		this.uploadingBackground.set(true);
+		const formData = new FormData();
+		formData.append('image', file);
+
+		this.http.post<any>(`${this.apiUrl}/images/backgrounds/upload`, formData)
+			.subscribe({
+				next: (response) => {
+					console.log('Background image uploaded successfully:', response);
+					this.newBackgroundValue.set(`url('${response.imageUrl}')`);
+					this.uploadingBackground.set(false);
+				},
+				error: (error) => {
+					console.error('Error uploading background image:', error);
+					alert('Errore nel caricamento dell\'immagine di sfondo');
+					this.uploadingBackground.set(false);
+				}
+			});
 	}
 }

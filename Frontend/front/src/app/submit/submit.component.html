@@ -231,6 +231,58 @@
 				</p-pickList>
 			</div>
 		</div>
+
+		<!-- Background Configuration Section -->
+		<div class="card p-mb-4">
+			<h3>Configurazione Sfondi</h3>
+			<p class="text-sm text-color-secondary p-mb-3">
+				Gestisci gli sfondi per le diverse pagine dell'applicazione.
+				Puoi caricare immagini o specificare colori/gradienti CSS.
+			</p>
+
+			<button
+				pButton
+				type="button"
+				label="Configura Sfondi"
+				icon="pi pi-palette"
+				(click)="openBackgroundConfigDialog()"
+				class="p-mb-3"
+				title="Apri configurazione sfondi"
+			></button>
+
+			<!-- Current Background Configurations -->
+			@if (backgroundConfigs().length > 0) {
+			<div class="background-configs-list">
+				<h4>Configurazioni Attuali</h4>
+				<div class="grid">
+					@for (config of backgroundConfigs(); track config.id) {
+					<div class="col-12 md:col-6 lg:col-4">
+						<div class="p-card p-3 background-config-card">
+							<div class="flex justify-content-between align-items-center p-mb-2">
+								<h5 class="m-0">{{ config.page }}</h5>
+								<button
+									pButton
+									type="button"
+									icon="pi pi-trash"
+									class="p-button-sm p-button-danger p-button-text"
+									(click)="deleteBackgroundConfig(config.page)"
+									title="Elimina configurazione"
+								></button>
+							</div>
+							<div class="background-preview"
+								[style.background]="config.background"
+								title="Anteprima sfondo">
+							</div>
+							<p class="text-sm text-color-secondary mt-2 mb-0">
+								{{ config.background }}
+							</p>
+						</div>
+					</div>
+					}
+				</div>
+			</div>
+			}
+		</div>
 	</div>
 	}
 
@@ -547,6 +599,112 @@
 				icon="pi pi-times"
 				(click)="showImageManagerDialog.set(false)"
 				title="Chiudi gestione immagini"
+			></button>
+		</ng-template>
+	</p-dialog>
+
+	<!-- Background Configuration Dialog -->
+	<p-dialog
+		header="Configurazione Sfondi"
+		[(visible)]="showBackgroundConfigDialog"
+		[modal]="true"
+		[style]="{ width: '60vw' }"
+		[draggable]="false"
+		[resizable]="false"
+		styleClass="background-config-dialog"
+	>
+		<div class="p-fluid">
+			<!-- Page Selection -->
+			<div class="p-field p-mb-3">
+				<label for="backgroundPage">Pagina</label>
+				<p-dropdown
+					id="backgroundPage"
+					[(ngModel)]="selectedPage"
+					[options]="backgroundPages"
+					optionLabel="label"
+					optionValue="value"
+					placeholder="Seleziona pagina"
+				></p-dropdown>
+			</div>
+
+			<!-- Background Configuration Methods -->
+			<div class="p-field p-mb-3">
+				<h4>Metodi di Configurazione</h4>
+				<p class="text-sm text-color-secondary p-mb-2">
+					Puoi scegliere tra diversi metodi per impostare lo sfondo:
+				</p>
+
+				<!-- Upload Image Method -->
+				<div class="p-card p-3 p-mb-3">
+					<h5 class="mt-0">1. Carica Immagine</h5>
+					<p-fileUpload
+						mode="basic"
+						name="backgroundImage"
+						accept="image/*"
+						[maxFileSize]="10000000"
+						[auto]="false"
+						chooseLabel="Scegli Immagine di Sfondo"
+						(onSelect)="onBackgroundImageUpload($event)"
+						[disabled]="uploadingBackground()"
+					></p-fileUpload>
+					@if (uploadingBackground()) {
+					<p class="p-mt-2">
+						<i class="pi pi-spin pi-spinner"></i> Caricamento immagine...
+					</p>
+					}
+				</div>
+
+				<!-- Manual CSS Method -->
+				<div class="p-card p-3">
+					<h5 class="mt-0">2. CSS Personalizzato</h5>
+					<p class="text-sm text-color-secondary p-mb-2">
+						Inserisci direttamente il valore CSS per lo sfondo (colore, gradiente, ecc.)
+					</p>
+					<div class="p-field">
+						<label for="backgroundValue">Valore CSS Sfondo</label>
+						<textarea
+							id="backgroundValue"
+							pInputTextarea
+							[(ngModel)]="newBackgroundValue"
+							placeholder="Esempi:&#10;#FF5733&#10;linear-gradient(45deg, #FF5733, #33FF57)&#10;url('path/to/image.jpg')&#10;rgba(255, 87, 51, 0.8)"
+							rows="4"
+						></textarea>
+					</div>
+
+					<!-- Background Preview -->
+					@if (newBackgroundValue()) {
+					<div class="p-field">
+						<label>Anteprima</label>
+						<div
+							class="background-preview-large"
+							[style.background]="newBackgroundValue()"
+							title="Anteprima dello sfondo">
+							<span class="preview-text">Anteprima Sfondo</span>
+						</div>
+					</div>
+					}
+				</div>
+			</div>
+		</div>
+
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Annulla"
+				icon="pi pi-times"
+				(click)="showBackgroundConfigDialog.set(false)"
+				class="p-button-text"
+				title="Annulla configurazione sfondo"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Salva Configurazione"
+				icon="pi pi-check"
+				(click)="saveBackgroundConfig()"
+				[disabled]="!selectedPage() || !newBackgroundValue()"
+				title="Salva configurazione sfondo"
 			></button>
 		</ng-template>
 	</p-dialog>

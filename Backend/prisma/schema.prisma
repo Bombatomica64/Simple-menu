@@ -8,13 +8,15 @@ datasource db {
 }
 
 model Menu {
-  id             Int               @id @default(autoincrement())
-  createdAt      DateTime          @default(now())
-  menuItems      MenuItem[]
-  menuSections   MenuSection[]     // Menu sections for organizing items
-  pastaTypes     MenuToPastaType[]
-  pastaSauces    MenuToPastaSauce[]
-  savedMenus     SavedMenu[]       // One menu can have multiple saved versions
+  id               Int               @id @default(autoincrement())
+  createdAt        DateTime          @default(now())
+  backgroundId     Int?              // Optional FK to BackgroundConfig
+  background       BackgroundConfig? @relation(fields: [backgroundId], references: [id], onDelete: SetNull)
+  menuItems        MenuItem[]
+  menuSections     MenuSection[]     // Menu sections for organizing items
+  pastaTypes       MenuToPastaType[]
+  pastaSauces      MenuToPastaSauce[]
+  savedMenus       SavedMenu[]       // One menu can have multiple saved versions
 }
 
 model MenuSection {
@@ -90,4 +92,16 @@ model SavedMenu {
   savedAt     DateTime @default(now())
   menuId      Int
   menu        Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+}
+
+// Background configuration for different pages
+model BackgroundConfig {
+  id          Int      @id @default(autoincrement())
+  page        String?  // e.g., "pasta", "main", "sections" - now optional since menus can have their own
+  background  String   // CSS background value (gradient, color, image url, etc.)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  menus       Menu[]   // One background config can be used by multiple menus
+
+  @@unique([page]) // Keep page unique but allow nulls
 }

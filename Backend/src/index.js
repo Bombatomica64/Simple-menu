@@ -18,6 +18,7 @@ const { setupWebSocket } = require("./middleware/websocket");
 const pastaTypesRoutes = require("./routes/pastaTypes");
 const pastaSaucesRoutes = require("./routes/pastaSauces");
 const imageManagementRoutes = require("./routes/imageManagement");
+const backgroundsRoutes = require("./routes/backgrounds");
 
 // Initialize Express app
 const app = express();
@@ -34,6 +35,7 @@ app.use('/assets', express.static(path.join(__dirname, '../assets')));
 app.use('/pasta-types', pastaTypesRoutes);
 app.use('/pasta-sauces', pastaSaucesRoutes);
 app.use('/images', imageManagementRoutes);
+app.use('/api/backgrounds', backgroundsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

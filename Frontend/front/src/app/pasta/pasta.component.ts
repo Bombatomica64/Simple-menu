@@ -1,5 +1,6 @@
-import { Component, computed, input, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, computed, input, OnInit, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 
 import { Menu, PastaType as SinglePastaType, PastaSauce as SinglePastaSauce, MenuItem, MenuPastaTypeEntry, MenuPastaSauceEntry, MenuSection } from '../Menu/menu';
 import { CardModule } from 'primeng/card';
@@ -17,6 +18,7 @@ import { MenuSectionViewerComponent } from '../menu-section-viewer/menu-section-
 })
 export class PastaComponent implements OnInit, OnDestroy {
     menu = input<Menu | null | undefined>();
+    private http = inject(HttpClient);
 
     // Pagination for sections
     currentSectionPage = signal(0);
@@ -25,11 +27,25 @@ export class PastaComponent implements OnInit, OnDestroy {
     ngOnInit() {
         // Add pasta-page class to body for fixed viewport
         document.body.classList.add('pasta-page');
+        // Load background configuration
+        this.loadBackgroundConfig();
     }
 
     ngOnDestroy() {
         // Remove pasta-page class when component is destroyed
         document.body.classList.remove('pasta-page');
+    }
+
+    private loadBackgroundConfig() {
+        this.http.get<{background: string}>('/api/backgrounds/pasta').subscribe({
+            next: (config) => {
+                document.documentElement.style.setProperty('--pasta-bg', config.background);
+            },
+            error: () => {
+                // Fallback to default background if API fails
+                document.documentElement.style.setProperty('--pasta-bg', 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)');
+            }
+        });
     }
 
     pastaTypes = computed<{ name: string; image?: string; price: number; priceNote?: string; description: string; origin: string }[]>(() => {
