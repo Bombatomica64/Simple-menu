@@ -255,6 +255,42 @@
 					(ngModelChange)="newPastaTypeName.set($event)"
 				/>
 			</div>
+			<div class="p-field p-mb-3">
+				<label for="newPastaTypeDescription">Descrizione (Opzionale)</label>
+				<textarea
+					id="newPastaTypeDescription"
+					pInputTextarea
+					rows="3"
+					[ngModel]="newPastaTypeDescription()"
+					(ngModelChange)="newPastaTypeDescription.set($event)"
+					placeholder="Descrivi questo tipo di pasta..."
+				></textarea>
+			</div>
+			<div class="p-field p-mb-3">
+				<label for="newPastaTypeBasePrice">Prezzo Base (€)</label>
+				<p-inputNumber
+					id="newPastaTypeBasePrice"
+					[ngModel]="newPastaTypeBasePrice()"
+					(ngModelChange)="newPastaTypeBasePrice.set($event)"
+					mode="currency"
+					currency="EUR"
+					locale="it-IT"
+					[min]="0"
+					[max]="100"
+					[step]="0.50"
+				></p-inputNumber>
+			</div>
+			<div class="p-field p-mb-3">
+				<label for="newPastaTypePriceNote">Nota Prezzi (Opzionale)</label>
+				<input
+					id="newPastaTypePriceNote"
+					type="text"
+					pInputText
+					[ngModel]="newPastaTypePriceNote()"
+					(ngModelChange)="newPastaTypePriceNote.set($event)"
+					placeholder="es. per porzione extra, con supplemento, ecc."
+				/>
+			</div>
 			<div class="p-field">
 				<label for="newPastaTypeImage">Carica Immagine (Opzionale)</label>
 				<p-fileUpload
@@ -319,6 +355,42 @@
 					pInputText
 					[ngModel]="newPastaSauceName()"
 					(ngModelChange)="newPastaSauceName.set($event)"
+				/>
+			</div>
+			<div class="p-field p-mb-3">
+				<label for="newPastaSauceDescription">Descrizione (Opzionale)</label>
+				<textarea
+					id="newPastaSauceDescription"
+					pInputTextarea
+					rows="3"
+					[ngModel]="newPastaSauceDescription()"
+					(ngModelChange)="newPastaSauceDescription.set($event)"
+					placeholder="Descrivi questo sugo..."
+				></textarea>
+			</div>
+			<div class="p-field p-mb-3">
+				<label for="newPastaSauceBasePrice">Prezzo Base (€)</label>
+				<p-inputNumber
+					id="newPastaSauceBasePrice"
+					[ngModel]="newPastaSauceBasePrice()"
+					(ngModelChange)="newPastaSauceBasePrice.set($event)"
+					mode="currency"
+					currency="EUR"
+					locale="it-IT"
+					[min]="0"
+					[max]="50"
+					[step]="0.50"
+				></p-inputNumber>
+			</div>
+			<div class="p-field p-mb-3">
+				<label for="newPastaSaucePriceNote">Nota Prezzi (Opzionale)</label>
+				<input
+					id="newPastaSaucePriceNote"
+					type="text"
+					pInputText
+					[ngModel]="newPastaSaucePriceNote()"
+					(ngModelChange)="newPastaSaucePriceNote.set($event)"
+					placeholder="es. con ingredienti extra, porzione doppia, ecc."
 				/>
 			</div>
 			<div class="p-field">

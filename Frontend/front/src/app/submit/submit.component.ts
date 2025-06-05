@@ -44,6 +44,8 @@ import {
 import { PickListModule } from 'primeng/picklist'; // Import PickListModule
 import { ButtonModule } from 'primeng/button'; // For pButton
 import { InputTextModule } from 'primeng/inputtext'; // For pInputText
+import { InputNumberModule } from 'primeng/inputnumber'; // For pInputNumber
+import { TextareaModule } from 'primeng/textarea';
 import { DialogModule } from 'primeng/dialog'; // For modal dialogs
 import { FileUploadModule } from 'primeng/fileupload'; // For file upload
 import { GalleriaModule } from 'primeng/galleria'; // For image gallery
@@ -63,6 +65,8 @@ import { MenuSectionsComponent } from '../menu-sections/menu-sections.component'
 		PickListModule,
 		ButtonModule,
 		InputTextModule,
+		InputNumberModule,
+		TextareaModule,
 		DialogModule,
 		FileUploadModule,
 		GalleriaModule,
@@ -96,6 +100,9 @@ export class SubmitComponent implements OnInit {
 	// For creating new pasta type
 	showNewPastaTypeDialog = signal(false);
 	newPastaTypeName = signal('');
+	newPastaTypeDescription = signal('');
+	newPastaTypeBasePrice = signal<number>(8.50);
+	newPastaTypePriceNote = signal('');
 	newPastaTypeImageUrl = signal('');
 	newPastaTypeSelectedFile = signal<File | null>(null);
 	uploadingNewPastaTypeImage = signal(false);
@@ -118,6 +125,9 @@ export class SubmitComponent implements OnInit {
 	allPastaSauces = signal<AppPastaSauce[]>([]); // For creating new pasta sauce
 	showNewPastaSauceDialog = signal(false);
 	newPastaSauceName = signal('');
+	newPastaSauceDescription = signal('');
+	newPastaSauceBasePrice = signal<number>(3.50);
+	newPastaSaucePriceNote = signal('');
 	newPastaSauceImageUrl = signal('');
 	newPastaSauceSelectedFile = signal<File | null>(null);
 	uploadingNewPastaSauceImage = signal(false);
@@ -386,6 +396,9 @@ export class SubmitComponent implements OnInit {
 	// --- Create New Pasta Type ---
 	openNewPastaTypeDialog() {
 		this.newPastaTypeName.set('');
+		this.newPastaTypeDescription.set('');
+		this.newPastaTypeBasePrice.set(8.50);
+		this.newPastaTypePriceNote.set('');
 		this.newPastaTypeImageUrl.set('');
 		this.newPastaTypeSelectedFile.set(null);
 		this.uploadingNewPastaTypeImage.set(false);
@@ -409,6 +422,9 @@ export class SubmitComponent implements OnInit {
 		this.http
 			.post<AppPastaType>(`${this.apiUrl}/pasta-types`, {
 				name: this.newPastaTypeName(),
+				description: this.newPastaTypeDescription() || null,
+				basePrice: this.newPastaTypeBasePrice(),
+				priceNote: this.newPastaTypePriceNote() || null,
 				imageUrl: '', // Start with empty image
 			})
 			.subscribe({
@@ -490,6 +506,9 @@ export class SubmitComponent implements OnInit {
 	// --- Create New Pasta Sauce ---
 	openNewPastaSauceDialog() {
 		this.newPastaSauceName.set('');
+		this.newPastaSauceDescription.set('');
+		this.newPastaSauceBasePrice.set(3.50);
+		this.newPastaSaucePriceNote.set('');
 		this.newPastaSauceImageUrl.set('');
 		this.newPastaSauceSelectedFile.set(null);
 		this.uploadingNewPastaSauceImage.set(false);
@@ -512,6 +531,9 @@ export class SubmitComponent implements OnInit {
 		this.http
 			.post<AppPastaSauce>(`${this.apiUrl}/pasta-sauces`, {
 				name: this.newPastaSauceName(),
+				description: this.newPastaSauceDescription() || null,
+				basePrice: this.newPastaSauceBasePrice(),
+				priceNote: this.newPastaSaucePriceNote() || null,
 				imageUrl: '', // Start with empty image
 			})
 			.subscribe({

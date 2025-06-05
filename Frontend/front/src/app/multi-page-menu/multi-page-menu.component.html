@@ -6,7 +6,7 @@
     <div class="menu-page-content">
 
       <!-- Header (full width) -->
-      <div class="menu-header-container">
+      <!-- <div class="menu-header-container">
         <div class="card menu-header">
           <h2>Our Menu</h2>
           <p>Enjoy our delicious selection of dishes, updated daily</p>
@@ -17,94 +17,12 @@
             </div>
           }
         </div>
-      </div>
+      </div> -->
 
       <!-- Pasta Selection Section (full width if present) -->
       @if (page.pastaTypes.length > 0 || page.pastaSauces.length > 0) {
         <div class="pasta-section-container">
-          <div class="card pasta-selection-card">
-            <h3>Create Your Pasta Dish</h3>
-            <p>Choose any pasta and combine it with any sauce for a perfect meal</p>
-
-            <div class="grid">
-              <!-- Pasta Types -->
-              @if (page.pastaTypes.length > 0) {
-                <div class="col-12 md:col-5">
-                  <div class="pasta-selection">
-                    <h4>Step 1: Choose Your Pasta</h4>
-                    <div class="grid">
-                      @for (pasta of page.pastaTypes; track pasta.name) {
-                        <div class="col-6 mb-3">
-                          <p-card [header]="pasta.name" styleClass="pasta-card">
-                            <ng-template pTemplate="header">
-                              <img [alt]="pasta.name" [title]="pasta.name" [src]="pasta.image" class="pasta-image" alt="Pasta type"/>
-                            </ng-template>
-                          </p-card>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                </div>
-              }
-
-              <!-- Arrows Section -->
-              @if (page.pastaTypes.length > 0 && page.pastaSauces.length > 0) {
-                <div class="col-12 md:col-2 flex align-items-center justify-content-center">
-                  <div class="arrows-container">
-                    <i class="pi pi-arrow-right text-5xl"></i>
-                    <i class="pi pi-arrow-left text-5xl"></i>
-                  </div>
-                </div>
-              }
-
-              <!-- Sauces -->
-              @if (page.pastaSauces.length > 0) {
-                <div class="col-12 md:col-5">
-                  <div class="sauce-selection">
-                    <h4>Step 2: Choose Your Sauce</h4>
-                    <div class="grid">
-                      @for (sauce of page.pastaSauces; track sauce.name) {
-                        <div class="col-6 mb-3">
-                          <p-card [header]="sauce.name" styleClass="sauce-card">
-                            <ng-template pTemplate="header">
-                              <img [alt]="sauce.name" [src]="sauce.image" [title]="sauce.name" class="sauce-image" alt="Pasta sauce"/>
-                            </ng-template>
-                          </p-card>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-          </div>
-        </div>
-      }
-
-      <!-- 2-Column Grid for Menu Sections -->
-      @if (page.sections.length > 0) {
-        <div class="two-column-grid">
-
-          <!-- Column 1 -->
-          <div class="grid-column column-1">
-            @for (section of page.sectionsColumn1; track section.id) {
-              <app-menu-section-viewer
-                [section]="section"
-                [items]="getItemsForSection(section.id)">
-              </app-menu-section-viewer>
-            }
-          </div>
-
-          <!-- Column 2 -->
-          <div class="grid-column column-2">
-            @for (section of page.sectionsColumn2; track section.id) {
-              <app-menu-section-viewer
-                [section]="section"
-                [items]="getItemsForSection(section.id)">
-              </app-menu-section-viewer>
-            }
-          </div>
-
+          <app-pasta [menu]="menu()"></app-pasta>
         </div>
       }
 

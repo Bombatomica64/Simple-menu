@@ -1,6 +1,7 @@
 import { Component, computed, input, signal, effect, OnDestroy } from '@angular/core';
 import { Menu, MenuItem, MenuSection, MenuPastaTypeEntry, MenuPastaSauceEntry } from '../Menu/menu';
 import { MenuSectionViewerComponent } from '../menu-section-viewer/menu-section-viewer.component';
+import { PastaComponent } from '../pasta/pasta.component';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
 import { PanelModule } from 'primeng/panel';
@@ -18,7 +19,7 @@ interface MenuPage {
 @Component({
   selector: 'app-multi-page-menu',
   standalone: true,
-  imports: [MenuSectionViewerComponent, CardModule, DividerModule, PanelModule, CommonModule],
+  imports: [MenuSectionViewerComponent, PastaComponent, CardModule, DividerModule, PanelModule, CommonModule],
   templateUrl: './multi-page-menu.component.html',
   styleUrls: ['./multi-page-menu.component.scss'],
 })

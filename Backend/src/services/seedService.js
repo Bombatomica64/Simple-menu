@@ -29,8 +29,8 @@ async function seedDefaultData() {
       
       const pastaTypeData = pastaTypesToSeed.map(name => ({
         name,
-        imageUrl: "", // No default images
-        availableImages: JSON.stringify([]) // Empty array for images
+        imageUrl: null, // No default images
+        description: null // No default descriptions in seed
       }));
 
       await prisma.pastaType.createMany({
@@ -47,8 +47,8 @@ async function seedDefaultData() {
       
       const pastaSauceData = pastaSaucesToSeed.map(name => ({
         name,
-        imageUrl: "", // No default images for sauces yet
-        availableImages: JSON.stringify([]) // Empty array for now
+        imageUrl: null, // No default images for sauces yet
+        description: null // No default descriptions in seed
       }));
 
       await prisma.pastaSauce.createMany({

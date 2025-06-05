@@ -1,63 +1,162 @@
-<!-- src/app/pasta/pasta.component.html -->
-<div class="grid">
-  <div class="col-12">
-    <div class="card">
-      <h2>Our Menu</h2>
-      <p>Enjoy our delicious selection of dishes, updated daily</p>
-    </div>
+<div class="pasta-container">
+  <!-- Header Section -->
+  <div class="pasta-header">
+    <h1>
+      <i class="pi pi-heart pasta-icon"></i>
+      Menu Completo
+    </h1>
+    <p>Pasta artigianale e specialità della casa</p>
   </div>
 
-  <!-- Pasta Selection -->
-  <div class="col-12">
-    <div class="card">
-      <h3>Create Your Pasta Dish</h3>
-      <p>Choose any pasta and combine it with any sauce for a perfect meal</p>
+  <!-- Main Two Column Layout -->
+  <div class="main-layout">
+    <!-- Left Column - Pasta Section (Bigger) -->
+    <div class="pasta-main-column">
+      <h2 class="section-title">
+        <i class="pi pi-star-fill mr-2"></i>
+        Combinazioni Perfette di Pasta
+      </h2>
 
-      <div class="grid">
+      <!-- Pasta Types and Sauces in two sub-columns -->
+      <div class="pasta-sub-layout">
         <!-- Pasta Types -->
-        <div class="col-12 md:col-5">
-          <div class="pasta-selection">
-            <h4>Step 1: Choose Your Pasta</h4>
-            <div class="grid">
-              @for (pasta of pastaTypes(); track pasta) {
-                <div class="col-6 mb-3">
-                  <p-card [header]="pasta.name" styleClass="pasta-card">
-                    <ng-template pTemplate="header">
-                      <img [alt]="pasta.name" title="{{pasta.name}}" [src]="pasta.image" class="pasta-image"/>
-                    </ng-template>
-                  </p-card>
+        <div class="pasta-types-section">
+          <h3 class="sub-title">Tipi di Pasta</h3>
+          <div class="items-grid">
+            @for (pasta of pastaTypes(); track $index) {
+              <div class="item-card">
+                @if (pasta.image && pasta.image !== 'assets/placeholder.png') {
+                  <img
+                    [src]="pasta.image"
+                    [alt]="pasta.name + ' - pasta tradizionale italiana'"
+                    [title]="pasta.name + ' - Pasta tradizionale italiana'"
+                    class="item-image"
+                  />
+                }
+                <div class="item-content">
+                  <h4 class="item-name">{{ pasta.name }}</h4>
+                  <p class="item-description">{{ pasta.description }}</p>
+                  <div class="item-price">€{{ pasta.price }}</div>
+                  @if (pasta.priceNote) {
+                    <div class="price-note">{{ pasta.priceNote }}</div>
+                  }
                 </div>
-              }
-            </div>
+              </div>
+            }
           </div>
         </div>
 
-        <!-- Arrows Section -->
-        <div class="col-12 md:col-2 flex align-items-center justify-content-center">
-          <div class="arrows-container">
-            <i class="pi pi-arrow-right text-5xl"></i>
-            <i class="pi pi-arrow-left text-5xl"></i>
+        <!-- Pasta Sauces -->
+        <div class="pasta-sauces-section">
+          <h3 class="sub-title">Sughi per Pasta</h3>
+          <div class="items-grid">
+            @for (sauce of pastaSauces(); track $index) {
+              <div class="item-card">
+                @if (sauce.image && sauce.image !== 'assets/placeholder.png') {
+                  <img
+                    [src]="sauce.image"
+                    [alt]="sauce.name + ' - sugo italiano autentico'"
+                    [title]="sauce.name + ' - Sugo italiano autentico'"
+                    class="item-image"
+                  />
+                }
+                <div class="item-content">
+                  <h4 class="item-name">{{ sauce.name }}</h4>
+                  <p class="item-description">{{ sauce.description }}</p>
+                  <div class="item-price">€{{ sauce.price }}</div>
+                  @if (sauce.priceNote) {
+                    <div class="price-note">{{ sauce.priceNote }}</div>
+                  }
+                </div>
+              </div>
+            }
           </div>
         </div>
+      </div>
 
-        <!-- Sauces -->
-        <div class="col-12 md:col-5">
-          <div class="sauce-selection">
-            <h4>Step 2: Choose Your Sauce</h4>
-            <div class="grid">
-              @for (sauce of pastaSauces(); track sauce) {
-                <div class="col-6 mb-3">
-                  <p-card [header]="sauce.name" [subheader]="'€'" styleClass="sauce-card">
-                    <ng-template pTemplate="header">
-                      <img [alt]="sauce.name" [src]="sauce.image" title="{{sauce.name}}" class="sauce-image"/>
-                    </ng-template>
-                  </p-card>
-                </div>
-              }
+      <!-- Price Information Box -->
+      <div class="price-info-section">
+        <div class="price-info-box">
+          <div class="price-info-content">
+            <i class="pi pi-calculator price-icon"></i>
+            <div class="price-details">
+              <h4>Prezzo Base</h4>
+              <div class="price-breakdown">
+                <span class="pasta-price">Pasta: da €{{ getMinPastaPrice() }}</span>
+                <span class="sauce-price">Sugo: da €{{ getMinSaucePrice() }}</span>
+                <span class="total-price">Totale: da €{{ getMinTotalPrice() }}</span>
+              </div>
+              <p class="price-disclaimer">*I prezzi possono variare in base alla scelta specifica</p>
             </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Right Column - Menu Sections (Smaller) -->
+    <div class="menu-sections-column">
+      @if (menuSections().length > 0) {
+        <div class="sections-header">
+          <h2 class="section-title">
+            <i class="pi pi-list mr-2"></i>
+            Altre Specialità
+          </h2>
+
+          <!-- Pagination Controls -->
+          @if (totalSectionPages() > 1) {
+            <div class="pagination-controls">
+              <button
+                pButton
+                type="button"
+                icon="pi pi-chevron-left"
+                class="p-button-rounded p-button-outlined p-button-sm"
+                (click)="prevSectionPage()"
+                [disabled]="!hasPrevPage()"
+                title="Pagina precedente">
+              </button>
+              <span class="page-indicator">{{ currentSectionPage() + 1 }} / {{ totalSectionPages() }}</span>
+              <button
+                pButton
+                type="button"
+                icon="pi pi-chevron-right"
+                class="p-button-rounded p-button-outlined p-button-sm"
+                (click)="nextSectionPage()"
+                [disabled]="!hasNextPage()"
+                title="Pagina successiva">
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- Current Page Sections -->
+        <div class="sections-container">
+          @for (section of currentPageSections(); track section.id) {
+            <app-menu-section-viewer
+              [section]="section"
+              [items]="getItemsForSection(section.id)">
+            </app-menu-section-viewer>
+          }
+        </div>
+      } @else {
+        <!-- Quality Info when no sections -->
+        <div class="pasta-info">
+          <h3>Perché la Nostra Pasta è Speciale</h3>
+          <div class="quality-indicators">
+            <div class="quality-item">
+              <i class="pi pi-clock"></i>
+              <span>Fresca Ogni Giorno</span>
+            </div>
+            <div class="quality-item">
+              <i class="pi pi-heart"></i>
+              <span>Fatta con Amore</span>
+            </div>
+            <div class="quality-item">
+              <i class="pi pi-globe"></i>
+              <span>Autentica Italiana</span>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   </div>
 </div>

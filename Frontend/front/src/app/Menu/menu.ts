@@ -22,14 +22,18 @@ export interface PastaType {
     id: number;
     name: string;
     imageUrl?: string;
-    availableImages?: string;
+    description?: string;
+    basePrice: number;
+    priceNote?: string;
 }
 
 export interface PastaSauce {
     id: number;
     name: string;
     imageUrl?: string;
-    availableImages?: string;
+    description?: string;
+    basePrice: number;
+    priceNote?: string;
 }
 
 // Represents the structure from MenuToPastaType include

@@ -4,6 +4,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global viewport fixes for fixed layout pages */
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Fixed viewport for pasta component */
+body.pasta-page {
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 /*
  * ========================================
  * PRIMENG V19 DIALOG & THEME INTEGRATION
@@ -114,6 +132,20 @@ body {
 	background-color: var(--p-surface-900);
 	color: var(--text-color);
 	min-height: 100vh;
+}
+
+/* Global viewport fixes for pasta component */
+body.pasta-page {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
 }
 
 /* PrimeNG global dark theme overrides */
@@ -1333,32 +1365,32 @@ body {
 			width: 95vw !important;
 			margin: 1rem !important;
 		}
-		
+
 		.p-dialog-content {
 			padding: 1rem !important;
 		}
-		
+
 		.p-dialog-footer {
 			padding: 1rem !important;
 			flex-direction: column !important;
 			gap: 0.5rem !important;
 		}
-		
+
 		.p-dialog-footer .p-button {
 			width: 100% !important;
 		}
 	}
-	
+
 	.image-management-dialog {
 		.p-dialog {
 			width: 95vw !important;
 			margin: 1rem !important;
 		}
-		
+
 		.p-dialog-content {
 			padding: 1rem !important;
 		}
-		
+
 		.grid .col-6 {
 			flex: 0 0 100% !important;
 			width: 100% !important;
@@ -1406,33 +1438,33 @@ body {
 	border: 1px solid !important;
 	cursor: pointer !important;
 	transition: all 0.2s ease !important;
-	
+
 	/* Success button (load menu) */
 	&.p-button-success {
 		background-color: var(--p-green-500) !important;
 		border-color: var(--p-green-500) !important;
 		color: var(--p-surface-0) !important;
 	}
-	
+
 	&.p-button-success:hover {
 		background-color: var(--p-green-600) !important;
 		border-color: var(--p-green-600) !important;
 		transform: scale(1.1) !important;
 	}
-	
+
 	/* Danger button (delete menu) */
 	&.p-button-danger {
 		background-color: var(--p-red-500) !important;
 		border-color: var(--p-red-500) !important;
 		color: var(--p-surface-0) !important;
 	}
-	
+
 	&.p-button-danger:hover {
 		background-color: var(--p-red-600) !important;
 		border-color: var(--p-red-600) !important;
 		transform: scale(1.1) !important;
 	}
-	
+
 	/* Icon styling */
 	.pi {
 		font-size: 0.75rem !important;
@@ -1462,7 +1494,7 @@ body {
 /* Table row styling */
 .saved-menus-container .p-datatable .p-datatable-tbody tr {
 	background: var(--p-surface-900) !important;
-	
+
 	&:hover {
 		background: var(--p-surface-800) !important;
 	}
@@ -1489,11 +1521,11 @@ body {
 	color: var(--p-surface-0) !important;
 	background: transparent !important;
 	border: 1px solid var(--p-surface-700) !important;
-	
+
 	&:hover {
 		background: var(--p-surface-700) !important;
 	}
-	
+
 	&.p-highlight {
 		background: var(--p-primary-500) !important;
 		color: var(--p-surface-0) !important;

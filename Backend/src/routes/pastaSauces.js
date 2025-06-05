@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 
 // Create new pasta sauce
 router.post('/', async (req, res) => {
-  const { name, imageUrl } = req.body;
+  const { name, imageUrl, description, basePrice, priceNote } = req.body;
   if (!name) {
     return res.status(400).json({ error: 'Pasta sauce name is required' });
   }
@@ -25,8 +25,10 @@ router.post('/', async (req, res) => {
     const newPastaSauce = await prisma.pastaSauce.create({
       data: { 
         name, 
-        imageUrl: imageUrl || '',
-        availableImages: JSON.stringify([])
+        imageUrl: imageUrl || null,
+        description: description || null,
+        basePrice: basePrice || 3.50,
+        priceNote: priceNote || null
       },
     });
     res.status(201).json(newPastaSauce);

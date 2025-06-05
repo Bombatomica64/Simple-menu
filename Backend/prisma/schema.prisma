@@ -34,7 +34,6 @@ model MenuItem {
   price           Float
   position        Int          @default(0) // Position within the section
   imageUrl        String?
-  availableImages String       @default("[]") // JSON array of image URLs
   showImage       Boolean      @default(false) // Switch to show/hide image in menu
   menuId          Int
   menu            Menu         @relation(fields: [menuId], references: [id])
@@ -45,16 +44,20 @@ model MenuItem {
 model PastaType {
   id              Int               @id @default(autoincrement())
   name            String
-  imageUrl        String
-  availableImages String            @default("[]") // JSON array of image URLs
+  imageUrl        String?
+  description     String?           // Optional description for the pasta type
+  basePrice       Float             @default(8.50) // Base price for this pasta type
+  priceNote       String?           // Optional note about pricing (e.g., "+€2 for large portion")
   menus           MenuToPastaType[]
 }
 
 model PastaSauce {
   id              Int                @id @default(autoincrement())
   name            String
-  imageUrl        String
-  availableImages String             @default("[]") // JSON array of image URLs
+  imageUrl        String?
+  description     String?            // Optional description for the pasta sauce
+  basePrice       Float              @default(3.50) // Base price for this pasta sauce
+  priceNote       String?            // Optional note about pricing (e.g., "+€1 for truffle sauce")
   menus           MenuToPastaSauce[]
 }
 
