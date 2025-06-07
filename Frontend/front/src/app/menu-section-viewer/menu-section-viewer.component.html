@@ -1,6 +1,6 @@
 <p-panel [header]="section().name" styleClass="menu-section-panel">
   <div class="grid">
-    @for (item of items(); track item.id) {
+    @for (item of itemsWithFullImageUrls(); track item.id) {
       <div class="col-12 mb-3">
         <div class="menu-item-row">
           @if (item.imageUrl && item.showImage) {

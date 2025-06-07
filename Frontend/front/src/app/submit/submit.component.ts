@@ -28,9 +28,10 @@ import {
 	AddPastaSauceMessage,
 	RemovePastaSauceMessage,
 	MoveItemToSectionMessage,
-	UpdateItemPositionsMessage,
-	AddSectionMessage,
+	UpdateItemPositionsMessage,	AddSectionMessage,
 	RemoveSectionMessage,
+	UpdateMenuOrientationMessage,
+	UpdateMenuAvailableImagesMessage,
 } from '../webSocketResource';
 import {
 	Menu,
@@ -51,7 +52,9 @@ import { FileUploadModule } from 'primeng/fileupload'; // For file upload
 import { GalleriaModule } from 'primeng/galleria'; // For image gallery
 import { ConfirmDialogModule } from 'primeng/confirmdialog'; // For confirmation dialogs
 import { ToggleButtonModule } from 'primeng/togglebutton'; // For toggle switch
-import { DropdownModule } from 'primeng/dropdown'; // For dropdown
+import { SelectModule } from 'primeng/select'; // For select
+import { ScrollerModule } from 'primeng/scroller'; // For virtual scrolling
+import { OverlayModule } from 'primeng/overlay'; // For overlay components
 import { ConfirmationService } from 'primeng/api'; // For confirmation service
 import { SavedMenusComponent } from '../saved-menus/saved-menus.component'; // Import SavedMenusComponent
 import { ToggleSwitchModule } from 'primeng/toggleswitch'; // For toggle switch
@@ -72,7 +75,9 @@ import { MenuSectionsComponent } from '../menu-sections/menu-sections.component'
 		GalleriaModule,
 		ConfirmDialogModule,
 		ToggleSwitchModule,
-		DropdownModule,
+		SelectModule,
+		ScrollerModule,
+		OverlayModule,
 		SavedMenusComponent,
 		MenuSectionsComponent,
 	],
@@ -101,24 +106,29 @@ export class SubmitComponent implements OnInit {
 	showNewPastaTypeDialog = signal(false);
 	newPastaTypeName = signal('');
 	newPastaTypeDescription = signal('');
-	newPastaTypeBasePrice = signal<number>(8.50);
+	newPastaTypeBasePrice = signal<number>(8.5);
 	newPastaTypePriceNote = signal('');
 	newPastaTypeImageUrl = signal('');
 	newPastaTypeSelectedFile = signal<File | null>(null);
-	uploadingNewPastaTypeImage = signal(false);
-	// Computed signals for Pasta Type PickList
+	uploadingNewPastaTypeImage = signal(false);	// Computed signals for Pasta Type PickList
 	pastaTypesSource = computed(() => {
 		const currentMenu = this.menuWsConnection?.resource.value();
 		const currentMenuPastaTypeIds = new Set(
 			currentMenu?.pastaTypes.map((pt) => pt.pastaType.id) || []
 		);
-		return this.allPastaTypes().filter(
-			(pt) => !currentMenuPastaTypeIds.has(pt.id)
-		);
+		return this.allPastaTypes()
+			.filter((pt) => !currentMenuPastaTypeIds.has(pt.id))
+			.map(type => ({
+				...type,
+				imageUrl: type.imageUrl ? environment.getFullImageUrl(type.imageUrl) : type.imageUrl
+			}));
 	});
 	pastaTypesTarget = computed(() => {
 		const currentMenu = this.menuWsConnection?.resource.value();
-		return currentMenu?.pastaTypes.map((ptEntry) => ptEntry.pastaType) || [];
+		return currentMenu?.pastaTypes.map((ptEntry) => ({
+			...ptEntry.pastaType,
+			imageUrl: ptEntry.pastaType.imageUrl ? environment.getFullImageUrl(ptEntry.pastaType.imageUrl) : ptEntry.pastaType.imageUrl
+		})) || [];
 	});
 
 	// --- Pasta Sauces Management ---
@@ -126,7 +136,7 @@ export class SubmitComponent implements OnInit {
 	showNewPastaSauceDialog = signal(false);
 	newPastaSauceName = signal('');
 	newPastaSauceDescription = signal('');
-	newPastaSauceBasePrice = signal<number>(3.50);
+	newPastaSauceBasePrice = signal<number>(3.5);
 	newPastaSaucePriceNote = signal('');
 	newPastaSauceImageUrl = signal('');
 	newPastaSauceSelectedFile = signal<File | null>(null);
@@ -134,6 +144,19 @@ export class SubmitComponent implements OnInit {
 
 	// Image management
 	showImageManagerDialog = signal(false);
+
+	// Image visibility toggles
+	showPastaTypeImages = signal(true);
+	showPastaSauceImages = signal(true);
+	imageSizeOption = signal<'small' | 'medium' | 'large'>('medium');
+
+	// Image size options
+	imageSizeOptions = [
+		{ label: 'Piccole (32px)', value: 'small' },
+		{ label: 'Medie (48px)', value: 'medium' },
+		{ label: 'Grandi (64px)', value: 'large' }
+	];
+
 	selectedItemForImages = signal<{
 		type: 'pastaType' | 'pastaSauce' | 'menuItem';
 		id: number;
@@ -143,24 +166,69 @@ export class SubmitComponent implements OnInit {
 	} | null>(null);
 	uploadingImage = signal(false);
 
+	// Computed properties for image manager with full URLs
+	selectedItemCurrentImageUrl = computed(() => {
+		const item = this.selectedItemForImages();
+		return item?.currentImage ? environment.getFullImageUrl(item.currentImage) : '';
+	});
+
+	selectedItemAvailableImagesUrls = computed(() => {
+		const item = this.selectedItemForImages();
+		return item?.availableImages.map(imageUrl => environment.getFullImageUrl(imageUrl)) || [];
+	});
+
+	// Computed property for image size class
+	imageSizeClass = computed(() => {
+		return `size-${this.imageSizeOption()}`;
+	});
+
+	// Computed property for current image size label
+	getCurrentImageSizeLabel = computed(() => {
+		const option = this.imageSizeOptions.find(o => o.value === this.imageSizeOption());
+		return option?.label || 'Medie (48px)';
+	});
+
 	// --- Background Configuration Management ---
 	showBackgroundConfigDialog = signal(false);
-	backgroundConfigs = signal<{id: number, page: string, background: string}[]>([]);
+	backgroundConfigs = signal<
+		{ id: number; page: string; background: string }[]
+	>([]);
 	selectedPage = signal('');
 	newBackgroundValue = signal('');
 	backgroundPages = [
 		{ label: 'Pasta Page', value: 'pasta' },
 		{ label: 'Main Page', value: 'main' },
 		{ label: 'Sections Page', value: 'sections' },
-		{ label: 'Menu Page', value: 'menu' }
+		{ label: 'Menu Page', value: 'menu' },
 	];
 	uploadingBackground = signal(false);
 
+	// --- Menu Configuration Management ---
+	showMenuConfigDialog = signal(false);
+	selectedOrientation = signal<'vertical' | 'horizontal'>('vertical');
+	availableImagesText = signal<string>('');
+
+	// Computed properties for current menu configuration
+	currentMenuOrientation = computed(() => {
+		const menu = this.menuWsConnection?.resource?.value();
+		return menu?.orientation || 'vertical';
+	});
+
+	currentMenuAvailableImages = computed(() => {
+		const menu = this.menuWsConnection?.resource?.value();
+		return menu?.availableImages;
+	});
+
+	orientationOptions = [
+		{ label: 'Verticale', value: 'vertical' },
+		{ label: 'Orizzontale', value: 'horizontal' },
+	];
 	// Helper method to check if menu item has available images
 	hasAvailableImages(item: MenuItem): boolean {
-		if (!item.availableImages) return false;
+		const menu = this.menuWsConnection?.resource?.value();
+		if (!menu?.availableImages) return false;
 		try {
-			const images = JSON.parse(item.availableImages);
+			const images = JSON.parse(menu.availableImages);
 			return Array.isArray(images) && images.length > 0;
 		} catch {
 			return false;
@@ -169,9 +237,10 @@ export class SubmitComponent implements OnInit {
 
 	// Helper method to get available images count
 	getAvailableImagesCount(item: MenuItem): number {
-		if (!item.availableImages) return 0;
+		const menu = this.menuWsConnection?.resource?.value();
+		if (!menu?.availableImages) return 0;
 		try {
-			const images = JSON.parse(item.availableImages);
+			const images = JSON.parse(menu.availableImages);
 			return Array.isArray(images) ? images.length : 0;
 		} catch {
 			return 0;
@@ -250,20 +319,25 @@ export class SubmitComponent implements OnInit {
 		};
 		this.menuWsConnection?.sendUpdate(message);
 	}
-
 	// Computed signals for Pasta Sauce PickList
 	pastaSaucesSource = computed(() => {
 		const currentMenu = this.menuWsConnection?.resource.value();
 		const currentMenuPastaSauceIds = new Set(
 			currentMenu?.pastaSauces.map((ps) => ps.pastaSauce.id) || []
 		);
-		return this.allPastaSauces().filter(
-			(ps) => !currentMenuPastaSauceIds.has(ps.id)
-		);
+		return this.allPastaSauces()
+			.filter((ps) => !currentMenuPastaSauceIds.has(ps.id))
+			.map((ps) => ({
+				...ps,
+				imageUrl: environment.getFullImageUrl(ps.imageUrl || '')
+			}));
 	});
 	pastaSaucesTarget = computed(() => {
 		const currentMenu = this.menuWsConnection?.resource.value();
-		return currentMenu?.pastaSauces.map((psEntry) => psEntry.pastaSauce) || [];
+		return currentMenu?.pastaSauces.map((psEntry) => ({
+			...psEntry.pastaSauce,
+			imageUrl: environment.getFullImageUrl(psEntry.pastaSauce.imageUrl || '')
+		})) || [];
 	});
 
 	// Computed signal for available sections (for dropdown when adding items)
@@ -303,15 +377,23 @@ export class SubmitComponent implements OnInit {
 			next: (sauces) => this.allPastaSauces.set(sauces),
 			error: (err) => console.error('Failed to load pasta sauces', err),
 		});
-	}
-	// --- Menu Item Actions ---
+	}	// --- Menu Item Actions ---
 	addItem() {
-		if (
-			!this.newItemName.trim() ||
-			this.newItemPrice === null ||
-			this.newItemPrice <= 0
-		) {
-			alert('Inserisci un nome valido e un prezzo per la voce.');
+		// Validation with better error messages
+		const errors: string[] = [];
+
+		if (!this.newItemName.trim()) {
+			errors.push('Il nome della voce è obbligatorio');
+		}
+
+		if (this.newItemPrice === null || this.newItemPrice === undefined) {
+			errors.push('Il prezzo è obbligatorio');
+		} else if (this.newItemPrice <= 0) {
+			errors.push('Il prezzo deve essere maggiore di 0');
+		}
+
+		if (errors.length > 0) {
+			alert('Errori di validazione:\n' + errors.join('\n'));
 			return;
 		}
 
@@ -333,12 +415,11 @@ export class SubmitComponent implements OnInit {
 			// Default to first section if no section is selected
 			finalSectionId = sections[0].id;
 		}
-
 		const message: AddItemMessage = {
 			type: 'addItem',
 			item: {
 				name: this.newItemName.trim(),
-				price: this.newItemPrice,
+				price: this.newItemPrice!,  // Use non-null assertion since we validated above
 				sectionId: finalSectionId,
 			},
 		};
@@ -366,12 +447,12 @@ export class SubmitComponent implements OnInit {
 		};
 		this.menuWsConnection?.sendUpdate(message);
 	}
-
 	openMenuItemImageManager(item: MenuItem) {
+		const menu = this.menuWsConnection?.resource?.value();
 		let availableImages: string[] = [];
 		try {
-			availableImages = item.availableImages
-				? JSON.parse(item.availableImages)
+			availableImages = menu?.availableImages
+				? JSON.parse(menu.availableImages)
 				: [];
 		} catch (e) {
 			availableImages = [];
@@ -411,7 +492,7 @@ export class SubmitComponent implements OnInit {
 	openNewPastaTypeDialog() {
 		this.newPastaTypeName.set('');
 		this.newPastaTypeDescription.set('');
-		this.newPastaTypeBasePrice.set(8.50);
+		this.newPastaTypeBasePrice.set(8.5);
 		this.newPastaTypePriceNote.set('');
 		this.newPastaTypeImageUrl.set('');
 		this.newPastaTypeSelectedFile.set(null);
@@ -521,7 +602,7 @@ export class SubmitComponent implements OnInit {
 	openNewPastaSauceDialog() {
 		this.newPastaSauceName.set('');
 		this.newPastaSauceDescription.set('');
-		this.newPastaSauceBasePrice.set(3.50);
+		this.newPastaSauceBasePrice.set(3.5);
 		this.newPastaSaucePriceNote.set('');
 		this.newPastaSauceImageUrl.set('');
 		this.newPastaSauceSelectedFile.set(null);
@@ -705,24 +786,19 @@ export class SubmitComponent implements OnInit {
 				},
 			});
 		}
-	}
-	switchToImage(imageUrl: string) {
+	}	switchToImage(imageUrl: string) {
 		if (!this.selectedItemForImages()) return;
 
 		const selectedItem = this.selectedItemForImages()!;
 
 		if (selectedItem.type === 'menuItem') {
-			// Handle menu item via WebSocket
+			// Handle menu items via WebSocket
 			const message: UpdateMenuItemImageMessage = {
 				type: 'updateMenuItemImage',
 				itemId: selectedItem.id,
 				imageUrl: imageUrl,
 			};
 			this.menuWsConnection?.sendUpdate(message);
-			// Update the selected item immediately for UI feedback
-			this.selectedItemForImages.update((item) =>
-				item ? { ...item, currentImage: imageUrl } : null
-			);
 		} else {
 			// Handle pasta types and sauces via HTTP
 			const endpoint =
@@ -730,58 +806,46 @@ export class SubmitComponent implements OnInit {
 					? `${this.apiUrl}/images/pasta-types/${selectedItem.id}/switch`
 					: `${this.apiUrl}/images/pasta-sauces/${selectedItem.id}/switch`;
 
-			this.http.put<any>(endpoint, { imageUrl }).subscribe({
-				next: (response) => {
-					console.log('Image switched successfully:', response);
-					// Refresh the data
-					this.loadAllPastaTypes();
-					this.loadAllPastaSauces();
-					// Update the selected item
-					const updatedItem = response.pastaType || response.pastaSauce;
-					this.selectedItemForImages.set({
-						...selectedItem,
-						availableImages: JSON.parse(updatedItem.availableImages || '[]'),
-						currentImage: updatedItem.imageUrl || '',
-					});
-				},
-				error: (err) => {
-					console.error('Failed to switch image:', err);
-					alert(
-						`Errore: ${err.error?.error || "Impossibile cambiare l'immagine."}`
-					);
-				},
-			});
+			this.http
+				.post<any>(endpoint, { imageUrl })
+								.subscribe({
+					next: (response) => {
+						console.log('Image switched successfully:', response);
+						// Refresh the data
+						this.loadAllPastaTypes();
+						this.loadAllPastaSauces();
+						// Update the selected item
+						const updatedItem = response.pastaType || response.pastaSauce;
+						this.selectedItemForImages.set({
+							...selectedItem,
+							currentImage: updatedItem.imageUrl || '',
+						});
+					},
+					error: (err) => {
+						console.error('Failed to switch image:', err);
+						alert(
+							`Errore: ${
+								err.error?.error || "Impossibile cambiare l'immagine."
+							}`
+						);
+					},
+				});
 		}
 	}
 
-	// --- Delete Image ---
 	deleteImage(imageUrl: string) {
 		if (!this.selectedItemForImages()) return;
 
 		const selectedItem = this.selectedItemForImages()!;
 
-		if (!confirm(`Sei sicuro di voler eliminare questa immagine?`)) {
-			return;
-		}
-
 		if (selectedItem.type === 'menuItem') {
-			// Handle menu item via WebSocket
+			// Handle menu items via WebSocket
 			const message: RemoveImageFromMenuItemMessage = {
 				type: 'removeImageFromMenuItem',
 				itemId: selectedItem.id,
 				imageUrl: imageUrl,
 			};
 			this.menuWsConnection?.sendUpdate(message);
-			// Update the selected item immediately for UI feedback
-			this.selectedItemForImages.update((item) => {
-				if (!item) return null;
-				const updatedAvailableImages = item.availableImages.filter(img => img !== imageUrl);
-				return {
-					...item,
-					availableImages: updatedAvailableImages,
-					currentImage: item.currentImage === imageUrl ? (updatedAvailableImages[0] || '') : item.currentImage
-				};
-			});
 		} else {
 			// Handle pasta types and sauces via HTTP
 			const endpoint =
@@ -789,88 +853,76 @@ export class SubmitComponent implements OnInit {
 					? `${this.apiUrl}/images/pasta-types/${selectedItem.id}/delete`
 					: `${this.apiUrl}/images/pasta-sauces/${selectedItem.id}/delete`;
 
-			this.http.delete<any>(endpoint, { body: { imageUrl } }).subscribe({
-				next: (response) => {
-					console.log('Image deleted successfully:', response);
-					// Refresh the data
-					this.loadAllPastaTypes();
-					this.loadAllPastaSauces();
-					// Update the selected item
-					const updatedItem = response.pastaType || response.pastaSauce;
-					this.selectedItemForImages.set({
-						...selectedItem,
-						availableImages: JSON.parse(updatedItem.availableImages || '[]'),
-						currentImage: updatedItem.imageUrl || '',
-					});
-				},
-				error: (err) => {
-					console.error('Failed to delete image:', err);
-					alert(
-						`Errore: ${err.error?.error || "Impossibile eliminare l'immagine."}`
-					);
-				},
-			});
-		}
-	}
+			this.http
+				.post<any>(endpoint, { imageUrl })
+				.subscribe({
+					next: (response) => {
+						console.log('Image deleted successfully:', response);
+						// Refresh the data
+						this.loadAllPastaTypes();
+						this.loadAllPastaSauces();
+						// Update the selected item
+						const updatedItem = response.pastaType || response.pastaSauce;
+						this.selectedItemForImages.set({
+							...selectedItem,
+							availableImages: JSON.parse(updatedItem.availableImages || '[]'),
+							currentImage: updatedItem.imageUrl || '',
+						});
+					},
+					error: (err) => {
+						console.error('Failed to delete image:', err);
+						alert(
+							`Errore: ${
+								err.error?.error || "Impossibile eliminare l'immagine."
+							}`
+						);
+					},
+				});
+		}	}
 
-	// --- Background Configuration Management ---
+	// --- Background Configuration Methods ---
 	loadBackgroundConfigs() {
-		this.http.get<{id: number, page: string, background: string}[]>(`${this.apiUrl}/api/backgrounds`)
-			.subscribe({
-				next: (configs) => {
-					this.backgroundConfigs.set(configs);
-				},
-				error: (error) => {
-					console.error('Error loading background configs:', error);
-				}
-			});
+		this.http.get<any[]>(`${this.apiUrl}/api/backgrounds`).subscribe({
+			next: (configs) => this.backgroundConfigs.set(configs),
+			error: (err) => console.error('Failed to load background configs', err),
+		});
 	}
 
 	openBackgroundConfigDialog() {
-		this.loadBackgroundConfigs();
+		this.selectedPage.set('');
+		this.newBackgroundValue.set('');
 		this.showBackgroundConfigDialog.set(true);
 	}
 
 	saveBackgroundConfig() {
 		if (!this.selectedPage() || !this.newBackgroundValue()) {
-			alert('Seleziona una pagina e inserisci un valore di sfondo.');
+			alert('Seleziona una pagina e inserisci un valore per lo sfondo.');
 			return;
 		}
-
-		const config = {
-			page: this.selectedPage(),
-			background: this.newBackgroundValue()
-		};
-
-		this.http.post(`${this.apiUrl}/api/backgrounds`, config)
+		this.http
+			.post(`${this.apiUrl}/api/backgrounds`, {
+				page: this.selectedPage(),
+				background: this.newBackgroundValue(),
+			})
 			.subscribe({
 				next: () => {
-					console.log('Background configuration saved successfully');
 					this.loadBackgroundConfigs();
-					this.selectedPage.set('');
-					this.newBackgroundValue.set('');
+					this.showBackgroundConfigDialog.set(false);
 				},
-				error: (error) => {
-					console.error('Error saving background config:', error);
-					alert('Errore nel salvare la configurazione dello sfondo');
-				}
+				error: (err) => {
+					console.error('Failed to save background config', err);
+					alert('Errore nel salvare la configurazione dello sfondo.');
+				},
 			});
 	}
-
 	deleteBackgroundConfig(page: string) {
-		if (confirm(`Sei sicuro di voler eliminare la configurazione dello sfondo per "${page}"?`)) {
-			this.http.delete(`${this.apiUrl}/api/backgrounds/${page}`)
-				.subscribe({
-					next: () => {
-						console.log('Background configuration deleted successfully');
-						this.loadBackgroundConfigs();
-					},
-					error: (error) => {
-						console.error('Error deleting background config:', error);
-						alert('Errore nell\'eliminare la configurazione dello sfondo');
-					}
-				});
-		}
+		this.http.delete(`${this.apiUrl}/api/backgrounds/page/${page}`).subscribe({
+			next: () => this.loadBackgroundConfigs(),
+			error: (err) => {
+				console.error('Failed to delete background config', err);
+				alert('Errore nel eliminare la configurazione dello sfondo.');
+			},
+		});
 	}
 
 	onBackgroundImageUpload(event: any) {
@@ -879,20 +931,45 @@ export class SubmitComponent implements OnInit {
 
 		this.uploadingBackground.set(true);
 		const formData = new FormData();
-		formData.append('image', file);
-
-		this.http.post<any>(`${this.apiUrl}/images/backgrounds/upload`, formData)
+		formData.append('background', file);
+		this.http
+			.post<any>(`${this.apiUrl}/api/backgrounds/upload`, formData)
 			.subscribe({
 				next: (response) => {
-					console.log('Background image uploaded successfully:', response);
-					this.newBackgroundValue.set(`url('${response.imageUrl}')`);
+					this.newBackgroundValue.set(response.backgroundUrl);
 					this.uploadingBackground.set(false);
 				},
-				error: (error) => {
-					console.error('Error uploading background image:', error);
-					alert('Errore nel caricamento dell\'immagine di sfondo');
+				error: (err) => {
+					console.error('Failed to upload background', err);
+					alert('Errore nel caricare lo sfondo.');
 					this.uploadingBackground.set(false);
-				}
+				},
 			});
+	}
+
+	// --- Menu Configuration Methods ---
+	openMenuConfigDialog() {
+		this.selectedOrientation.set(this.currentMenuOrientation());
+		this.availableImagesText.set(this.currentMenuAvailableImages() || '');
+		this.showMenuConfigDialog.set(true);
+	}
+
+	closeMenuConfigDialog() {
+		this.showMenuConfigDialog.set(false);
+	}
+	saveMenuConfiguration() {
+		const orientationMessage: UpdateMenuOrientationMessage = {
+			type: 'updateMenuOrientation',
+			orientation: this.selectedOrientation(),
+		};
+		this.menuWsConnection?.sendUpdate(orientationMessage);
+
+		const availableImagesMessage: UpdateMenuAvailableImagesMessage = {
+			type: 'updateMenuAvailableImages',
+			availableImages: this.availableImagesText() || null,
+		};
+		this.menuWsConnection?.sendUpdate(availableImagesMessage);
+
+		this.showMenuConfigDialog.set(false);
 	}
 }

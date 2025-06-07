@@ -6,7 +6,6 @@ export interface MenuItem {
     menuId?: number;
     sectionId?: number | null; // Reference to menu section
     imageUrl?: string;
-    availableImages?: string;
     showImage?: boolean;
 }
 
@@ -59,7 +58,9 @@ export class Menu {
         public menuItems: MenuItem[],
         public menuSections: MenuSection[],
         public pastaTypes: MenuPastaTypeEntry[],
-        public pastaSauces: MenuPastaSauceEntry[]
+        public pastaSauces: MenuPastaSauceEntry[],
+        public orientation: 'vertical' | 'horizontal' = 'vertical',
+        public availableImages: string | null = null
     ) {}
 
     static fromJson(json: any): Menu {
@@ -69,7 +70,9 @@ export class Menu {
             json.menuItems || [],
             json.menuSections || [],
             json.pastaTypes || [], // These are already MenuPastaTypeEntry from backend
-            json.pastaSauces || []  // These are already MenuPastaSauceEntry from backend
+            json.pastaSauces || [], // These are already MenuPastaSauceEntry from backend
+            json.orientation || 'vertical',
+            json.availableImages || null
         );
     }
 }

@@ -92,6 +92,12 @@ function setupWebSocket(server) {
           case "updateItemPositions":
             updated = await menuService.updateItemPositions(message.itemUpdates);
             break;
+          case "updateMenuOrientation":
+            updated = await menuService.updateMenuOrientation(message.orientation);
+            break;
+          case "updateMenuAvailableImages":
+            updated = await menuService.updateMenuAvailableImages(message.availableImages);
+            break;
           case "saveCurrentMenu":
             try {
               const savedMenu = await menuService.saveCurrentMenu(message.name);

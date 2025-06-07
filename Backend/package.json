@@ -1,11 +1,11 @@
 {
   "name": "digital-menu-backend",
   "version": "1.0.0",
-  "main": "src/index.js",
-  "scripts": {
+  "main": "src/index.js",  "scripts": {
     "start": "node src/index.js",
     "dev": "node src/index.js",
     "migrate": "prisma migrate dev --name init",
+    "migrate:image-urls": "node scripts/migrate-image-urls.js",
     "generate": "prisma generate",
     "test": "jest",
     "test:watch": "jest --watch",

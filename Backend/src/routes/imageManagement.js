@@ -14,11 +14,9 @@ function cleanupFile(filePath) {
   }
 }
 
-// Helper function to generate full image URL
-function getFullImageUrl(req, filename) {
-  const protocol = req.protocol;
-  const host = req.get('host');
-  return `${protocol}://${host}/assets/${filename}`;
+// Helper function to generate relative image path
+function getRelativeImagePath(filename) {
+  return `/assets/${filename}`;
 }
 
 // --- General Image Upload for Menu Items ---
@@ -28,9 +26,8 @@ router.post('/menu-items/upload', upload.single('image'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No image file provided' });
   }
-
   try {
-    const imageUrl = getFullImageUrl(req, req.file.filename);
+    const imageUrl = getRelativeImagePath(req.file.filename);
     
     res.json({
       message: 'Image uploaded successfully',
@@ -59,9 +56,7 @@ router.post('/pasta-types/:id/upload', upload.single('image'), async (req, res) 
     if (!pastaType) {
       cleanupFile(req.file.path);
       return res.status(404).json({ error: 'Pasta type not found' });
-    }
-
-    const imageUrl = getFullImageUrl(req, req.file.filename);
+    }    const imageUrl = getRelativeImagePath(req.file.filename);
     const currentImages = JSON.parse(pastaType.availableImages || '[]');
     const updatedImages = [...currentImages, imageUrl];
 
@@ -184,9 +179,7 @@ router.post('/pasta-sauces/:id/upload', upload.single('image'), async (req, res)
     if (!pastaSauce) {
       cleanupFile(req.file.path);
       return res.status(404).json({ error: 'Pasta sauce not found' });
-    }
-
-    const imageUrl = getFullImageUrl(req, req.file.filename);
+    }    const imageUrl = getRelativeImagePath(req.file.filename);
     const currentImages = JSON.parse(pastaSauce.availableImages || '[]');
     const updatedImages = [...currentImages, imageUrl];
 
@@ -300,9 +293,8 @@ router.post('/backgrounds/upload', upload.single('image'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No background image file provided' });
   }
-
   try {
-    const imageUrl = getFullImageUrl(req, req.file.filename);
+    const imageUrl = getRelativeImagePath(req.file.filename);
     
     res.json({
       message: 'Background image uploaded successfully',

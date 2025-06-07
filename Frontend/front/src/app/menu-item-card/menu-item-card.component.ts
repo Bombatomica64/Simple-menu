@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { MenuItem } from '../Menu/menu';
+import { environment } from '../../environments/environment.dynamic';
 
 @Component({
   selector: 'app-menu-item-card',
@@ -17,10 +18,10 @@ import { MenuItem } from '../Menu/menu';
   templateUrl: './menu-item-card.component.html',
   styleUrls: ['./menu-item-card.component.scss']
 })
-export class MenuItemCardComponent {
-  // Input signals
+export class MenuItemCardComponent {  // Input signals
   item = input.required<MenuItem>();
   sectionId = input<number>();
+  hasAvailableImages = input<boolean>(false);
 
   // Model signal for two-way binding
   showImage = model<boolean>();
@@ -29,17 +30,11 @@ export class MenuItemCardComponent {
   removeItem = output<number>();
   toggleShowImage = output<{itemId: number, showImage: boolean}>();
   openImageManager = output<MenuItem>();
-  moveItem = output<MenuItem>();
-
-  // Computed values
+  moveItem = output<MenuItem>();  // Computed values
   currentItem = computed(() => this.item());
-  imageUrl = computed(() => this.currentItem().imageUrl);
+  imageUrl = computed(() => environment.getFullImageUrl(this.currentItem().imageUrl || ''));
   itemName = computed(() => this.currentItem().name);
   itemPrice = computed(() => this.currentItem().price);
-  hasAvailableImages = computed(() => {
-    const item = this.currentItem();
-    return item.availableImages && item.availableImages.length > 0;
-  });
 
   // Computed property to get the effective showImage value
   effectiveShowImage = computed(() => this.showImage() ?? this.currentItem().showImage ?? false);

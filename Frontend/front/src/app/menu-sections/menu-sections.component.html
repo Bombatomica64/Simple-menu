@@ -103,6 +103,7 @@
                   <app-menu-item-card
                     [item]="item"
                     [sectionId]="section.id"
+                    [hasAvailableImages]="hasAvailableImages()"
                     (removeItem)="onRemoveItem($event)"
                     (toggleShowImage)="onToggleShowImage($event)"
                     (openImageManager)="onOpenImageManager($event)"

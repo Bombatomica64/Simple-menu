@@ -30,10 +30,10 @@ import { MenuItemCardComponent } from '../menu-item-card/menu-item-card.componen
   templateUrl: './menu-sections.component.html',
   styleUrls: ['./menu-sections.component.scss']
 })
-export class MenuSectionsComponent implements OnInit {
-  // Input signals
+export class MenuSectionsComponent implements OnInit {  // Input signals
   menuItems = input<MenuItem[]>([]);
   sections = input<MenuSection[]>([]);
+  availableImages = input<string | null>(null);
 
   // Output signals
   removeItem = output<number>();
@@ -58,7 +58,6 @@ export class MenuSectionsComponent implements OnInit {
       value: section.id
     }));
   });
-
   // Computed values
   sectionsWithItems = computed((): MenuSectionWithItems[] => {
     const currentSections = this.internalSections();
@@ -71,6 +70,18 @@ export class MenuSectionsComponent implements OnInit {
         item.sectionId === section.id || (!item.sectionId && section.id === 1)
       )
     })).sort((a, b) => a.position - b.position);
+  });
+
+  // Computed property to check if there are available images
+  hasAvailableImages = computed(() => {
+    const images = this.availableImages();
+    if (!images) return false;
+    try {
+      const parsedImages = JSON.parse(images);
+      return Array.isArray(parsedImages) && parsedImages.length > 0;
+    } catch {
+      return false;
+    }
   });
 
   constructor() {

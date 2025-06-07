@@ -29,8 +29,22 @@ function getBackendUrl(): { apiUrl: string; wsUrl: string } {
 
 const backendConfig = getBackendUrl();
 
+// Utility function to convert relative image paths to full URLs
+function getFullImageUrl(relativePath: string): string {
+  if (!relativePath) return '';
+
+  // If it's already a full URL, return as is
+  if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+    return relativePath;
+  }
+
+  // If it's a relative path, prepend the backend URL
+  return `${backendConfig.apiUrl}${relativePath}`;
+}
+
 export const environment = {
   production: false,
   apiUrl: backendConfig.apiUrl,
-  wsUrl: backendConfig.wsUrl
+  wsUrl: backendConfig.wsUrl,
+  getFullImageUrl: getFullImageUrl
 };

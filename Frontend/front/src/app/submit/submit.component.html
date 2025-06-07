@@ -20,68 +20,114 @@
 		<!-- Menu Items Section -->
 		<div class="card p-mb-4">
 			<h3>Voci del Menu</h3>
-
 			<div class="form-section">
 				<h4>Aggiungi nuovo piatto</h4>
-				<div class="p-fluid p-formgrid p-grid">
-					<div class="p-field p-col-12 p-md-4">
-						<label for="itemName">Nome:</label>
-						<input
-							id="itemName"
-							type="text"
-							pInputText
-							[(ngModel)]="newItemName"
-							placeholder="Nome della voce"
-						/>
+				<form
+					role="form"
+					aria-label="Modulo per aggiungere nuova voce del menu"
+					(ngSubmit)="addItem()"
+					#menuItemForm="ngForm"
+				>
+					<div class="p-fluid p-formgrid p-grid">
+						<div class="p-field p-col-12 p-md-4">
+							<label for="itemName"
+								>Nome:
+								<span aria-label="campo obbligatorio" class="required-asterisk"
+									>*</span
+								></label
+							>
+							<input
+								id="itemName"
+								type="text"
+								pInputText
+								[(ngModel)]="newItemName"
+								name="itemName"
+								placeholder="Nome della voce"
+								required
+								aria-describedby="itemName-help"
+								aria-invalid="false"
+								autocomplete="off"
+							/>
+							<small id="itemName-help" class="form-text"
+								>Inserisci il nome del piatto o della bevanda</small
+							>
+						</div>
+						<div class="p-field p-col-12 p-md-3">
+							<label for="itemPrice"
+								>Prezzo:
+								<span aria-label="campo obbligatorio" class="required-asterisk"
+									>*</span
+								></label
+							>
+							<input
+								id="itemPrice"
+								type="number"
+								pInputText
+								[(ngModel)]="newItemPrice"
+								name="itemPrice"
+								placeholder="Prezzo della voce"
+								required
+								min="0"
+								step="0.01"
+								aria-describedby="itemPrice-help"
+								aria-invalid="false"
+								autocomplete="off"
+							/>
+							<small id="itemPrice-help" class="form-text"
+								>Inserisci il prezzo in euro (es. 12.50)</small
+							>
+						</div>
+						<div class="p-field p-col-12 p-md-3">
+							<label for="itemSection">Sezione:</label>
+							<p-select
+								id="itemSection"
+								[(ngModel)]="newItemSectionId"
+								name="itemSection"
+								[options]="availableSections()"
+								optionLabel="label"
+								optionValue="value"
+								placeholder="Seleziona sezione"
+								[showClear]="true"
+								aria-describedby="itemSection-help"
+								aria-label="Seleziona la sezione del menu per questa voce"
+							></p-select>
+							<small id="itemSection-help" class="form-text"
+								>Scegli la sezione del menu (opzionale)</small
+							>
+						</div>
+						<div class="p-field p-col-12 p-md-2 component-buttons">
+							<button
+								pButton
+								type="submit"
+								label="Aggiungi Voce"
+								class="p-mt-4"
+								title="Aggiungi nuova voce del menu"
+								aria-label="Aggiungi la nuova voce del menu con i dati inseriti"
+								[disabled]="
+									!newItemName.trim() || !newItemPrice || newItemPrice <= 0
+								"
+							></button>
+						</div>
 					</div>
-					<div class="p-field p-col-12 p-md-3">
-						<label for="itemPrice">Prezzo:</label>
-						<input
-							id="itemPrice"
-							type="number"
-							pInputText
-							[(ngModel)]="newItemPrice"
-							placeholder="Prezzo della voce"
-						/>
-					</div>
-					<div class="p-field p-col-12 p-md-3">
-						<label for="itemSection">Sezione:</label>
-						<p-dropdown
-							id="itemSection"
-							[(ngModel)]="newItemSectionId"
-							[options]="availableSections()"
-							optionLabel="label"
-							optionValue="value"
-							placeholder="Seleziona sezione"
-							[showClear]="true">
-						</p-dropdown>
-					</div>
-					<div class="p-field p-col-12 p-md-2 component-buttons">
-						<button
-							pButton
-							type="button"
-							label="Aggiungi Voce"
-							(click)="addItem()"
-							class="p-mt-4"
-							title="Aggiungi nuova voce del menu"
-						></button>
-					</div>
-				</div>
+				</form>
 			</div>
 
 			<hr class="p-my-3" />
 
 			<!-- Menu Sections with Items -->
-			@defer { @if (menuWsConnection?.resource?.value(); as menu) {
-			<app-menu-sections
+			@defer { @if (menuWsConnection?.resource?.value(); as menu) {			<app-menu-sections
 				[menuItems]="menu.menuItems"
 				[sections]="menu.menuSections || []"
+				[availableImages]="menu.availableImages"
 				(removeItem)="removeItemById($event)"
-				(toggleShowImage)="toggleMenuItemShowImage($event.itemId, $event.showImage)"
+				(toggleShowImage)="
+					toggleMenuItemShowImage($event.itemId, $event.showImage)
+				"
 				(openImageManager)="openMenuItemImageManager($event)"
 				(sectionsChanged)="onSectionsChanged($event)"
 				(moveItemToSection)="onMoveItemToSection($event)"
-				(updateItemPositions)="onUpdateItemPositions($event)">
+				(updateItemPositions)="onUpdateItemPositions($event)"
+			>
 			</app-menu-sections>
 			} } @placeholder {
 			<div class="text-center p-4">
@@ -105,10 +151,34 @@
 			</div>
 			}
 		</div>
-
 		<!-- Pasta Types Section -->
 		<div class="card p-mb-4">
 			<h3>Tipi di Pasta</h3>
+
+			<!-- Image Controls -->
+			<div class="image-controls">
+				<div class="control-group">
+					<label for="pastaTypeImagesToggle">Mostra Immagini:</label>
+					<p-toggleSwitch
+						id="pastaTypeImagesToggle"
+						[(ngModel)]="showPastaTypeImages"
+						[style]="{ '--p-button-sm-font-size': '0.75rem' }"
+					></p-toggleSwitch>
+				</div>
+				@if (showPastaTypeImages()) {
+				<div class="control-group">
+					<label for="imageSizeSelect">Dimensione Immagini:</label>
+					<p-select
+						id="imageSizeSelect"
+						[(ngModel)]="imageSizeOption"
+						[options]="imageSizeOptions"
+						placeholder="Seleziona dimensione"
+						[style]="{ minWidth: '180px' }"
+					></p-select>
+				</div>
+				}
+			</div>
+
 			<button
 				pButton
 				type="button"
@@ -133,24 +203,26 @@
 					targetFilterPlaceholder="Cerca per nome"
 					(onMoveToTarget)="onPastaTypeMoveToTarget($event)"
 					(onMoveToSource)="onPastaTypeMoveToSource($event)"
-				>
-					<ng-template let-type pTemplate="item">
+				>					<ng-template let-type pTemplate="item">
 						<div class="flex flex-wrap p-1 align-items-center gap-2 w-full">
-							@if (type.imageUrl) {
+							@if (showPastaTypeImages() && type.imageUrl) {
 							<img
-								class="w-3rem shadow-2 shrink-0 border-round"
+								[class]="'pasta-sauce-image ' + imageSizeClass()"
 								[src]="type.imageUrl"
 								[alt]="type.name + ' pasta type'"
 								title="Pasta type image"
 							/>
-							} @if (!type.imageUrl) {
+							} @else if (showPastaTypeImages() && !type.imageUrl) {
 							<i
-								class="pi pi-image placeholder-icon"
+								[class]="'pi pi-image pasta-sauce-placeholder ' + imageSizeClass()"
 								title="Nessuna immagine disponibile"
 							></i>
 							}
 							<div class="flex-1 flex flex-col">
 								<span class="font-bold text-sm">{{ type.name }}</span>
+								@if (type.description) {
+								<span class="text-xs text-color-secondary">{{ type.description }}</span>
+								}
 							</div>
 							<div class="flex gap-1 image-management-buttons">
 								<button
@@ -168,10 +240,27 @@
 				</p-pickList>
 			</div>
 		</div>
-
 		<!-- Pasta Sauces Section -->
 		<div class="card p-mb-4">
 			<h3>Sughi per Pasta</h3>
+
+			<!-- Image Controls -->
+			<div class="image-controls">
+				<div class="control-group">
+					<label for="pastaSauceImagesToggle">Mostra Immagini:</label>
+					<p-toggleSwitch
+						id="pastaSauceImagesToggle"
+						[(ngModel)]="showPastaSauceImages"
+						[style]="{ '--p-button-sm-font-size': '0.75rem' }"
+					></p-toggleSwitch>
+				</div>				@if (showPastaSauceImages()) {
+				<div class="control-group">
+					<label>Dimensione condivisa con tipi di pasta</label>
+					<span class="text-sm text-color-secondary">({{ getCurrentImageSizeLabel() }})</span>
+				</div>
+				}
+			</div>
+
 			<button
 				pButton
 				type="button"
@@ -196,24 +285,26 @@
 					targetFilterPlaceholder="Cerca per nome"
 					(onMoveToTarget)="onPastaSauceMoveToTarget($event)"
 					(onMoveToSource)="onPastaSauceMoveToSource($event)"
-				>
-					<ng-template let-sauce pTemplate="item">
+				>					<ng-template let-sauce pTemplate="item">
 						<div class="flex flex-wrap p-1 align-items-center gap-2 w-full">
-							@if (sauce.imageUrl) {
+							@if (showPastaSauceImages() && sauce.imageUrl) {
 							<img
-								class="w-3rem shadow-2 shrink-0 border-round"
+								[class]="'pasta-sauce-image ' + imageSizeClass()"
 								[src]="sauce.imageUrl"
 								[alt]="sauce.name + ' pasta sauce'"
 								title="Pasta sauce image"
 							/>
-							} @if (!sauce.imageUrl) {
+							} @else if (showPastaSauceImages() && !sauce.imageUrl) {
 							<i
-								class="pi pi-image placeholder-icon"
+								[class]="'pi pi-image pasta-sauce-placeholder ' + imageSizeClass()"
 								title="Nessuna immagine disponibile"
 							></i>
 							}
 							<div class="flex-1 flex flex-col">
 								<span class="font-bold text-sm">{{ sauce.name }}</span>
+								@if (sauce.description) {
+								<span class="text-xs text-color-secondary">{{ sauce.description }}</span>
+								}
 							</div>
 							<div class="flex gap-1 image-management-buttons">
 								<button
@@ -225,10 +316,66 @@
 									title="Gestisci immagini per {{ sauce.name }}"
 									[attr.aria-label]="'Gestisci immagini per ' + sauce.name"
 								></button>
-							</div>
-						</div>
+							</div>						</div>
 					</ng-template>
 				</p-pickList>
+			</div>
+		</div>
+
+		<!-- Menu Configuration Section -->
+		<div class="card p-mb-4">
+			<h3>Configurazione Menu</h3>
+			<p class="text-sm text-color-secondary p-mb-3">
+				Configura l'orientamento del menu e le immagini disponibili per tutti
+				gli elementi.
+			</p>
+
+			<button
+				pButton
+				type="button"
+				label="Configura Menu"
+				icon="pi pi-cog"
+				(click)="openMenuConfigDialog()"
+				class="p-mb-3 config-menu-button"
+				title="Apri configurazione menu"
+			></button>
+
+			<!-- Current Menu Configuration -->
+			<div class="menu-config-display">
+				<h4>Configurazione Attuale</h4>
+				<div class="grid">
+					<div class="col-12 md:col-6">
+						<div class="p-card p-3">
+							<h5 class="m-0 p-mb-2">Orientamento</h5>
+							<p class="text-sm m-0">
+								<i
+									class="pi pi-{{
+										currentMenuOrientation() === 'vertical'
+											? 'arrows-v'
+											: 'arrows-h'
+									}} p-mr-2"
+								></i>
+								{{
+									currentMenuOrientation() === "vertical"
+										? "Verticale"
+										: "Orizzontale"
+								}}
+							</p>
+						</div>
+					</div>
+					<div class="col-12 md:col-6">
+						<div class="p-card p-3">
+							<h5 class="m-0 p-mb-2">Immagini Disponibili</h5>
+							<p class="text-sm m-0">
+								@if (currentMenuAvailableImages()) {
+								<i class="pi pi-check-circle text-green-500 p-mr-2"></i>
+								Configurate } @else {
+								<i class="pi pi-times-circle text-red-500 p-mr-2"></i>
+								Non configurate }
+							</p>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 
@@ -236,8 +383,8 @@
 		<div class="card p-mb-4">
 			<h3>Configurazione Sfondi</h3>
 			<p class="text-sm text-color-secondary p-mb-3">
-				Gestisci gli sfondi per le diverse pagine dell'applicazione.
-				Puoi caricare immagini o specificare colori/gradienti CSS.
+				Gestisci gli sfondi per le diverse pagine dell'applicazione. Puoi
+				caricare immagini o specificare colori/gradienti CSS.
 			</p>
 
 			<button
@@ -258,7 +405,9 @@
 					@for (config of backgroundConfigs(); track config.id) {
 					<div class="col-12 md:col-6 lg:col-4">
 						<div class="p-card p-3 background-config-card">
-							<div class="flex justify-content-between align-items-center p-mb-2">
+							<div
+								class="flex justify-content-between align-items-center p-mb-2"
+							>
 								<h5 class="m-0">{{ config.page }}</h5>
 								<button
 									pButton
@@ -269,10 +418,11 @@
 									title="Elimina configurazione"
 								></button>
 							</div>
-							<div class="background-preview"
+							<div
+								class="background-preview"
 								[style.background]="config.background"
-								title="Anteprima sfondo">
-							</div>
+								title="Anteprima sfondo"
+							></div>
 							<p class="text-sm text-color-secondary mt-2 mb-0">
 								{{ config.background }}
 							</p>
@@ -285,87 +435,140 @@
 		</div>
 	</div>
 	}
-
 	<!-- Dialog for New Pasta Type -->
 	<p-dialog
 		header="Crea Nuovo Tipo di Pasta"
 		[(visible)]="showNewPastaTypeDialog"
 		[modal]="true"
-		[style]="{ width: '50vw' }"
+		[style]="{ width: '70vw', 'min-height': '60vh' }"
 		[draggable]="false"
 		[resizable]="false"
 		styleClass="create-pasta-type-dialog"
+		role="dialog"
+		aria-labelledby="pasta-type-dialog-header"
+		aria-describedby="pasta-type-dialog-description"
 	>
 		<div class="p-fluid">
-			<div class="p-field p-mb-3">
-				<label for="newPastaTypeName">Nome</label>
-				<input
-					id="newPastaTypeName"
-					type="text"
-					pInputText
-					[ngModel]="newPastaTypeName()"
-					(ngModelChange)="newPastaTypeName.set($event)"
-				/>
-			</div>
-			<div class="p-field p-mb-3">
-				<label for="newPastaTypeDescription">Descrizione (Opzionale)</label>
-				<textarea
-					id="newPastaTypeDescription"
-					pInputTextarea
-					rows="3"
-					[ngModel]="newPastaTypeDescription()"
-					(ngModelChange)="newPastaTypeDescription.set($event)"
-					placeholder="Descrivi questo tipo di pasta..."
-				></textarea>
-			</div>
-			<div class="p-field p-mb-3">
-				<label for="newPastaTypeBasePrice">Prezzo Base (€)</label>
-				<p-inputNumber
-					id="newPastaTypeBasePrice"
-					[ngModel]="newPastaTypeBasePrice()"
-					(ngModelChange)="newPastaTypeBasePrice.set($event)"
-					mode="currency"
-					currency="EUR"
-					locale="it-IT"
-					[min]="0"
-					[max]="100"
-					[step]="0.50"
-				></p-inputNumber>
-			</div>
-			<div class="p-field p-mb-3">
-				<label for="newPastaTypePriceNote">Nota Prezzi (Opzionale)</label>
-				<input
-					id="newPastaTypePriceNote"
-					type="text"
-					pInputText
-					[ngModel]="newPastaTypePriceNote()"
-					(ngModelChange)="newPastaTypePriceNote.set($event)"
-					placeholder="es. per porzione extra, con supplemento, ecc."
-				/>
-			</div>
-			<div class="p-field">
-				<label for="newPastaTypeImage">Carica Immagine (Opzionale)</label>
-				<p-fileUpload
-					mode="basic"
-					name="image"
-					accept="image/*"
-					[maxFileSize]="10000000"
-					[auto]="false"
-					chooseLabel="Scegli Immagine"
-					(onSelect)="onNewPastaTypeImageSelect($event)"
-					[disabled]="uploadingNewPastaTypeImage()"
-				></p-fileUpload>
-				@if (uploadingNewPastaTypeImage()) {
-				<p class="p-mt-2">
-					<i class="pi pi-spin pi-spinner"></i> Caricamento...
-				</p>
-				}
-				@if (newPastaTypeSelectedFile()) {
-				<p class="p-mt-2 text-green-600">
-					<i class="pi pi-check"></i> Immagine selezionata: {{ newPastaTypeSelectedFile()?.name }}
-				</p>
-				}
-			</div>
+			<p id="pasta-type-dialog-description" class="dialog-description">
+				Compila i campi per creare un nuovo tipo di pasta. Solo il nome è
+				obbligatorio.
+			</p>
+			<form
+				id="pastaTypeForm"
+				role="form"
+				aria-label="Modulo per creare nuovo tipo di pasta"
+				(ngSubmit)="saveNewPastaType()"
+				#pastaTypeFormRef="ngForm"
+			>
+				<div class="p-field p-mb-3">
+					<label for="newPastaTypeName"
+						>Nome
+						<span aria-label="campo obbligatorio" class="required-asterisk"
+							>*</span
+						></label
+					>
+					<input
+						id="newPastaTypeName"
+						type="text"
+						pInputText
+						[ngModel]="newPastaTypeName()"
+						(ngModelChange)="newPastaTypeName.set($event)"
+						name="pastaTypeName"
+						required
+						minlength="2"
+						maxlength="50"
+						aria-describedby="pastaTypeName-help"
+						aria-invalid="false"
+						autocomplete="off"
+					/>
+					<small id="pastaTypeName-help" class="form-text"
+						>Inserisci il nome del tipo di pasta (es. Penne, Spaghetti)</small
+					>
+				</div>
+
+				<div class="p-field p-mb-3">
+					<label for="newPastaTypeDescription">Descrizione (Opzionale)</label>
+					<textarea
+						id="newPastaTypeDescription"
+						pInputTextarea
+						rows="3"
+						[ngModel]="newPastaTypeDescription()"
+						(ngModelChange)="newPastaTypeDescription.set($event)"
+						name="pastaTypeDescription"
+						maxlength="300"
+						placeholder="Descrivi questo tipo di pasta..."
+						aria-describedby="pastaTypeDescription-help"
+					></textarea>
+					<small id="pastaTypeDescription-help" class="form-text"
+						>Aggiungi una breve descrizione del tipo di pasta (opzionale)</small
+					>
+				</div>				<div class="p-field p-mb-3">
+					<label for="newPastaTypeBasePrice">Prezzo Base (€)</label>
+					<p-inputNumber
+						id="newPastaTypeBasePrice"
+						[ngModel]="newPastaTypeBasePrice()"
+						(ngModelChange)="newPastaTypeBasePrice.set($event)"
+						name="pastaTypeBasePrice"
+						mode="currency"
+						currency="EUR"
+						locale="it-IT"
+						[min]="0"
+						[max]="100"
+						[step]="0.5"
+						aria-describedby="pastaTypeBasePrice-help"
+					></p-inputNumber>
+					<small id="pastaTypeBasePrice-help" class="form-text"
+						>Imposta il prezzo base per questo tipo di pasta (opzionale)</small
+					>
+				</div>				<div class="p-field p-mb-3">
+					<label for="newPastaTypePriceNote">Nota Prezzi (Opzionale)</label>
+					<input
+						id="newPastaTypePriceNote"
+						type="text"
+						pInputText
+						[ngModel]="newPastaTypePriceNote()"
+						(ngModelChange)="newPastaTypePriceNote.set($event)"
+						name="pastaTypePriceNote"
+						placeholder="es. per porzione extra, con supplemento, ecc."
+						maxlength="100"
+						aria-describedby="pastaTypePriceNote-help"
+					/>
+					<small id="pastaTypePriceNote-help" class="form-text"
+						>Aggiungi una nota sui prezzi se necessario (opzionale)</small
+					>
+				</div>
+
+				<div class="p-field">
+					<label for="newPastaTypeImage">Carica Immagine (Opzionale)</label>
+					<p-fileUpload
+						mode="basic"
+						name="image"
+						accept="image/*"
+						[maxFileSize]="10000000"
+						[auto]="false"
+						chooseLabel="Scegli Immagine"
+						(onSelect)="onNewPastaTypeImageSelect($event)"
+						[disabled]="uploadingNewPastaTypeImage()"
+						aria-describedby="pastaTypeImage-help"
+					></p-fileUpload>
+					<small id="pastaTypeImage-help" class="form-text"
+						>Carica un'immagine per questo tipo di pasta (max 10MB, formati:
+						JPG, PNG, GIF)</small
+					>
+
+					@if (uploadingNewPastaTypeImage()) {
+					<p class="p-mt-2" role="status" aria-live="polite">
+						<i class="pi pi-spin pi-spinner"></i> Caricamento immagine in
+						corso...
+					</p>
+					} @if (newPastaTypeSelectedFile()) {
+					<p class="p-mt-2 text-green-600" role="status" aria-live="polite">
+						<i class="pi pi-check"></i> Immagine selezionata:
+						{{ newPastaTypeSelectedFile()?.name }}
+					</p>
+					}
+				</div>
+			</form>
 		</div>
 		<ng-template pTemplate="footer">
 			<button
@@ -376,72 +579,74 @@
 				(click)="showNewPastaTypeDialog.set(false)"
 				class="p-button-text"
 				title="Annulla creazione tipo di pasta"
+				aria-label="Annulla la creazione del nuovo tipo di pasta"
 			></button>
 			<button
 				pButton
-				type="button"
+				type="submit"
 				label="Salva"
 				icon="pi pi-check"
-				(click)="saveNewPastaType()"
+				form="pastaTypeForm"
 				title="Salva nuovo tipo di pasta"
+				aria-label="Salva il nuovo tipo di pasta con i dati inseriti"
+				[disabled]="!newPastaTypeName().trim()"
 			></button>
 		</ng-template>
 	</p-dialog>
-
 	<!-- Dialog for New Pasta Sauce -->
 	<p-dialog
 		header="Crea Nuovo Sugo per Pasta"
 		[(visible)]="showNewPastaSauceDialog"
 		[modal]="true"
-		[style]="{ width: '50vw' }"
+		[style]="{ width: '70vw', 'min-height': '60vh' }"
 		[draggable]="false"
 		[resizable]="false"
 		styleClass="create-pasta-sauce-dialog"
 	>
 		<div class="p-fluid">
 			<div class="p-field p-mb-3">
-				<label for="newPastaSauceName">Nome</label>
-				<input
+				<label for="newPastaSauceName">Nome</label>				<input
 					id="newPastaSauceName"
 					type="text"
 					pInputText
 					[ngModel]="newPastaSauceName()"
 					(ngModelChange)="newPastaSauceName.set($event)"
+					name="pastaSauceName"
 				/>
 			</div>
 			<div class="p-field p-mb-3">
-				<label for="newPastaSauceDescription">Descrizione (Opzionale)</label>
-				<textarea
+				<label for="newPastaSauceDescription">Descrizione (Opzionale)</label>				<textarea
 					id="newPastaSauceDescription"
 					pInputTextarea
 					rows="3"
 					[ngModel]="newPastaSauceDescription()"
 					(ngModelChange)="newPastaSauceDescription.set($event)"
+					name="pastaSauceDescription"
 					placeholder="Descrivi questo sugo..."
 				></textarea>
 			</div>
 			<div class="p-field p-mb-3">
-				<label for="newPastaSauceBasePrice">Prezzo Base (€)</label>
-				<p-inputNumber
+				<label for="newPastaSauceBasePrice">Prezzo Base (€)</label>				<p-inputNumber
 					id="newPastaSauceBasePrice"
 					[ngModel]="newPastaSauceBasePrice()"
 					(ngModelChange)="newPastaSauceBasePrice.set($event)"
+					name="pastaSauceBasePrice"
 					mode="currency"
 					currency="EUR"
 					locale="it-IT"
 					[min]="0"
 					[max]="50"
-					[step]="0.50"
+					[step]="0.5"
 				></p-inputNumber>
 			</div>
 			<div class="p-field p-mb-3">
-				<label for="newPastaSaucePriceNote">Nota Prezzi (Opzionale)</label>
-				<input
+				<label for="newPastaSaucePriceNote">Nota Prezzi (Opzionale)</label>				<input
 					id="newPastaSaucePriceNote"
 					type="text"
 					pInputText
 					[ngModel]="newPastaSaucePriceNote()"
 					(ngModelChange)="newPastaSaucePriceNote.set($event)"
+					name="pastaSaucePriceNote"
 					placeholder="es. con ingredienti extra, porzione doppia, ecc."
 				/>
 			</div>
@@ -461,10 +666,10 @@
 				<p class="p-mt-2">
 					<i class="pi pi-spin pi-spinner"></i> Caricamento...
 				</p>
-				}
-				@if (newPastaSauceSelectedFile()) {
+				} @if (newPastaSauceSelectedFile()) {
 				<p class="p-mt-2 text-green-600">
-					<i class="pi pi-check"></i> Immagine selezionata: {{ newPastaSauceSelectedFile()?.name }}
+					<i class="pi pi-check"></i> Immagine selezionata:
+					{{ newPastaSauceSelectedFile()?.name }}
 				</p>
 				}
 			</div>
@@ -489,13 +694,12 @@
 			></button>
 		</ng-template>
 	</p-dialog>
-
 	<!-- Image Management Dialog -->
 	<p-dialog
 		[header]="'Gestione Immagini - ' + (selectedItemForImages()?.name || '')"
 		[(visible)]="showImageManagerDialog"
 		[modal]="true"
-		[style]="{ width: '70vw' }"
+		[style]="{ width: '80vw', 'min-height': '70vh' }"
 		[draggable]="false"
 		[resizable]="false"
 		styleClass="image-management-dialog"
@@ -522,14 +726,13 @@
 				</p>
 				}
 			</div>
-
 			<!-- Current Image Section -->
 			<div class="p-field p-mb-4">
 				<h4>Immagine Attuale</h4>
-				@if (item.currentImage) {
+				@if (selectedItemCurrentImageUrl()) {
 				<div class="flex align-items-center gap-3">
 					<img
-						[src]="item.currentImage"
+						[src]="selectedItemCurrentImageUrl()"
 						[alt]="item.name + ' immagine attuale'"
 						title="Immagine attuale"
 						class="pasta-image"
@@ -540,17 +743,17 @@
 				<p>Nessuna immagine attuale impostata</p>
 				}
 			</div>
-
 			<!-- Available Images Section -->
 			<div class="p-field">
 				<h4>Immagini Disponibili ({{ item.availableImages.length }})</h4>
 				@if (item.availableImages.length > 0) {
 				<div class="grid">
-					@for (imageUrl of item.availableImages; track imageUrl) {
+					@for (imageUrl of item.availableImages; track imageUrl; let i =
+					$index) {
 					<div class="col-6 md:col-4 lg:col-3">
 						<div class="p-card p-2">
 							<img
-								[src]="imageUrl"
+								[src]="selectedItemAvailableImagesUrls()[i]"
 								[alt]="item.name + ' immagine disponibile'"
 								title="Immagine disponibile"
 								class="w-full pasta-image p-mb-2"
@@ -602,13 +805,12 @@
 			></button>
 		</ng-template>
 	</p-dialog>
-
 	<!-- Background Configuration Dialog -->
 	<p-dialog
 		header="Configurazione Sfondi"
 		[(visible)]="showBackgroundConfigDialog"
 		[modal]="true"
-		[style]="{ width: '60vw' }"
+		[style]="{ width: '75vw', 'min-height': '65vh' }"
 		[draggable]="false"
 		[resizable]="false"
 		styleClass="background-config-dialog"
@@ -617,14 +819,14 @@
 			<!-- Page Selection -->
 			<div class="p-field p-mb-3">
 				<label for="backgroundPage">Pagina</label>
-				<p-dropdown
+				<p-select
 					id="backgroundPage"
 					[(ngModel)]="selectedPage"
 					[options]="backgroundPages"
 					optionLabel="label"
 					optionValue="value"
 					placeholder="Seleziona pagina"
-				></p-dropdown>
+				></p-select>
 			</div>
 
 			<!-- Background Configuration Methods -->
@@ -654,36 +856,19 @@
 					}
 				</div>
 
-				<!-- Manual CSS Method -->
-				<div class="p-card p-3">
-					<h5 class="mt-0">2. CSS Personalizzato</h5>
-					<p class="text-sm text-color-secondary p-mb-2">
-						Inserisci direttamente il valore CSS per lo sfondo (colore, gradiente, ecc.)
-					</p>
-					<div class="p-field">
-						<label for="backgroundValue">Valore CSS Sfondo</label>
-						<textarea
-							id="backgroundValue"
-							pInputTextarea
-							[(ngModel)]="newBackgroundValue"
-							placeholder="Esempi:&#10;#FF5733&#10;linear-gradient(45deg, #FF5733, #33FF57)&#10;url('path/to/image.jpg')&#10;rgba(255, 87, 51, 0.8)"
-							rows="4"
-						></textarea>
+				<!-- Background Preview -->
+				@if (newBackgroundValue()) {
+				<div class="p-field">
+					<label>Anteprima</label>
+					<div
+						class="background-preview-large"
+						[style.background]="newBackgroundValue()"
+						title="Anteprima dello sfondo"
+					>
+						<span class="preview-text">Anteprima Sfondo</span>
 					</div>
-
-					<!-- Background Preview -->
-					@if (newBackgroundValue()) {
-					<div class="p-field">
-						<label>Anteprima</label>
-						<div
-							class="background-preview-large"
-							[style.background]="newBackgroundValue()"
-							title="Anteprima dello sfondo">
-							<span class="preview-text">Anteprima Sfondo</span>
-						</div>
-					</div>
-					}
 				</div>
+				}
 			</div>
 		</div>
 
@@ -705,6 +890,65 @@
 				(click)="saveBackgroundConfig()"
 				[disabled]="!selectedPage() || !newBackgroundValue()"
 				title="Salva configurazione sfondo"
+			></button>
+		</ng-template>
+	</p-dialog>
+	<!-- Menu Configuration Dialog -->
+	<p-dialog
+		[header]="'Configurazione Menu'"
+		[(visible)]="showMenuConfigDialog"
+		[modal]="true"
+		[closable]="true"
+		[resizable]="false"
+		[draggable]="false"
+		styleClass="menu-config-dialog"
+		[style]="{ width: '60vw', 'min-height': '50vh' }"
+	>
+		<div class="menu-config-content">
+			<!-- Current Configuration Display -->
+			<div class="current-config-section">
+				<h4>Configurazione Attuale</h4>
+				<div class="config-item">
+					<span class="config-label">Orientamento:</span>
+					<span class="config-value">{{
+						currentMenuOrientation() === "vertical"
+							? "Verticale"
+							: "Orizzontale"
+					}}</span>
+				</div>
+			</div>
+			<!-- Orientation Configuration -->
+			<div class="orientation-section">
+				<h4>Modifica Orientamento</h4>
+				<div class="orientation-options">
+					<p-select
+						[options]="orientationOptions"
+						[(ngModel)]="selectedOrientation"
+						optionLabel="label"
+						optionValue="value"
+						placeholder="Seleziona orientamento"
+						styleClass="orientation-dropdown"
+					></p-select>
+				</div>
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Annulla"
+				icon="pi pi-times"
+				(click)="closeMenuConfigDialog()"
+				class="p-button-text"
+				title="Annulla modifiche"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Salva"
+				icon="pi pi-check"
+				(click)="saveMenuConfiguration()"
+				title="Salva configurazione menu"
 			></button>
 		</ng-template>
 	</p-dialog>

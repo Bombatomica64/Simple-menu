@@ -12,6 +12,8 @@ model Menu {
   createdAt        DateTime          @default(now())
   backgroundId     Int?              // Optional FK to BackgroundConfig
   background       BackgroundConfig? @relation(fields: [backgroundId], references: [id], onDelete: SetNull)
+  orientation      String            @default("vertical") // "vertical" or "horizontal" layout
+  availableImages  String?           // JSON string of available images for menu items
   menuItems        MenuItem[]
   menuSections     MenuSection[]     // Menu sections for organizing items
   pastaTypes       MenuToPastaType[]

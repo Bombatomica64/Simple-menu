@@ -71,6 +71,16 @@ export interface UpdateItemPositionsMessage {
 	itemUpdates: { itemId: number; position: number; sectionId?: number | null }[];
 }
 
+// Menu configuration message types
+export interface UpdateMenuOrientationMessage {
+	type: 'updateMenuOrientation';
+	orientation: 'vertical' | 'horizontal';
+}
+export interface UpdateMenuAvailableImagesMessage {
+	type: 'updateMenuAvailableImages';
+	availableImages: string | null;
+}
+
 // Saved menu message types
 export interface SaveCurrentMenuMessage {
 	type: 'saveCurrentMenu';
@@ -129,6 +139,8 @@ export type MenuUpdateMessage =
 	| UpdateSectionOrderMessage
 	| MoveItemToSectionMessage
 	| UpdateItemPositionsMessage
+	| UpdateMenuOrientationMessage
+	| UpdateMenuAvailableImagesMessage
 	| SaveCurrentMenuMessage
 	| LoadSavedMenuMessage
 	| DeleteSavedMenuMessage

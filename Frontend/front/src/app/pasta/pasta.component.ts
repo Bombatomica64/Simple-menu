@@ -8,6 +8,7 @@ import { DividerModule } from 'primeng/divider';
 import { PanelModule } from 'primeng/panel';
 import { ButtonModule } from 'primeng/button';
 import { MenuSectionViewerComponent } from '../menu-section-viewer/menu-section-viewer.component';
+import { environment } from '../../environments/environment.dynamic';
 
 @Component({
     selector: 'app-pasta',
@@ -52,10 +53,9 @@ export class PastaComponent implements OnInit, OnDestroy {
         const currentMenu = this.menu();
         if (!currentMenu || !currentMenu.pastaTypes) {
             return [];
-        }
-        return currentMenu.pastaTypes.map((ptEntry: MenuPastaTypeEntry) => ({
+        }        return currentMenu.pastaTypes.map((ptEntry: MenuPastaTypeEntry) => ({
             name: ptEntry.pastaType?.name || 'Pasta Sconosciuta',
-            image: ptEntry.pastaType?.imageUrl || undefined,
+            image: ptEntry.pastaType?.imageUrl ? environment.getFullImageUrl(ptEntry.pastaType.imageUrl) : undefined,
             price: ptEntry.pastaType?.basePrice || 8.50,
             priceNote: ptEntry.pastaType?.priceNote,
             description: ptEntry.pastaType?.description || this.getPastaDescription(ptEntry.pastaType?.name || ''),
@@ -67,10 +67,9 @@ export class PastaComponent implements OnInit, OnDestroy {
         const currentMenu = this.menu();
         if (!currentMenu || !currentMenu.pastaSauces) {
             return [];
-        }
-        return currentMenu.pastaSauces.map((psEntry: MenuPastaSauceEntry) => ({
+        }        return currentMenu.pastaSauces.map((psEntry: MenuPastaSauceEntry) => ({
             name: psEntry.pastaSauce?.name || 'Sugo Sconosciuto',
-            image: psEntry.pastaSauce?.imageUrl || undefined,
+            image: psEntry.pastaSauce?.imageUrl ? environment.getFullImageUrl(psEntry.pastaSauce.imageUrl) : undefined,
             price: psEntry.pastaSauce?.basePrice || 3.50,
             priceNote: psEntry.pastaSauce?.priceNote,
             description: psEntry.pastaSauce?.description || this.getSauceDescription(psEntry.pastaSauce?.name || ''),

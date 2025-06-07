@@ -28,10 +28,11 @@ async function loadInitialMenu() {
       console.log("Initial menu loaded from DB into memory.");
     } else {
       // Seed default data if database is empty
-      const { seedDefaultData } = require("./seedService");
-      await seedDefaultData();
+      const { seedDefaultData } = require("./seedService");      await seedDefaultData();
       currentInMemoryMenu = {
         createdAt: new Date().toISOString(),
+        orientation: 'vertical',
+        availableImages: null,
         menuItems: [],
         menuSections: [],
         pastaTypes: [],
@@ -39,10 +40,11 @@ async function loadInitialMenu() {
       };
       console.log("No menu in DB, seeded default data and initialized empty in-memory menu.");
     }
-  } catch (error) {
-    console.error("Error loading initial menu:", error);
+  } catch (error) {    console.error("Error loading initial menu:", error);
     currentInMemoryMenu = {
       createdAt: new Date().toISOString(),
+      orientation: 'vertical',
+      availableImages: null,
       menuItems: [],
       menuSections: [],
       pastaTypes: [],
@@ -73,15 +75,12 @@ async function addItemToMenu(item) {
       // Find max position overall if no section specified
       const unsectionedItems = currentInMemoryMenu.menuItems.filter(i => !i.sectionId);
       position = unsectionedItems.length > 0 ? Math.max(...unsectionedItems.map(i => i.position || 0)) + 1 : 0;
-    }
-
-    const newItem = {
+    }    const newItem = {
       id: Date.now(), // Temporary in-memory ID
       name: item.name,
       price: item.price,
       position: position,
       imageUrl: item.imageUrl || null,
-      availableImages: item.availableImages || "[]",
       showImage: item.showImage || false,
       sectionId: item.sectionId || null,
     };
@@ -199,23 +198,22 @@ async function addImageToMenuItem(itemId, imageUrl) {
   
   const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
   if (item) {
+    // Add image to global menu available images
     let availableImages = [];
     try {
-      availableImages = JSON.parse(item.availableImages || "[]");
+      availableImages = JSON.parse(currentInMemoryMenu.availableImages || "[]");
     } catch (e) {
       availableImages = [];
     }
     
     if (!availableImages.includes(imageUrl)) {
       availableImages.push(imageUrl);
-      item.availableImages = JSON.stringify(availableImages);
-      
-      // Set as current image if no image is set
-      if (!item.imageUrl) {
-        item.imageUrl = imageUrl;
-      }
-      return true;
+      currentInMemoryMenu.availableImages = JSON.stringify(availableImages);
     }
+    
+    // Set as current image for this menu item
+    item.imageUrl = imageUrl;
+    return true;
   }
   return false;
 }
@@ -225,32 +223,54 @@ async function removeImageFromMenuItem(itemId, imageUrl) {
   
   const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
   if (item) {
+    // Remove image from global menu available images
     let availableImages = [];
     try {
-      availableImages = JSON.parse(item.availableImages || "[]");
+      availableImages = JSON.parse(currentInMemoryMenu.availableImages || "[]");
     } catch (e) {
       availableImages = [];
     }
     
     const updatedImages = availableImages.filter(img => img !== imageUrl);
-    item.availableImages = JSON.stringify(updatedImages);
+    currentInMemoryMenu.availableImages = JSON.stringify(updatedImages);
     
-    // If the removed image was the current image, clear it
+    // If the removed image was the current image for this item, clear it
     if (item.imageUrl === imageUrl) {
-      item.imageUrl = updatedImages.length > 0 ? updatedImages[0] : null;
+      item.imageUrl = null;
     }
     return true;
   }
   return false;
 }
 
+// Update menu orientation
+async function updateMenuOrientation(orientation) {
+  if (!currentInMemoryMenu) return false;
+  
+  if (orientation === 'vertical' || orientation === 'horizontal') {
+    currentInMemoryMenu.orientation = orientation;
+    return true;
+  }
+  return false;
+}
+
+// Update menu available images
+async function updateMenuAvailableImages(availableImages) {
+  if (!currentInMemoryMenu) return false;
+  
+  currentInMemoryMenu.availableImages = availableImages;
+  return true;
+}
+
 // Save current menu to database
 async function saveCurrentMenu(name) {
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // First create the base menu (no name field in Menu model)
+    const result = await prisma.$transaction(async (tx) => {      // First create the base menu with orientation and availableImages
       const savedMenu = await tx.menu.create({
-        data: {}
+        data: {
+          orientation: currentInMemoryMenu.orientation || 'vertical',
+          availableImages: currentInMemoryMenu.availableImages || null
+        }
       });
 
       // Create section mapping from temp IDs to real IDs
@@ -301,15 +321,12 @@ async function saveCurrentMenu(name) {
         let finalSectionId = null;
         if (item.sectionId) {
           finalSectionId = sectionIdMapping.get(item.sectionId) || null;
-        }
-
-        await tx.menuItem.create({
+        }        await tx.menuItem.create({
           data: {
             name: item.name,
             price: item.price,
             position: item.position || 0,
             imageUrl: item.imageUrl || '',
-            availableImages: item.availableImages || '[]',
             showImage: item.showImage || false,
             sectionId: finalSectionId,
             menuId: savedMenu.id
@@ -456,11 +473,12 @@ async function loadSavedMenu(savedMenuId) {
       }
     });
 
-    if (savedMenu) {
-      // Convert database format to in-memory format
+    if (savedMenu) {      // Convert database format to in-memory format
       currentInMemoryMenu = {
         id: savedMenu.menu.id,
         createdAt: savedMenu.menu.createdAt,
+        orientation: savedMenu.menu.orientation || 'vertical',
+        availableImages: savedMenu.menu.availableImages,
         menuItems: savedMenu.menu.menuItems,
         menuSections: savedMenu.menu.menuSections || [],
         pastaTypes: savedMenu.menu.pastaTypes,
@@ -651,6 +669,8 @@ module.exports = {
   toggleMenuItemShowImage,
   addImageToMenuItem,
   removeImageFromMenuItem,
+  updateMenuOrientation,
+  updateMenuAvailableImages,
   saveCurrentMenu,
   getAllSavedMenus,
   loadSavedMenu,
