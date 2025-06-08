@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Unavailable - Simple Menu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .error-container {
+            text-align: center;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .error-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .retry-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .retry-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-info {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 640px) {
+            .error-container {
+                padding: 2rem 1.5rem;
+                margin: 1rem;
+            }
+
+            .error-title {
+                font-size: 1.5rem;
+            }
+
+            .error-message {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">🍝</div>
+        <h1 class="error-title">Service Temporarily Unavailable</h1>
+        <p class="error-message">
+            The Simple Menu application is currently experiencing technical difficulties.
+            Our team is working to restore service as quickly as possible.
+        </p>
+
+        <button class="retry-button" onclick="window.location.reload()">
+            <span class="spinner"></span>
+            Retry Connection
+        </button>
+
+        <div class="status-info">
+            <strong>What you can do:</strong><br>
+            • Check your internet connection<br>
+            • Wait a few moments and try again<br>
+            • Contact support if the problem persists
+        </div>
+    </div>
+
+    <script>
+        // Auto-retry connection every 30 seconds
+        let retryCount = 0;
+        const maxRetries = 10;
+
+        function autoRetry() {
+            if (retryCount < maxRetries) {
+                retryCount++;
+                setTimeout(() => {
+                    console.log(`Auto-retry attempt ${retryCount}/${maxRetries}`);
+
+                    // Try to fetch the main page
+                    fetch('/')
+                        .then(response => {
+                            if (response.ok) {
+                                window.location.reload();
+                            } else {
+                                autoRetry();
+                            }
+                        })
+                        .catch(() => {
+                            autoRetry();
+                        });
+                }, 30000);
+            }
+        }
+
+        // Start auto-retry after page load
+        window.addEventListener('load', () => {
+            setTimeout(autoRetry, 10000); // Wait 10 seconds before first retry
+        });
+    </script>
+</body>
+</html>

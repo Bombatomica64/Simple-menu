@@ -3,43 +3,100 @@ const WebSocket = require("ws");
 const menuService = require("../services/menuService");
 
 const clients = new Set();
+let wsServer = null;
 
 function setupWebSocket(server) {
-  const wss = new WebSocket.Server({ server, path: "/menu-updates" });
+  wsServer = new WebSocket.Server({ 
+    server, 
+    path: "/menu-updates",
+    clientTracking: true,
+    perMessageDeflate: {
+      threshold: 1024, // Compress messages larger than 1KB
+      serverMaxWindowBits: 13, // Limit memory usage on Pi
+    }
+  });
 
+  // Enhanced broadcast function with error handling
   function broadcastInMemoryMenu() {
     const currentMenu = menuService.getCurrentMenu();
-    if (!currentMenu) return;
+    if (!currentMenu) {
+      console.warn('⚠️  No current menu to broadcast');
+      return;
+    }
 
     const menuToSend = JSON.stringify(currentMenu);
+    const deadClients = new Set();
+    
     clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(menuToSend);
+      try {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(menuToSend);
+        } else if (client.readyState === WebSocket.CLOSED) {
+          deadClients.add(client);
+        }
+      } catch (error) {
+        console.error('❌ Error broadcasting to client:', error.message);
+        deadClients.add(client);
       }
     });
-  }
-
-  async function sendLatestMenuToClient(ws) {
-    const currentMenu = menuService.getCurrentMenu();
-    if (currentMenu && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(currentMenu));
+    
+    // Clean up dead connections
+    deadClients.forEach(client => {
+      clients.delete(client);
+    });
+    
+    if (deadClients.size > 0) {
+      console.log(`🧹 Cleaned up ${deadClients.size} dead WebSocket connections`);
     }
   }
 
-  wss.on("connection", (ws) => {
-    console.log("Client connected to WebSocket");
+  async function sendLatestMenuToClient(ws) {
+    try {
+      const currentMenu = menuService.getCurrentMenu();
+      if (currentMenu && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(currentMenu));
+      }
+    } catch (error) {
+      console.error('❌ Error sending menu to client:', error.message);
+    }
+  }
+
+  wsServer.on("connection", (ws, req) => {
+    const clientIp = req.socket.remoteAddress;
+    console.log(`🔌 Client connected to WebSocket from ${clientIp}`);
     clients.add(ws);
+    
+    // Set up ping/pong for connection health monitoring
+    ws.isAlive = true;
+    ws.on('pong', () => {
+      ws.isAlive = true;
+    });
+    
+    // Send initial menu data
     sendLatestMenuToClient(ws);
 
     ws.on("message", async (messageString) => {
+      let message;
       try {
-        const message = JSON.parse(messageString);
-        console.log("Received message from client:", message);
+        message = JSON.parse(messageString);
+        console.log("📨 Received message from client:", message.type || 'unknown');
 
         if (!menuService.getCurrentMenu()) {
-          console.warn("In-memory menu not initialized. Ignoring message.");
+          console.warn("⚠️  In-memory menu not initialized. Ignoring message.");
+          ws.send(JSON.stringify({
+            type: "error",
+            message: "Menu service not ready. Please try again."
+          }));
           return;
         }
+      } catch (parseError) {
+        console.error("❌ Failed to parse WebSocket message:", parseError.message);
+        ws.send(JSON.stringify({
+          type: "error",
+          message: "Invalid message format"
+        }));
+        return;
+      }
 
         let updated = false;
         switch (message.type) {
@@ -332,21 +389,71 @@ function setupWebSocket(server) {
         }
 
         if (updated) {
-          console.log("In-memory menu updated, broadcasting...");
+          console.log("✅ In-memory menu updated, broadcasting...");
           broadcastInMemoryMenu();
         }
       } catch (error) {
-        console.error("Failed to process message or broadcast:", error);
+        console.error("❌ Failed to process message:", error.message);
+        try {
+          ws.send(JSON.stringify({
+            type: "error",
+            message: `Failed to process request: ${error.message}`
+          }));
+        } catch (sendError) {
+          console.error("❌ Failed to send error message:", sendError.message);
+        }
       }
     });
 
-    ws.on("close", () => {
-      console.log("Client disconnected from WebSocket");
+    ws.on("error", (error) => {
+      console.error(`❌ WebSocket error from ${clientIp}:`, error.message);
+    });
+
+    ws.on("close", (code, reason) => {
+      console.log(`🔌 Client disconnected from WebSocket (${clientIp}) - Code: ${code}, Reason: ${reason || 'No reason'}`);
       clients.delete(ws);
     });
   });
 
-  return wss;
+  // Health check for WebSocket connections
+  const pingInterval = setInterval(() => {
+    const deadClients = new Set();
+    
+    clients.forEach((ws) => {
+      if (!ws.isAlive) {
+        deadClients.add(ws);
+        return;
+      }
+      
+      ws.isAlive = false;
+      try {
+        ws.ping();
+      } catch (error) {
+        deadClients.add(ws);
+      }
+    });
+    
+    deadClients.forEach((ws) => {
+      clients.delete(ws);
+      try {
+        ws.terminate();
+      } catch (error) {
+        // Ignore errors when terminating dead connections
+      }
+    });
+    
+    if (deadClients.size > 0) {
+      console.log(`🧹 Terminated ${deadClients.size} dead WebSocket connections`);
+    }
+  }, 30000); // Check every 30 seconds
+
+  // Cleanup on server shutdown
+  wsServer.on('close', () => {
+    clearInterval(pingInterval);
+    console.log('🛑 WebSocket server closed');
+  });
+
+  return wsServer;
 }
 
 module.exports = { setupWebSocket };

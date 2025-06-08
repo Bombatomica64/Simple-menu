@@ -38,6 +38,10 @@ RUN apk add --no-cache curl
 # Copy built application
 COPY --from=builder /app/dist/front /usr/share/nginx/html
 
+# Copy error pages
+COPY --from=builder /app/src/50x.html /usr/share/nginx/html/
+COPY --from=builder /app/src/404.html /usr/share/nginx/html/
+
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 

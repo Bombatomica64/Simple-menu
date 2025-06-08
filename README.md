@@ -70,6 +70,25 @@ A modern, real-time digital menu management system built with Angular and Node.j
 - **Accessibility**: ARIA labels and keyboard navigation support
 - **Loading States**: Comprehensive loading and error state management
 
+### 📊 Production Monitoring & Observability
+- **Unified Monitoring Stack**: Combined metrics and logging in single deployment
+- **Real-time Metrics**: Application, system, and container performance monitoring
+- **Centralized Logging**: Structured log collection, processing, and analysis
+- **Visual Dashboards**: Pre-configured Grafana dashboards with business metrics
+- **Log Search & Analysis**: Kibana-powered log exploration and filtering
+- **Health Monitoring**: Automated health checks and service status tracking
+- **Resource Monitoring**: CPU, memory, disk, and network utilization tracking
+- **Container Insights**: Docker container lifecycle and performance metrics
+- **Cross-Stack Correlation**: Link metrics to logs for enhanced debugging
+- **Performance Alerting**: Configurable alerts for critical system events
+
+### 🚀 Easy Deployment Options
+- **One-Click Setup**: Interactive PowerShell script with multiple deployment modes
+- **Raspberry Pi Optimized**: Resource-tuned configurations for edge deployment
+- **LAN Auto-Configuration**: Automatic network setup for multi-device access
+- **Health Validation**: Automated service health checking and validation
+- **Resource Management**: Intelligent resource allocation and monitoring
+
 ## 🛠 Tech Stack
 
 ### Frontend
@@ -91,10 +110,22 @@ A modern, real-time digital menu management system built with Angular and Node.j
 
 ### DevOps & Deployment
 - **Docker**: Containerization with multi-stage builds
-- **Docker Compose**: Multi-container orchestration
+- **Docker Compose**: Multi-container orchestration with 6 deployment options
 - **Nginx**: Production web server (frontend)
 - **Health Checks**: Container health monitoring
 - **Volume Persistence**: Data persistence across container restarts
+- **PowerShell Automation**: Interactive deployment and management scripts
+
+### Monitoring & Observability
+- **Prometheus**: Metrics collection and storage
+- **Grafana**: Metrics visualization and alerting
+- **Elasticsearch**: Log storage and search engine
+- **Logstash**: Log processing and enrichment
+- **Kibana**: Log visualization and analysis
+- **Filebeat**: Log collection and shipping
+- **Node Exporter**: System metrics collection
+- **cAdvisor**: Container metrics collection
+- **Unified Dashboards**: Cross-stack monitoring and correlation
 
 ## 🏗 Architecture
 
@@ -256,25 +287,85 @@ npx prisma migrate reset
 
 ## 🐳 Docker Deployment
 
-### Production Deployment
+### Quick Start Options
 
-1. **Build and run**
-   ```bash
-   docker-compose up -d
-   ```
+For easy deployment, use the PowerShell start script:
 
-2. **Check health status**
-   ```bash
-   docker-compose ps
-   curl http://localhost:3000/health
-   curl http://localhost:4200
-   ```
+```powershell
+# Windows - Interactive menu with multiple deployment options
+.\start.ps1
 
-3. **View logs**
-   ```bash
-   docker-compose logs -f backend
-   docker-compose logs -f frontend
-   ```
+# Choose from:
+# 1. Simple Application (Frontend + Backend only)
+# 2. Basic Monitoring (App + Prometheus + Grafana)
+# 3. ELK Logging (App + Elasticsearch + Logstash + Kibana)
+# 4. Unified Monitoring (Recommended - All services combined)
+# 5. Simple Monitoring (App + Prometheus only)
+# 6. Simple ELK (App + Basic ELK stack)
+```
+
+### Unified Monitoring Deployment (Recommended)
+
+The unified approach provides comprehensive monitoring with both metrics and logs:
+
+```powershell
+# One-command deployment with full monitoring stack
+.\start-unified.ps1
+
+# Or manually with Docker Compose
+docker-compose -f docker-compose.unified.yml up -d
+```
+
+**Included Services:**
+- 🍝 **Application**: Frontend (Angular) + Backend (Node.js)
+- 📊 **Metrics**: Prometheus + Grafana + Node Exporter + cAdvisor
+- 📋 **Logging**: Elasticsearch + Logstash + Kibana + Filebeat
+- 🔗 **Integration**: Unified dashboards with cross-stack visibility
+
+**System Requirements:**
+- **Recommended**: 6GB+ RAM, 4+ CPU cores
+- **Minimum**: 4GB RAM, 2+ CPU cores
+- **Storage**: 10GB+ free space
+
+**Access Points:**
+- 🍝 **Application**: http://localhost:4200
+- 📊 **Grafana**: http://localhost:3001 (admin/admin)
+- 📋 **Kibana**: http://localhost:5601
+- 🔍 **Prometheus**: http://localhost:9090
+- 🔍 **Elasticsearch**: http://localhost:9200
+
+### Individual Stack Deployments
+
+#### Basic Application Only
+```bash
+docker-compose up -d
+```
+
+#### With Prometheus Monitoring
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.monitoring-simple.yml up -d
+```
+
+#### With ELK Logging
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.elk-simple.yml up -d
+```
+
+### Health Checks & Status
+
+```bash
+# Check all services status
+docker-compose ps
+
+# Application health
+curl http://localhost:3000/health
+curl http://localhost:4200
+
+# Monitoring health
+curl http://localhost:9090/-/healthy  # Prometheus
+curl http://localhost:3001/api/health # Grafana
+curl http://localhost:9200/_cluster/health # Elasticsearch
+```
 
 ### Docker Configuration
 
@@ -284,6 +375,119 @@ The application uses multi-stage Docker builds for optimization:
 - **Backend**: Node.js with health checks and volume persistence
 - **Network**: Isolated Docker network for inter-service communication
 - **Volumes**: Persistent storage for database and uploaded images
+
+## 📊 Monitoring & Observability
+
+### Unified Monitoring Stack
+
+The unified monitoring approach provides comprehensive observability with:
+
+#### 📈 Metrics Collection (Prometheus + Grafana)
+- **Application Metrics**: Custom business metrics from Node.js backend
+- **System Metrics**: CPU, memory, disk usage via Node Exporter
+- **Container Metrics**: Docker container statistics via cAdvisor
+- **Visualization**: Pre-configured Grafana dashboards with alerts
+
+#### 📋 Log Management (ELK Stack)
+- **Log Collection**: Filebeat collects Docker container logs
+- **Log Processing**: Logstash parses and enriches log data
+- **Log Storage**: Elasticsearch indexes logs for fast searching
+- **Log Analysis**: Kibana provides search and visualization interface
+
+#### 🔗 Integrated Dashboards
+- **Unified Overview**: Single pane of glass for metrics and logs
+- **Cross-Stack Correlation**: Link metrics to logs for debugging
+- **Real-time Monitoring**: Live updates and alerting capabilities
+- **Historical Analysis**: Long-term data retention and trending
+
+### Monitoring Access Points
+
+```bash
+# Application
+Frontend:     http://localhost:4200
+Backend API:  http://localhost:3000
+Health Check: http://localhost:3000/health
+
+# Metrics & Visualization
+Grafana:      http://localhost:3001 (admin/admin)
+Prometheus:   http://localhost:9090
+
+# Log Management
+Kibana:       http://localhost:5601
+Elasticsearch: http://localhost:9200
+Logstash:     http://localhost:5044
+
+# System Monitoring
+Node Exporter: http://localhost:9100/metrics
+cAdvisor:     http://localhost:8080
+```
+
+### Grafana Dashboard Features
+
+The unified Grafana instance includes:
+
+**📊 Application Dashboard**
+- Request rates and response times
+- Error rates and status codes
+- WebSocket connection metrics
+- Database query performance
+
+**🖥️ System Dashboard**
+- CPU and memory utilization
+- Disk I/O and network traffic
+- Container resource usage
+- Docker health status
+
+**📋 Log Integration Dashboard**
+- Error log correlation with metrics
+- Real-time log stream integration
+- Alert correlation across metrics and logs
+
+### Kibana Log Analysis
+
+Pre-configured Kibana includes:
+
+**📋 Log Dashboards**
+- Application error tracking
+- Request/response logging
+- Container lifecycle events
+- Performance bottleneck analysis
+
+**🔍 Search Templates**
+- Error log quick searches
+- Performance issue patterns
+- Security event detection
+- Custom log filtering
+
+### Monitoring Best Practices
+
+#### Resource Management
+```bash
+# Monitor resource usage
+docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"
+
+# Check service health
+curl http://localhost:3000/health
+curl http://localhost:9090/-/healthy
+curl http://localhost:9200/_cluster/health
+```
+
+#### Log Management
+```bash
+# View application logs
+docker logs simple-menu-backend -f
+docker logs simple-menu-frontend -f
+
+# View monitoring logs
+docker logs prometheus -f
+docker logs grafana -f
+docker logs elasticsearch -f
+```
+
+#### Performance Tuning
+- **Memory Allocation**: Default limits set for Raspberry Pi deployment
+- **Storage**: Logs automatically rotated, metrics retained for 15 days
+- **Network**: All services on isolated Docker network for security
 
 ## 🌐 LAN Setup
 
@@ -736,8 +940,27 @@ Simple-menu/
 │       │   └── environments/  # Environment configurations
 │       ├── Dockerfile         # Frontend container configuration
 │       └── package.json       # Frontend dependencies
-├── docker-compose.yml         # Multi-container orchestration
+├── monitoring/                # Monitoring configurations
+│   ├── unified/               # Unified monitoring stack configs
+│   │   ├── prometheus.yml     # Prometheus scrape configuration
+│   │   ├── grafana-datasources.yml # Grafana data sources
+│   │   ├── grafana-dashboards.yml  # Dashboard configuration
+│   │   ├── logstash.conf      # Logstash pipeline configuration
+│   │   ├── filebeat.yml       # Filebeat log collection
+│   │   └── dashboards/        # Pre-built Grafana dashboards
+│   │       └── unified-overview.json # Main dashboard
+│   ├── prometheus/            # Simple Prometheus configs
+│   │   └── prometheus.yml     # Basic metrics collection
+│   └── elk/                   # Simple ELK configs
+│       ├── logstash.conf      # Basic log processing
+│       └── filebeat.yml       # Basic log collection
+├── docker-compose.yml         # Basic application stack
+├── docker-compose.unified.yml # Unified monitoring deployment
+├── docker-compose.monitoring-simple.yml # Simple Prometheus stack
+├── docker-compose.elk-simple.yml        # Simple ELK stack
 ├── docker-compose.override.yml # Development overrides
+├── start.ps1                  # Interactive deployment script
+├── start-unified.ps1          # Unified stack quick start
 ├── setup-lan-auto.ps1         # Automatic LAN setup (Windows)
 ├── setup-lan.sh              # Automatic LAN setup (Linux/macOS)
 └── README.md                 # This file
