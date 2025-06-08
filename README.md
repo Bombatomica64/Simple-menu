@@ -20,10 +20,14 @@ A modern, real-time digital menu management system built with Angular and Node.j
 
 ## ✨ Features
 
-### 🔄 Real-time Updates
+### 🔄 Real-time Updates & WebSocket Communication
 - **Live Menu Synchronization**: Real-time updates across all connected clients using WebSockets
 - **Instant Notifications**: Immediate reflection of changes on all devices
 - **Connection Management**: Automatic reconnection and robust error handling
+- **Display Settings Sync**: Real-time synchronization of pasta display preferences
+- **CRUD Operations**: Live create, read, update, delete operations via WebSocket
+- **Background Configuration**: Real-time background settings management
+- **Multi-client Support**: Synchronized updates across multiple browser sessions
 
 ### 📱 Multi-Page Menu Display
 - **Automatic Page Transitions**: Configurable auto-rotation between menu pages
@@ -36,6 +40,8 @@ A modern, real-time digital menu management system built with Angular and Node.j
 - **Pasta Sauces**: Complete sauce management with visual presentation
 - **Combo Selection**: Interactive pasta and sauce pairing interface
 - **Image Galleries**: Multiple image support per item with selection interface
+- **Display Settings**: Customizable display options for pasta types and sauces
+- **Real-time Updates**: WebSocket-based live updates for all pasta operations
 
 ### 📑 Menu Item Management
 - **Section-based Organization**: Items automatically organized by customizable sections
@@ -503,6 +509,108 @@ GET /health
 }
 ```
 
+#### Display Settings Management
+```typescript
+// Get pasta sauce display settings
+{
+  type: 'getPastaSauceDisplaySettings'
+}
+
+// Update pasta sauce display settings
+{
+  type: 'updatePastaSauceDisplaySettings',
+  settings: {
+    showImages: boolean,
+    showDescriptions: boolean,
+    imageSize: 'small' | 'medium' | 'large',
+    fontSize: 'small' | 'medium' | 'large'
+  }
+}
+
+// Get pasta type display settings
+{
+  type: 'getPastaTypeDisplaySettings'
+}
+
+// Update pasta type display settings
+{
+  type: 'updatePastaTypeDisplaySettings',
+  settings: {
+    showImages: boolean,
+    showDescriptions: boolean,
+    imageSize: 'small' | 'medium' | 'large',
+    fontSize: 'small' | 'medium' | 'large'
+  }
+}
+```
+
+#### Pasta CRUD Operations
+```typescript
+// Create new pasta type
+{
+  type: 'createPastaType',
+  pastaType: {
+    name: string,
+    imageUrl?: string,
+    description?: string
+  }
+}
+
+// Delete pasta type
+{
+  type: 'deletePastaType',
+  pastaTypeId: number
+}
+
+// Create new pasta sauce
+{
+  type: 'createPastaSauce',
+  pastaSauce: {
+    name: string,
+    imageUrl?: string,
+    description?: string
+  }
+}
+
+// Delete pasta sauce
+{
+  type: 'deletePastaSauce',
+  pastaSauceId: number
+}
+```
+
+#### Background Configuration
+```typescript
+// Get background configuration
+{
+  type: 'getBackgroundConfig',
+  configId: number
+}
+
+// Get all background configurations
+{
+  type: 'getAllBackgroundConfigs'
+}
+
+// Update background configuration
+{
+  type: 'updateBackgroundConfig',
+  configId: number,
+  config: {
+    name?: string,
+    imageUrl?: string,
+    isActive?: boolean
+  }
+}
+
+// Delete background configuration
+{
+  type: 'deleteBackgroundConfig',
+  configId: number
+}
+```
+```
+
 #### Menu Persistence
 ```typescript
 // Save current menu
@@ -562,6 +670,33 @@ GET /health
 {
   type: 'savedMenusList',
   savedMenus: SavedMenu[]
+}
+
+// Display settings responses
+{
+  type: 'pastaSauceDisplaySettings',
+  settings: PastaSauceDisplaySettings
+}
+
+{
+  type: 'pastaTypeDisplaySettings',
+  settings: PastaTypeDisplaySettings
+}
+
+// Background configuration responses
+{
+  type: 'backgroundConfig',
+  config: BackgroundConfig
+}
+
+{
+  type: 'allBackgroundConfigs',
+  configs: BackgroundConfig[]
+}
+
+{
+  type: 'backgroundConfigDeleted',
+  configId: number
 }
 
 // Error response
@@ -769,7 +904,9 @@ We welcome contributions! Please follow these steps:
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under a Custom License - see the [LICENSE](LICENSE) file for details.
+
+**Summary**: Commercial use is permitted only for the original author (Lorenzo). All other users are restricted to personal, non-commercial use only.
 
 ---
 
