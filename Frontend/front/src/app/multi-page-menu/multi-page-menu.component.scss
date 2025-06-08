@@ -5,6 +5,57 @@
 	min-height: 100vh;
 	max-width: 1400px; // Fixed maximum width
 	margin: 0 auto; // Center the container
+	position: relative; // For absolute positioning of price display
+	// Big Price Display - positioned at top left
+	.big-price-display {
+		position: absolute;
+		top: 1rem;
+		left: 1rem;
+		background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+		color: white;
+		padding: 1rem 1.5rem;
+		border-radius: 15px;
+		box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+		z-index: 1100;
+		text-align: center;
+		min-width: 120px;
+
+		.price-value {
+			font-size: 2rem;
+			font-weight: 700;
+			line-height: 1;
+			margin-bottom: 0.2rem;
+		}
+
+		.price-label {
+			font-size: 0.8rem;
+			font-weight: 500;
+			opacity: 0.9;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+
+		// Hover effect
+		&:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+		}
+
+		// Responsive adjustments
+		@media (max-width: 768px) {
+			position: static;
+			margin-bottom: 1rem;
+			width: fit-content;
+
+			.price-value {
+				font-size: 1.5rem;
+			}
+
+			.price-label {
+				font-size: 0.7rem;
+			}
+		}
+	}
 
 	&.transitioning {
 		.menu-page-content {
@@ -12,9 +63,56 @@
 			transform: scale(0.98);
 		}
 	}
+
+	// Vertical orientation (default) - more spacious layout
+	&.vertical-orientation {
+		max-width: 1600px; // Wider for vertical layout
+
+		.pasta-section-container {
+			margin-bottom: 2rem; // More space for pasta section
+		}
+
+		.menu-sections-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+			gap: 2rem;
+			margin-top: 1rem;
+
+			@media screen and (max-width: 1200px) {
+				grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+				gap: 1.5rem;
+			}
+
+			@media screen and (max-width: 768px) {
+				grid-template-columns: 1fr;
+				gap: 1rem;
+			}
+		}
+	}
+
+	// Horizontal orientation - compact 2-column layout
+	&.horizontal-orientation {
+		max-width: 1400px;
+
+		.pasta-section-container {
+			margin-bottom: 1.5rem;
+		}
+
+		.menu-sections-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem;
+			margin-top: 1rem;
+
+			@media screen and (max-width: 768px) {
+				grid-template-columns: 1fr;
+				gap: 1rem;
+			}
+		}
+	}
 }
 
-// 2-Column Grid Layout
+// Legacy 2-Column Grid Layout (for backward compatibility)
 .two-column-grid {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -32,6 +130,61 @@
 	gap: 1rem;
 }
 
+// New Menu Sections Grid
+.menu-sections-grid {
+	// Base styles - specific layout defined in orientation classes above
+
+	.menu-section-card {
+		display: flex;
+		flex-direction: column;
+		height: fit-content;
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+		&:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+		}
+
+		// Enhanced spacing for menu section panels
+		::ng-deep .menu-section-panel {
+			background-color: rgba(255, 255, 255, 0.95);
+			border: 1px solid #e0e0e0;
+			border-radius: 12px;
+			-webkit-backdrop-filter: blur(10px);
+			backdrop-filter: blur(10px);
+			box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+			overflow: hidden;
+			height: 100%;
+
+			.p-panel-header {
+				background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+				color: white;
+				padding: 1.2rem 1.5rem;
+				font-size: 1.1rem;
+				font-weight: 600;
+				border-bottom: none;
+				text-align: center;
+			}
+
+			.p-panel-content {
+				background-color: rgba(255, 255, 255, 0.98);
+				padding: 1.5rem;
+
+				// More spacing for menu items in vertical orientation
+				.menu-item-row {
+					margin-bottom: 1rem;
+					padding: 1.2rem;
+					border-radius: 10px;
+
+					&:last-child {
+						margin-bottom: 0;
+					}
+				}
+			}
+		}
+	}
+}
+
 // Header and pasta section containers
 .menu-header-container {
 	width: 100%;
@@ -40,7 +193,34 @@
 
 .pasta-section-container {
 	width: 100%;
-	margin-bottom: 1rem;
+	margin-bottom: 1.5rem;
+
+	// Enhanced styling for pasta section in vertical orientation
+	.vertical-orientation & {
+		margin-bottom: 2.5rem;
+
+		// Make pasta section more prominent
+		::ng-deep app-pasta {
+			.pasta-selection-card {
+				padding: 2rem;
+				border-radius: 16px;
+				box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+				background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+				border: 2px solid rgba(74, 144, 226, 0.1);
+
+				h3 {
+					font-size: 1.8rem;
+					margin-bottom: 1.5rem;
+					color: #2c3e50;
+					text-align: center;
+				}
+
+				.grid {
+					gap: 1.5rem;
+				}
+			}
+		}
+	}
 }
 
 // Menu items grid within sections

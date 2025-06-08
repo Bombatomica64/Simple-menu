@@ -15,6 +15,7 @@ export interface MenuSection {
     position: number;
     menuId?: number;
     menuItems?: MenuItem[];
+    header?: string; // Optional header text for the section
 }
 
 export interface PastaType {

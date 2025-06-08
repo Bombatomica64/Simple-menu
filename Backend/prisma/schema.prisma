@@ -8,22 +8,36 @@ datasource db {
 }
 
 model Menu {
-  id               Int               @id @default(autoincrement())
-  createdAt        DateTime          @default(now())
-  backgroundId     Int?              // Optional FK to BackgroundConfig
-  background       BackgroundConfig? @relation(fields: [backgroundId], references: [id], onDelete: SetNull)
-  orientation      String            @default("vertical") // "vertical" or "horizontal" layout
-  availableImages  String?           // JSON string of available images for menu items
-  menuItems        MenuItem[]
-  menuSections     MenuSection[]     // Menu sections for organizing items
-  pastaTypes       MenuToPastaType[]
-  pastaSauces      MenuToPastaSauce[]
-  savedMenus       SavedMenu[]       // One menu can have multiple saved versions
+  id                        Int               @id @default(autoincrement())
+  createdAt                 DateTime          @default(now())
+  backgroundId              Int?              // Optional FK to BackgroundConfig
+  background                BackgroundConfig? @relation(fields: [backgroundId], references: [id], onDelete: SetNull)
+  orientation               String            @default("vertical") // "vertical" or "horizontal" layout
+  availableImages           String?           // JSON string of available images for menu items
+  
+  // Global display preferences for pasta types
+  globalPastaTypeShowImage       Boolean  @default(true)
+  globalPastaTypeImageSize       String   @default("size-medium")
+  globalPastaTypeShowDescription Boolean  @default(true)
+  globalPastaTypeFontSize        Int      @default(100)
+  
+  // Global display preferences for pasta sauces
+  globalPastaSauceShowImage       Boolean  @default(true)
+  globalPastaSauceImageSize       String   @default("size-medium")
+  globalPastaSauceShowDescription Boolean  @default(true)
+  globalPastaSauceFontSize        Int      @default(100)
+  
+  menuItems                 MenuItem[]
+  menuSections              MenuSection[]     // Menu sections for organizing items
+  pastaTypes                MenuToPastaType[]
+  pastaSauces               MenuToPastaSauce[]
+  savedMenus                SavedMenu[]       // One menu can have multiple saved versions
 }
 
 model MenuSection {
   id        Int        @id @default(autoincrement())
   name      String
+  header    String?    // Optional header text for the section
   position  Int        @default(0) // Position/order of the section in the menu
   menuId    Int
   menu      Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
@@ -67,22 +81,40 @@ model PastaSauce {
 
 
 model MenuToPastaType {
-  id          Int       @id @default(autoincrement())
-  menu        Menu      @relation(fields: [menuId], references: [id])
-  menuId      Int
-  pastaType   PastaType @relation(fields: [pastaTypeId], references: [id])
-  pastaTypeId Int
+  id                 Int       @id @default(autoincrement())
+  menu               Menu      @relation(fields: [menuId], references: [id])
+  menuId             Int
+  pastaType          PastaType @relation(fields: [pastaTypeId], references: [id])
+  pastaTypeId        Int
+  
+  // Display customizations
+  showImage          Boolean   @default(true)
+  imageSize          String    @default("size-medium") // "size-small", "size-medium", "size-large"
+  showDescription    Boolean   @default(true)
+  fontSize           Int       @default(100) // Percentage of base font size
+  customDescription  String?   // Optional custom description override
+  customFontColor    String?   // Optional custom font color
+  customBgColor      String?   // Optional custom background color
 
   @@unique([menuId, pastaTypeId])
 }
 
 // Join table for Menu and PastaSauce
 model MenuToPastaSauce {
-  id          Int        @id @default(autoincrement())
-  menu        Menu       @relation(fields: [menuId], references: [id])
-  menuId      Int
-  pastaSauce  PastaSauce @relation(fields: [pastaSauceId], references: [id])
-  pastaSauceId Int
+  id                 Int        @id @default(autoincrement())
+  menu               Menu       @relation(fields: [menuId], references: [id])
+  menuId             Int
+  pastaSauce         PastaSauce @relation(fields: [pastaSauceId], references: [id])
+  pastaSauceId       Int
+  
+  // Display customizations
+  showImage          Boolean    @default(true)
+  imageSize          String     @default("size-medium") // "size-small", "size-medium", "size-large"
+  showDescription    Boolean    @default(true)
+  fontSize           Int        @default(100) // Percentage of base font size
+  customDescription  String?    // Optional custom description override
+  customFontColor    String?    // Optional custom font color
+  customBgColor      String?    // Optional custom background color
 
   @@unique([menuId, pastaSauceId])
 }

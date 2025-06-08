@@ -1,0 +1,88 @@
+.customization-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #8B4513;
+  color: #8B4513;
+
+  &:hover {
+    background: #8B4513;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+  }
+}
+
+.customization-menu {
+  padding: 1rem;
+  min-width: 280px;
+
+  h4 {
+    color: #8B4513;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 0.5rem;
+  }
+
+  .customization-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: rgba(255, 248, 220, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(139, 69, 19, 0.1);
+
+    label {
+      font-weight: 500;
+      color: #8B4513;
+      font-size: 0.9rem;
+    }
+
+    :deep(.p-togglebutton) {
+      .p-button {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+      }
+    }
+
+    :deep(.p-selectbutton) {
+      .p-button {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.5rem;
+        min-width: 32px;
+      }
+    }
+  }
+
+  .customization-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+
+    :deep(.p-button) {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .customization-menu {
+    min-width: 240px;
+
+    .customization-option {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+
+      label {
+        font-size: 0.8rem;
+      }
+    }
+  }
+}

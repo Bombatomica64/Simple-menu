@@ -10,7 +10,7 @@ function setupWebSocket(server) {
   function broadcastInMemoryMenu() {
     const currentMenu = menuService.getCurrentMenu();
     if (!currentMenu) return;
-    
+
     const menuToSend = JSON.stringify(currentMenu);
     clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
@@ -72,6 +72,79 @@ function setupWebSocket(server) {
             break;
           case "removePastaSauceFromMenu":
             updated = await menuService.removePastaSauceFromMenu(message.pastaSauceId);
+            break;
+          // CRUD operations for pasta types and sauces
+          case "createPastaType":
+            try {
+              const { prisma } = require("../config/database");
+              const newPastaType = await prisma.pastaType.create({
+                data: {
+                  name: message.pastaType.name,
+                  description: message.pastaType.description || null,
+                  basePrice: message.pastaType.basePrice || 8.50,
+                  priceNote: message.pastaType.priceNote || null,
+                  imageUrl: message.pastaType.imageUrl || null
+                }
+              });
+              console.log("Pasta type created:", newPastaType);
+            } catch (error) {
+              console.error("Failed to create pasta type:", error);
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to create pasta type: " + error.message
+              }));
+            }
+            break;
+          case "deletePastaType":
+            try {
+              const { prisma } = require("../config/database");
+              await prisma.pastaType.delete({
+                where: { id: message.pastaTypeId }
+              });
+              console.log("Pasta type deleted:", message.pastaTypeId);
+            } catch (error) {
+              console.error("Failed to delete pasta type:", error);
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to delete pasta type: " + error.message
+              }));
+            }
+            break;
+          case "createPastaSauce":
+            try {
+              const { prisma } = require("../config/database");
+              const newPastaSauce = await prisma.pastaSauce.create({
+                data: {
+                  name: message.pastaSauce.name,
+                  description: message.pastaSauce.description || null,
+                  basePrice: message.pastaSauce.basePrice || 3.50,
+                  priceNote: message.pastaSauce.priceNote || null,
+                  imageUrl: message.pastaSauce.imageUrl || null
+                }
+              });
+              console.log("Pasta sauce created:", newPastaSauce);
+            } catch (error) {
+              console.error("Failed to create pasta sauce:", error);
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to create pasta sauce: " + error.message
+              }));
+            }
+            break;
+          case "deletePastaSauce":
+            try {
+              const { prisma } = require("../config/database");
+              await prisma.pastaSauce.delete({
+                where: { id: message.pastaSauceId }
+              });
+              console.log("Pasta sauce deleted:", message.pastaSauceId);
+            } catch (error) {
+              console.error("Failed to delete pasta sauce:", error);
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to delete pasta sauce: " + error.message
+              }));
+            }
             break;
           // Section management cases
           case "addSection":
@@ -155,6 +228,102 @@ function setupWebSocket(server) {
               ws.send(JSON.stringify({
                 type: "error",
                 message: "Failed to get saved menus: " + error.message
+              }));
+            }
+            break;
+          // Background configuration cases
+          case "updateBackgroundConfig":
+            try {
+              const { prisma } = require("../config/database");
+              const backgroundConfig = await prisma.backgroundConfig.upsert({
+                where: { page: message.page },
+                update: {
+                  background: message.background,
+                  updatedAt: new Date()
+                },
+                create: {
+                  page: message.page,
+                  background: message.background
+                }
+              });
+
+              ws.send(JSON.stringify({
+                type: "backgroundConfig",
+                page: message.page,
+                config: backgroundConfig
+              }));
+              console.log("Background config updated:", backgroundConfig);
+            } catch (error) {
+              console.error("Failed to update background config:", error);
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to update background config: " + error.message
+              }));
+            }
+            break;
+          case "deleteBackgroundConfig":
+            try {
+              const { prisma } = require("../config/database");
+              await prisma.backgroundConfig.delete({
+                where: { page: message.page }
+              });
+
+              ws.send(JSON.stringify({
+                type: "backgroundConfigDeleted",
+                page: message.page
+              }));
+              console.log("Background config deleted for page:", message.page);
+            } catch (error) {
+              console.error("Failed to delete background config:", error);
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to delete background config: " + error.message
+              }));
+            }
+            break;
+          case "getBackgroundConfig":
+            try {
+              const { prisma } = require("../config/database");
+              const backgroundConfig = await prisma.backgroundConfig.findUnique({
+                where: { page: message.page }
+              });
+
+              if (backgroundConfig) {
+                ws.send(JSON.stringify({
+                  type: "backgroundConfig",
+                  page: message.page,
+                  config: backgroundConfig
+                }));
+              } else {
+                ws.send(JSON.stringify({
+                  type: "error",
+                  message: "Background config not found for page: " + message.page
+                }));
+              }
+            } catch (error) {
+              console.error("Failed to get background config:", error);
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to get background config: " + error.message
+              }));
+            }
+            break;
+          case "getAllBackgroundConfigs":
+            try {
+              const { prisma } = require("../config/database");
+              const backgroundConfigs = await prisma.backgroundConfig.findMany({
+                orderBy: { page: 'asc' }
+              });
+
+              ws.send(JSON.stringify({
+                type: "allBackgroundConfigs",
+                configs: backgroundConfigs
+              }));
+            } catch (error) {
+              console.error("Failed to get all background configs:", error);
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Failed to get all background configs: " + error.message
               }));
             }
             break;

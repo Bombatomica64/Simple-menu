@@ -71,6 +71,36 @@ export interface UpdateItemPositionsMessage {
 	itemUpdates: { itemId: number; position: number; sectionId?: number | null }[];
 }
 
+// Pasta types/sauces creation and deletion message types
+export interface CreatePastaTypeMessage {
+	type: 'createPastaType';
+	pastaType: {
+		name: string;
+		description?: string;
+		basePrice?: number;
+		priceNote?: string;
+		imageUrl?: string;
+	};
+}
+export interface DeletePastaTypeMessage {
+	type: 'deletePastaType';
+	pastaTypeId: number;
+}
+export interface CreatePastaSauceMessage {
+	type: 'createPastaSauce';
+	pastaSauce: {
+		name: string;
+		description?: string;
+		basePrice?: number;
+		priceNote?: string;
+		imageUrl?: string;
+	};
+}
+export interface DeletePastaSauceMessage {
+	type: 'deletePastaSauce';
+	pastaSauceId: number;
+}
+
 // Menu configuration message types
 export interface UpdateMenuOrientationMessage {
 	type: 'updateMenuOrientation';
@@ -79,6 +109,49 @@ export interface UpdateMenuOrientationMessage {
 export interface UpdateMenuAvailableImagesMessage {
 	type: 'updateMenuAvailableImages';
 	availableImages: string | null;
+}
+
+// Display settings message types
+export interface PastaSauceDisplaySettings {
+	showImage: boolean;
+	imageSize: string;
+	showDescription: boolean;
+	fontSize: number;
+	customDescription?: string;
+	customFontColor?: string;
+	customBgColor?: string;
+}
+
+export interface UpdatePastaSauceDisplaySettingsMessage {
+	type: 'updatePastaSauceDisplaySettings';
+	pastaSauceId: number;
+	settings: PastaSauceDisplaySettings;
+}
+
+export interface GetPastaSauceDisplaySettingsMessage {
+	type: 'getPastaSauceDisplaySettings';
+	pastaSauceId: number;
+}
+
+export interface PastaTypeDisplaySettings {
+	showImage: boolean;
+	imageSize: string;
+	showDescription: boolean;
+	fontSize: number;
+	customDescription?: string;
+	customFontColor?: string;
+	customBgColor?: string;
+}
+
+export interface UpdatePastaTypeDisplaySettingsMessage {
+	type: 'updatePastaTypeDisplaySettings';
+	pastaTypeId: number;
+	settings: PastaTypeDisplaySettings;
+}
+
+export interface GetPastaTypeDisplaySettingsMessage {
+	type: 'getPastaTypeDisplaySettings';
+	pastaTypeId: number;
 }
 
 // Saved menu message types
@@ -96,6 +169,33 @@ export interface DeleteSavedMenuMessage {
 }
 export interface GetAllSavedMenusMessage {
 	type: 'getAllSavedMenus';
+}
+
+// Background configuration message types
+export interface BackgroundConfig {
+	id: number;
+	page: string;
+	background: string;
+}
+
+export interface UpdateBackgroundConfigMessage {
+	type: 'updateBackgroundConfig';
+	page: string;
+	background: string;
+}
+
+export interface DeleteBackgroundConfigMessage {
+	type: 'deleteBackgroundConfig';
+	page: string;
+}
+
+export interface GetBackgroundConfigMessage {
+	type: 'getBackgroundConfig';
+	page: string;
+}
+
+export interface GetAllBackgroundConfigsMessage {
+	type: 'getAllBackgroundConfigs';
 }
 
 // Response message types from server
@@ -123,6 +223,36 @@ export interface ErrorResponse {
 	message: string;
 }
 
+// Display settings response message types
+export interface PastaSauceDisplaySettingsResponse {
+	type: 'pastaSauceDisplaySettings';
+	pastaSauceId: number;
+	settings: PastaSauceDisplaySettings;
+}
+
+export interface PastaTypeDisplaySettingsResponse {
+	type: 'pastaTypeDisplaySettings';
+	pastaTypeId: number;
+	settings: PastaTypeDisplaySettings;
+}
+
+// Background configuration response message types
+export interface BackgroundConfigResponse {
+	type: 'backgroundConfig';
+	page: string;
+	config: BackgroundConfig;
+}
+
+export interface AllBackgroundConfigsResponse {
+	type: 'allBackgroundConfigs';
+	configs: BackgroundConfig[];
+}
+
+export interface BackgroundConfigDeletedResponse {
+	type: 'backgroundConfigDeleted';
+	page: string;
+}
+
 export type MenuUpdateMessage =
 	| AddItemMessage
 	| RemoveItemMessage
@@ -134,6 +264,10 @@ export type MenuUpdateMessage =
 	| RemovePastaTypeMessage
 	| AddPastaSauceMessage
 	| RemovePastaSauceMessage
+	| CreatePastaTypeMessage
+	| DeletePastaTypeMessage
+	| CreatePastaSauceMessage
+	| DeletePastaSauceMessage
 	| AddSectionMessage
 	| RemoveSectionMessage
 	| UpdateSectionOrderMessage
@@ -141,15 +275,27 @@ export type MenuUpdateMessage =
 	| UpdateItemPositionsMessage
 	| UpdateMenuOrientationMessage
 	| UpdateMenuAvailableImagesMessage
-	| SaveCurrentMenuMessage
+	| UpdatePastaSauceDisplaySettingsMessage
+	| GetPastaSauceDisplaySettingsMessage
+	| UpdatePastaTypeDisplaySettingsMessage
+	| GetPastaTypeDisplaySettingsMessage	| SaveCurrentMenuMessage
 	| LoadSavedMenuMessage
 	| DeleteSavedMenuMessage
-	| GetAllSavedMenusMessage;
+	| GetAllSavedMenusMessage
+	| UpdateBackgroundConfigMessage
+	| DeleteBackgroundConfigMessage
+	| GetBackgroundConfigMessage
+	| GetAllBackgroundConfigsMessage;
 
 export type MenuResponseMessage =
 	| MenuSavedResponse
 	| MenuDeletedResponse
 	| SavedMenusListResponse
+	| PastaSauceDisplaySettingsResponse
+	| PastaTypeDisplaySettingsResponse
+	| BackgroundConfigResponse
+	| AllBackgroundConfigsResponse
+	| BackgroundConfigDeletedResponse
 	| ErrorResponse;
 
 export type SendUpdateFn = (message: MenuUpdateMessage) => void;
@@ -203,10 +349,8 @@ export function menuConnection(websocketUrl: string): MenuConnection {
 
 				wsConnectionInstance.onmessage = (event) => {
 					try {
-						const data = JSON.parse(event.data);
-
-						// Check if it's a menu update or a response message
-						if (data.type && ['menuSaved', 'menuDeleted', 'savedMenusList', 'error'].includes(data.type)) {
+						const data = JSON.parse(event.data);						// Check if it's a menu update or a response message
+						if (data.type && ['menuSaved', 'menuDeleted', 'savedMenusList', 'pastaSauceDisplaySettings', 'pastaTypeDisplaySettings', 'backgroundConfig', 'allBackgroundConfigs', 'backgroundConfigDeleted', 'error'].includes(data.type)) {
 							// Handle response messages
 							console.log('[WebSocket response] Response received:', data);
 							responseMessages.set(data as MenuResponseMessage);

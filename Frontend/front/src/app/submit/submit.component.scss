@@ -74,25 +74,37 @@
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	transition: all 0.2s ease;
 	flex-shrink: 0;
+	display: block;
+	overflow: hidden;
+	
+	// Ensure images are constrained within their containers
+	max-width: 100%;
+	max-height: 100%;
 
 	&.size-small {
 		width: 2rem;
 		height: 2rem;
+		min-width: 2rem;
+		min-height: 2rem;
 	}
 
 	&.size-medium {
 		width: 3rem;
 		height: 3rem;
+		min-width: 3rem;
+		min-height: 3rem;
 	}
 
 	&.size-large {
 		width: 4rem;
 		height: 4rem;
+		min-width: 4rem;
+		min-height: 4rem;
 	}
 
 	&:hover {
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-		transform: scale(1.05);
+		transform: scale(1.02); // Reduced scale to prevent overflow
 	}
 }
 
@@ -110,18 +122,24 @@
 	&.size-small {
 		width: 2rem;
 		height: 2rem;
+		min-width: 2rem;
+		min-height: 2rem;
 		font-size: 1rem;
 	}
 
 	&.size-medium {
 		width: 3rem;
 		height: 3rem;
+		min-width: 3rem;
+		min-height: 3rem;
 		font-size: 1.5rem;
 	}
 
 	&.size-large {
 		width: 4rem;
 		height: 4rem;
+		min-width: 4rem;
+		min-height: 4rem;
 		font-size: 2rem;
 	}
 
@@ -1245,5 +1263,66 @@ form[role="form"] {
 				}
 			}
 		}
+	}
+}
+
+// Improved picklist item container
+.picklist-item-container {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	width: 100%;
+	padding: 0.25rem;
+	overflow: hidden;
+
+	.image-container {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		border-radius: 8px;
+		
+		&.size-small {
+			width: 2rem;
+			height: 2rem;
+		}
+
+		&.size-medium {
+			width: 3rem;
+			height: 3rem;
+		}
+
+		&.size-large {
+			width: 4rem;
+			height: 4rem;
+		}
+	}
+
+	.content-container {
+		flex: 1;
+		min-width: 0; // Prevents text overflow
+		
+		.item-name {
+			font-weight: 600;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.item-description {
+			font-size: 0.75rem;
+			color: var(--text-color-secondary);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			margin-top: 0.125rem;
+		}
+	}
+
+	.actions-container {
+		flex-shrink: 0;
+		display: flex;
+		gap: 0.25rem;
 	}
 }

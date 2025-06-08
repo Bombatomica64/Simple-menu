@@ -1,87 +1,109 @@
 // Menu section viewer styling - inherits from parent multi-page-menu styles
 :host {
-  display: block;
+	display: block;
+}
+
+// Section container and header styling
+.menu-section-container {
+	.section-header {
+		text-align: center;
+		margin-bottom: 1rem;
+		padding: 0.75rem;
+		background: linear-gradient(
+			135deg,
+			var(--primary-color-text),
+			var(--surface-ground)
+		);
+		border-radius: 8px;
+		border: 1px solid var(--surface-border);
+
+		font-size: 1.3rem;
+		font-weight: 600;
+		color: var(--primary-color);
+		margin: 0 0 1rem 0;
+		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+	}
 }
 
 // Menu item row layout (matching parent styles)
 .menu-item-row {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.95);
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  -webkit-backdrop-filter: blur(5px);
-  backdrop-filter: blur(5px);
+	display: flex;
+	align-items: center;
+	padding: 1rem;
+	background-color: rgba(255, 255, 255, 0.95);
+	border: 1px solid #f0f0f0;
+	border-radius: 8px;
+	transition: all 0.2s ease;
+	-webkit-backdrop-filter: blur(5px);
+	backdrop-filter: blur(5px);
 
-  &:hover {
-    background-color: rgba(248, 249, 250, 0.98);
-    border-color: #e0e0e0;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
+	&:hover {
+		background-color: rgba(248, 249, 250, 0.98);
+		border-color: #e0e0e0;
+		transform: translateY(-1px);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	}
 
-  .menu-item-image {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-right: 1rem;
-    border: 1px solid #e0e0e0;
-  }
+	.menu-item-image {
+		width: 80px;
+		height: 80px;
+		object-fit: cover;
+		border-radius: 8px;
+		margin-right: 1rem;
+		border: 1px solid #e0e0e0;
+	}
 
-  .menu-item-content {
-    flex: 1;
+	.menu-item-content {
+		flex: 1;
 
-    h4 {
-      margin: 0;
-      color: #333333;
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
-  }
+		h4 {
+			margin: 0;
+			color: #333333;
+			font-size: 1.1rem;
+			font-weight: 500;
+		}
+	}
 
-  .menu-item-price {
-    .price {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #2e7d32; // Green for price
-      background-color: #e8f5e8;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      border: 1px solid #c8e6c9;
-    }
-  }
+	.menu-item-price {
+		.price {
+			font-size: 1.2rem;
+			font-weight: 600;
+			color: #2e7d32; // Green for price
+			background-color: #e8f5e8;
+			padding: 0.5rem 1rem;
+			border-radius: 20px;
+			border: 1px solid #c8e6c9;
+		}
+	}
 }
 
 // Responsive adjustments
 @media (max-width: 768px) {
-  .menu-item-row {
-    .menu-item-image {
-      width: 60px;
-      height: 60px;
-    }
+	.menu-item-row {
+		.menu-item-image {
+			width: 60px;
+			height: 60px;
+		}
 
-    .menu-item-price .price {
-      font-size: 1rem;
-      padding: 0.4rem 0.8rem;
-    }
-  }
+		.menu-item-price .price {
+			font-size: 1rem;
+			padding: 0.4rem 0.8rem;
+		}
+	}
 }
 
 @media (max-width: 576px) {
-  .menu-item-row {
-    flex-direction: column;
-    text-align: center;
+	.menu-item-row {
+		flex-direction: column;
+		text-align: center;
 
-    .menu-item-image {
-      margin-right: 0;
-      margin-bottom: 0.5rem;
-    }
+		.menu-item-image {
+			margin-right: 0;
+			margin-bottom: 0.5rem;
+		}
 
-    .menu-item-content {
-      margin-bottom: 0.5rem;
-    }
-  }
+		.menu-item-content {
+			margin-bottom: 0.5rem;
+		}
+	}
 }

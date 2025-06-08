@@ -19,6 +19,8 @@ const pastaTypesRoutes = require("./routes/pastaTypes");
 const pastaSaucesRoutes = require("./routes/pastaSauces");
 const imageManagementRoutes = require("./routes/imageManagement");
 const backgroundsRoutes = require("./routes/backgrounds");
+const userPreferencesRoutes = require("./routes/userPreferences");
+const displaySettingsRoutes = require("./routes/displaySettings");
 
 // Initialize Express app
 const app = express();
@@ -36,6 +38,8 @@ app.use('/pasta-types', pastaTypesRoutes);
 app.use('/pasta-sauces', pastaSaucesRoutes);
 app.use('/images', imageManagementRoutes);
 app.use('/api/backgrounds', backgroundsRoutes);
+app.use('/api/user', userPreferencesRoutes);
+app.use('/api/menu', displaySettingsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

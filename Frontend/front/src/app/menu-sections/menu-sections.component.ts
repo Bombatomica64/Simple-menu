@@ -42,13 +42,13 @@ export class MenuSectionsComponent implements OnInit {  // Input signals
   sectionsChanged = output<MenuSection[]>();
   moveItemToSection = output<{itemId: number, sectionId: number | null, position?: number}>();
   updateItemPositions = output<{itemUpdates: {itemId: number, position: number, sectionId?: number | null}[]}>();
-
   // Internal signals for dialog state management
   internalSections = signal<MenuSection[]>([]);
   showAddSectionDialog = signal(false);
   showManageSectionsDialog = signal(false);
   showMoveItemDialog = signal(false);
   newSectionName = signal('');
+  newSectionHeader = signal(''); // Add header field
   selectedItemForMove = signal<MenuItem | null>(null);
 
   // Available sections for dropdown (computed)
@@ -95,22 +95,23 @@ export class MenuSectionsComponent implements OnInit {  // Input signals
   ngOnInit() {
     // No default section initialization
   }
-
   // Section management methods
   openAddSectionDialog() {
     this.newSectionName.set('');
+    this.newSectionHeader.set('');
     this.showAddSectionDialog.set(true);
   }
-
   addSection() {
     const name = this.newSectionName().trim();
     if (!name) return;
 
+    const header = this.newSectionHeader().trim() || undefined; // Use undefined if empty
     const currentSections = this.internalSections();
     const maxPosition = Math.max(0, ...currentSections.map(s => s.position));
     const newSection: MenuSection = {
       id: Date.now(), // Simple ID generation
       name,
+      header,
       position: maxPosition + 1,
       menuItems: []
     };
@@ -182,11 +183,15 @@ export class MenuSectionsComponent implements OnInit {  // Input signals
       this.sectionsChanged.emit(this.internalSections());
     }
   }
-
   // Event handlers for dialogs
   onSectionNameInput(event: Event) {
     const target = event.target as HTMLInputElement;
     this.newSectionName.set(target.value);
+  }
+
+  onSectionHeaderInput(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.newSectionHeader.set(target.value);
   }
 
   // Event handlers for menu items

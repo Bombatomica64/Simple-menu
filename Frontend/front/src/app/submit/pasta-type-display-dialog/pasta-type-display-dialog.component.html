@@ -1,0 +1,225 @@
+<p-dialog
+  [header]="'Personalizza Visualizzazione: ' + (pastaType?.name || '')"
+  [visible]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  [modal]="true"
+  [closable]="true"
+  [resizable]="false"
+  [style]="{ width: '600px' }"
+  styleClass="pasta-display-dialog">
+
+  @if (loading()) {
+  <div class="loading-container">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Caricamento impostazioni...</span>
+  </div>
+  } @else {
+
+  <div class="dialog-content">
+    <!-- Preview Section -->
+    <div class="preview-section mb-4">
+      <h4 class="section-title">
+        <i class="pi pi-eye mr-2"></i>
+        Anteprima
+      </h4>
+      <div class="preview-container">
+        <div class="preview-item" [style]="previewTextStyle">
+          @if (settings().showImage && pastaType?.imageUrl) {
+          <img
+            [class]="previewImageSizeClass"
+            [src]="pastaType?.imageUrl"
+            [alt]="pastaType?.name"
+            [title]="pastaType?.name"
+						title="Pasta name"
+            class="mr-3">
+          } @else if (settings().showImage && !pastaType?.imageUrl) {
+          <i
+            [class]="'pi pi-image pasta-sauce-placeholder mr-3 ' + settings().imageSize"
+            title="Nessuna immagine disponibile">
+          </i>
+          }
+          <div class="flex-1">
+            <div class="font-bold">{{ pastaType?.name }}</div>
+            @if (settings().showDescription && displayDescription) {
+            <div class="text-sm opacity-75">{{ displayDescription }}</div>
+            }
+            <div class="text-sm font-medium mt-1">€{{ pastaType?.basePrice?.toFixed(2) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Settings -->
+    <div class="settings-group mb-4">
+      <h4 class="section-title">
+        <i class="pi pi-image mr-2"></i>
+        Impostazioni Immagine
+      </h4>
+
+      <div class="p-field mb-3">
+        <div class="flex align-items-center gap-3">
+          <label for="showImageToggle" class="font-medium">Mostra Immagine:</label>
+          <p-toggleSwitch
+            id="showImageToggle"
+            [ngModel]="settings().showImage"
+            (ngModelChange)="updateSetting('showImage', $event)">
+          </p-toggleSwitch>
+        </div>
+      </div>
+
+      @if (settings().showImage) {
+      <div class="p-field mb-3">
+        <label for="imageSizeSelect" class="font-medium mb-2 block">Dimensione Immagine:</label>
+        <p-select
+          id="imageSizeSelect"
+          [ngModel]="settings().imageSize"
+          (ngModelChange)="updateSetting('imageSize', $event)"
+          [options]="imageSizeOptions"
+          optionLabel="label"
+          optionValue="value"
+          [style]="{ width: '100%' }">
+        </p-select>
+      </div>
+      }
+    </div>
+
+    <!-- Text Settings -->
+    <div class="settings-group mb-4">
+      <h4 class="section-title">
+        <i class="pi pi-align-left mr-2"></i>
+        Impostazioni Testo
+      </h4>
+
+      <div class="p-field mb-3">
+        <div class="flex align-items-center gap-3">
+          <label for="showDescriptionToggle" class="font-medium">Mostra Descrizione:</label>
+          <p-toggleSwitch
+            id="showDescriptionToggle"
+            [ngModel]="settings().showDescription"
+            (ngModelChange)="updateSetting('showDescription', $event)">
+          </p-toggleSwitch>
+        </div>
+      </div>
+
+      <div class="p-field mb-3">
+        <label for="fontSizeSlider" class="font-medium mb-2 block">
+          Dimensione Font: {{ settings().fontSize }}%
+        </label>
+        <p-slider
+          id="fontSizeSlider"
+          [ngModel]="settings().fontSize"
+          (ngModelChange)="updateSetting('fontSize', $event)"
+          [min]="fontSizeMin"
+          [max]="fontSizeMax"
+          [step]="5"
+          [style]="{ width: '100%' }">
+        </p-slider>
+        <div class="flex justify-content-between text-xs text-color-secondary mt-1">
+          <span>{{ fontSizeMin }}%</span>
+          <span>{{ fontSizeMax }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Settings -->
+    <div class="settings-group mb-4">
+      <h4 class="section-title">
+        <i class="pi pi-cog mr-2"></i>
+        Impostazioni Avanzate
+      </h4>
+
+      <div class="p-field mb-3">
+        <label for="customDescription" class="font-medium mb-2 block">Descrizione Personalizzata:</label>
+        <textarea
+          id="customDescription"
+          pInputTextarea
+          [ngModel]="settings().customDescription"
+          (ngModelChange)="updateSetting('customDescription', $event)"
+          placeholder="Lascia vuoto per usare la descrizione originale"
+          [rows]="2"
+          [style]="{ width: '100%' }">
+        </textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="p-field">
+          <label for="customFontColor" class="font-medium mb-2 block">Colore Testo:</label>
+          <div class="flex align-items-center gap-2">
+            <p-colorPicker
+              id="customFontColor"
+              [ngModel]="settings().customFontColor"
+              (ngModelChange)="updateSetting('customFontColor', $event)"
+              format="hex">
+            </p-colorPicker>
+            <input
+              type="text"
+              pInputText
+              [ngModel]="settings().customFontColor"
+              (ngModelChange)="updateSetting('customFontColor', $event)"
+              placeholder="#000000"
+              class="flex-1">
+          </div>
+        </div>
+
+        <div class="p-field">
+          <label for="customBgColor" class="font-medium mb-2 block">Colore Sfondo:</label>
+          <div class="flex align-items-center gap-2">
+            <p-colorPicker
+              id="customBgColor"
+              [ngModel]="settings().customBgColor"
+              (ngModelChange)="updateSetting('customBgColor', $event)"
+              format="hex">
+            </p-colorPicker>
+            <input
+              type="text"
+              pInputText
+              [ngModel]="settings().customBgColor"
+              (ngModelChange)="updateSetting('customBgColor', $event)"
+              placeholder="#ffffff"
+              class="flex-1">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Footer Actions -->
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-between align-items-center">
+      <button
+        pButton
+        type="button"
+        label="Reset"
+        icon="pi pi-refresh"
+        class="p-button-outlined p-button-secondary"
+        (click)="resetToDefaults()"
+        title="Ripristina valori predefiniti"
+        aria-label="Ripristina valori predefiniti">
+      </button>
+
+      <div class="flex gap-2">
+        <button
+          pButton
+          type="button"
+          label="Annulla"
+          icon="pi pi-times"
+          class="p-button-outlined"
+          (click)="closeDialog()"
+          title="Annulla modifiche"
+          aria-label="Annulla modifiche">
+        </button>
+        <button
+          pButton
+          type="button"
+          label="Salva"
+          icon="pi pi-check"
+          [loading]="saving()"
+          (click)="saveSettings()"
+          title="Salva impostazioni"
+          aria-label="Salva impostazioni">
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

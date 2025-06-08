@@ -63,7 +63,7 @@ function setCurrentMenu(menu) {
 
 async function addItemToMenu(item) {
   if (!currentInMemoryMenu) return false;
-  
+
   if (item && typeof item.name === "string" && typeof item.price === "number") {
     // Determine position within section or overall menu
     let position = 0;
@@ -92,7 +92,7 @@ async function addItemToMenu(item) {
 
 async function removeItemFromMenu(itemId) {
   if (!currentInMemoryMenu) return false;
-  
+
   if (typeof itemId === "number") {
     const initialLength = currentInMemoryMenu.menuItems.length;
     currentInMemoryMenu.menuItems = currentInMemoryMenu.menuItems.filter(
@@ -105,7 +105,7 @@ async function removeItemFromMenu(itemId) {
 
 async function addPastaTypeToMenu(pastaTypeId) {
   if (!currentInMemoryMenu) return false;
-  
+
   if (typeof pastaTypeId === "number") {
     const pastaTypeExists = currentInMemoryMenu.pastaTypes.some(pt => pt.pastaType.id === pastaTypeId);
     if (!pastaTypeExists) {
@@ -126,7 +126,7 @@ async function addPastaTypeToMenu(pastaTypeId) {
 
 async function removePastaTypeFromMenu(pastaTypeId) {
   if (!currentInMemoryMenu) return false;
-  
+
   if (typeof pastaTypeId === "number") {
     const initialLength = currentInMemoryMenu.pastaTypes.length;
     currentInMemoryMenu.pastaTypes = currentInMemoryMenu.pastaTypes.filter(
@@ -139,7 +139,7 @@ async function removePastaTypeFromMenu(pastaTypeId) {
 
 async function addPastaSauceToMenu(pastaSauceId) {
   if (!currentInMemoryMenu) return false;
-  
+
   if (typeof pastaSauceId === "number") {
     const sauceExists = currentInMemoryMenu.pastaSauces.some(ps => ps.pastaSauce.id === pastaSauceId);
     if (!sauceExists) {
@@ -160,7 +160,7 @@ async function addPastaSauceToMenu(pastaSauceId) {
 
 async function removePastaSauceFromMenu(pastaSauceId) {
   if (!currentInMemoryMenu) return false;
-  
+
   if (typeof pastaSauceId === "number") {
     const initialLength = currentInMemoryMenu.pastaSauces.length;
     currentInMemoryMenu.pastaSauces = currentInMemoryMenu.pastaSauces.filter(
@@ -173,7 +173,7 @@ async function removePastaSauceFromMenu(pastaSauceId) {
 
 async function updateMenuItemImage(itemId, imageUrl) {
   if (!currentInMemoryMenu) return false;
-  
+
   const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
   if (item) {
     item.imageUrl = imageUrl;
@@ -184,7 +184,7 @@ async function updateMenuItemImage(itemId, imageUrl) {
 
 async function toggleMenuItemShowImage(itemId, showImage) {
   if (!currentInMemoryMenu) return false;
-  
+
   const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
   if (item) {
     item.showImage = showImage;
@@ -195,7 +195,7 @@ async function toggleMenuItemShowImage(itemId, showImage) {
 
 async function addImageToMenuItem(itemId, imageUrl) {
   if (!currentInMemoryMenu) return false;
-  
+
   const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
   if (item) {
     // Add image to global menu available images
@@ -205,12 +205,12 @@ async function addImageToMenuItem(itemId, imageUrl) {
     } catch (e) {
       availableImages = [];
     }
-    
+
     if (!availableImages.includes(imageUrl)) {
       availableImages.push(imageUrl);
       currentInMemoryMenu.availableImages = JSON.stringify(availableImages);
     }
-    
+
     // Set as current image for this menu item
     item.imageUrl = imageUrl;
     return true;
@@ -220,7 +220,7 @@ async function addImageToMenuItem(itemId, imageUrl) {
 
 async function removeImageFromMenuItem(itemId, imageUrl) {
   if (!currentInMemoryMenu) return false;
-  
+
   const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
   if (item) {
     // Remove image from global menu available images
@@ -230,10 +230,10 @@ async function removeImageFromMenuItem(itemId, imageUrl) {
     } catch (e) {
       availableImages = [];
     }
-    
+
     const updatedImages = availableImages.filter(img => img !== imageUrl);
     currentInMemoryMenu.availableImages = JSON.stringify(updatedImages);
-    
+
     // If the removed image was the current image for this item, clear it
     if (item.imageUrl === imageUrl) {
       item.imageUrl = null;
@@ -246,7 +246,7 @@ async function removeImageFromMenuItem(itemId, imageUrl) {
 // Update menu orientation
 async function updateMenuOrientation(orientation) {
   if (!currentInMemoryMenu) return false;
-  
+
   if (orientation === 'vertical' || orientation === 'horizontal') {
     currentInMemoryMenu.orientation = orientation;
     return true;
@@ -257,7 +257,7 @@ async function updateMenuOrientation(orientation) {
 // Update menu available images
 async function updateMenuAvailableImages(availableImages) {
   if (!currentInMemoryMenu) return false;
-  
+
   currentInMemoryMenu.availableImages = availableImages;
   return true;
 }
@@ -275,12 +275,12 @@ async function saveCurrentMenu(name) {
 
       // Create section mapping from temp IDs to real IDs
       const sectionIdMapping = new Map();
-      
+
       // Create sections first
-      for (const section of currentInMemoryMenu.menuSections) {
-        const createdSection = await tx.menuSection.create({
+      for (const section of currentInMemoryMenu.menuSections) {        const createdSection = await tx.menuSection.create({
           data: {
             name: section.name,
+            header: section.header || null,
             position: section.position || 0,
             menuId: savedMenu.id
           }
@@ -291,7 +291,7 @@ async function saveCurrentMenu(name) {
       // Create menu items with correct section references
       // Collect all items from sections and standalone menuItems
       const allItems = [];
-      
+
       // Add items from sections
       if (currentInMemoryMenu.menuSections) {
         currentInMemoryMenu.menuSections.forEach(section => {
@@ -305,7 +305,7 @@ async function saveCurrentMenu(name) {
           }
         });
       }
-      
+
       // Add standalone items (not in sections)
       if (currentInMemoryMenu.menuItems) {
         currentInMemoryMenu.menuItems.forEach(item => {
@@ -511,19 +511,20 @@ async function deleteSavedMenu(savedMenuId) {
 
 async function addSectionToMenu(sectionData) {
   if (!currentInMemoryMenu) return false;
-  
+
   if (sectionData && typeof sectionData.name === "string") {
     // Determine position for new section
     const existingSections = currentInMemoryMenu.menuSections || [];
     const maxPosition = existingSections.length > 0 ? Math.max(...existingSections.map(s => s.position || 0)) : -1;
-    
+
     const newSection = {
       id: Date.now(), // Temporary in-memory ID
       name: sectionData.name,
+      header: sectionData.header || null, // Add header support
       position: maxPosition + 1,
       menuItems: [],
     };
-    
+
     if (!currentInMemoryMenu.menuSections) {
       currentInMemoryMenu.menuSections = [];
     }
@@ -535,12 +536,12 @@ async function addSectionToMenu(sectionData) {
 
 async function removeSectionFromMenu(sectionId) {
   if (!currentInMemoryMenu || !currentInMemoryMenu.menuSections) return false;
-  
+
   if (typeof sectionId === "number") {
     const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
     if (sectionIndex !== -1) {
       const removedSection = currentInMemoryMenu.menuSections[sectionIndex];
-      
+
       // Move items from removed section to first section or make them unsectioned
       if (removedSection.menuItems && removedSection.menuItems.length > 0) {
         if (currentInMemoryMenu.menuSections.length > 1) {
@@ -561,7 +562,7 @@ async function removeSectionFromMenu(sectionId) {
           });
         }
       }
-      
+
       currentInMemoryMenu.menuSections.splice(sectionIndex, 1);
       return true;
     }
@@ -571,7 +572,7 @@ async function removeSectionFromMenu(sectionId) {
 
 async function updateSectionOrder(sectionUpdates) {
   if (!currentInMemoryMenu || !currentInMemoryMenu.menuSections) return false;
-  
+
   try {
     // Update positions for each section
     sectionUpdates.forEach(update => {
@@ -580,7 +581,7 @@ async function updateSectionOrder(sectionUpdates) {
         section.position = update.position;
       }
     });
-    
+
     // Sort sections by position
     currentInMemoryMenu.menuSections.sort((a, b) => a.position - b.position);
     return true;
@@ -592,7 +593,7 @@ async function updateSectionOrder(sectionUpdates) {
 
 async function moveItemToSection(itemId, targetSectionId, position) {
   if (!currentInMemoryMenu) return false;
-  
+
   const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
   if (item) {
     // Remove from current section if it has one
@@ -602,11 +603,11 @@ async function moveItemToSection(itemId, targetSectionId, position) {
         currentSection.menuItems = currentSection.menuItems.filter(i => i.id !== itemId);
       }
     }
-    
+
     // Update item's section
     item.sectionId = targetSectionId;
     item.position = position || 0;
-    
+
     // Add to target section
     if (targetSectionId && currentInMemoryMenu.menuSections) {
       const targetSection = currentInMemoryMenu.menuSections.find(s => s.id === targetSectionId);
@@ -619,7 +620,7 @@ async function moveItemToSection(itemId, targetSectionId, position) {
         targetSection.menuItems.sort((a, b) => (a.position || 0) - (b.position || 0));
       }
     }
-    
+
     return true;
   }
   return false;
@@ -627,7 +628,7 @@ async function moveItemToSection(itemId, targetSectionId, position) {
 
 async function updateItemPositions(itemUpdates) {
   if (!currentInMemoryMenu) return false;
-  
+
   try {
     itemUpdates.forEach(update => {
       const item = currentInMemoryMenu.menuItems.find(item => item.id === update.itemId);
@@ -638,7 +639,7 @@ async function updateItemPositions(itemUpdates) {
         }
       }
     });
-    
+
     // Update section menuItems arrays
     if (currentInMemoryMenu.menuSections) {
       currentInMemoryMenu.menuSections.forEach(section => {
@@ -647,7 +648,7 @@ async function updateItemPositions(itemUpdates) {
           .sort((a, b) => (a.position || 0) - (b.position || 0));
       });
     }
-    
+
     return true;
   } catch (error) {
     console.error("Error updating item positions:", error);

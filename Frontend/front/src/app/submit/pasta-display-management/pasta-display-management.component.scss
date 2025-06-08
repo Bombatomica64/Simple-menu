@@ -1,0 +1,129 @@
+.pasta-display-management {
+  .quick-actions {
+    border-bottom: 1px solid var(--surface-border);
+    padding-bottom: 1rem;
+
+    .p-button {
+      font-size: 0.875rem;
+    }
+  }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+
+  .setting-group {
+    background: var(--surface-section);
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+
+    .setting-group-title {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-bottom: 1px solid var(--surface-border);
+      padding-bottom: 0.5rem;
+    }
+  }
+
+  .image-preview, .text-preview {
+    background: var(--surface-ground);
+    border: 1px solid var(--surface-border);
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1rem;
+
+    .preview-image {
+      background: var(--surface-card);
+      border: 2px dashed var(--surface-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-color-secondary);
+
+      i {
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .text-preview {
+    .font-bold {
+      margin-bottom: 0.25rem;
+    }
+  }
+
+  // Ensure pasta-sauce-image styling is consistent
+  .pasta-sauce-image {
+    &.preview-image {
+      object-fit: cover;
+      border-radius: 8px;
+      flex-shrink: 0;
+      display: flex;
+      overflow: hidden;
+
+      &.size-small {
+        width: 2rem;
+        height: 2rem;
+        min-width: 2rem;
+        min-height: 2rem;
+      }
+
+      &.size-medium {
+        width: 3rem;
+        height: 3rem;
+        min-width: 3rem;
+        min-height: 3rem;
+      }
+
+      &.size-large {
+        width: 4rem;
+        height: 4rem;
+        min-width: 4rem;
+        min-height: 4rem;
+      }
+    }
+  }
+
+  // Form styling improvements
+  .p-field {
+    label {
+      font-weight: 500;
+      color: var(--text-color);
+    }
+  }
+
+  .p-slider {
+    .p-slider-handle {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    .p-slider-range {
+      background: var(--primary-color);
+    }
+  }
+
+  .p-tabview {
+    .p-tabview-panels {
+      padding: 1.5rem 0;
+    }
+
+    .p-tabview-nav {
+      li .p-tabview-nav-link {
+        font-weight: 500;
+      }
+    }
+  }
+}

@@ -1,0 +1,234 @@
+<div class="pasta-display-management">
+  <p-card header="Gestione Visualizzazione Pasta e Sughi" [style]="{ width: '100%' }">
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions mb-4">
+      <div class="flex gap-2 flex-wrap">
+        <button 
+          pButton 
+          type="button" 
+          label="Applica Tutto a Entrambi" 
+          icon="pi pi-copy" 
+          size="small"
+          class="p-button-outlined"
+          (click)="applyToAll(pastaTypesSettings())"
+          title="Applica le impostazioni dei tipi di pasta anche ai sughi">
+        </button>
+        <button 
+          pButton 
+          type="button" 
+          label="Reset Predefiniti" 
+          icon="pi pi-refresh" 
+          size="small"
+          class="p-button-outlined p-button-secondary"
+          (click)="resetToDefaults()"
+          title="Ripristina tutte le impostazioni ai valori predefiniti">
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabbed Settings -->
+    <p-tabView>
+      
+      <!-- Pasta Types Tab -->
+      <p-tabPanel header="Tipi di Pasta" leftIcon="pi pi-list">
+        <div class="settings-grid">
+          
+          <!-- Image Settings -->
+          <div class="setting-group">
+            <h4 class="setting-group-title">
+              <i class="pi pi-image mr-2"></i>
+              Impostazioni Immagini
+            </h4>
+            
+            <div class="p-field flex align-items-center gap-3 mb-3">
+              <label for="pastaTypeImagesToggle" class="font-medium">Mostra Immagini:</label>
+              <p-toggleSwitch
+                id="pastaTypeImagesToggle"
+                [ngModel]="pastaTypesSettings().showImages"
+                (ngModelChange)="updatePastaTypeSettings('showImages', $event)">
+              </p-toggleSwitch>
+            </div>
+
+            @if (pastaTypesSettings().showImages) {
+            <div class="p-field mb-3">
+              <label for="pastaTypeImageSize" class="font-medium mb-2 block">Dimensione Immagini:</label>
+              <p-select
+                id="pastaTypeImageSize"
+                [ngModel]="pastaTypesSettings().imageSize"
+                (ngModelChange)="updatePastaTypeSettings('imageSize', $event)"
+                [options]="imageSizeOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleziona dimensione"
+                [style]="{ width: '100%' }">
+              </p-select>
+            </div>
+
+            <!-- Image Preview -->
+            <div class="image-preview">
+              <span class="text-sm text-color-secondary mb-2 block">Anteprima:</span>
+              <div class="flex align-items-center gap-3">
+                <div [class]="'pasta-sauce-image preview-image ' + pastaTypeImageSizeClass()">
+                  <i class="pi pi-image"></i>
+                </div>
+                <span class="text-sm">{{ pastaTypesSettings().imageSize === 'size-small' ? '32x32px' : 
+                                        pastaTypesSettings().imageSize === 'size-medium' ? '48x48px' : '64x64px' }}</span>
+              </div>
+            </div>
+            }
+          </div>
+
+          <!-- Text Settings -->
+          <div class="setting-group">
+            <h4 class="setting-group-title">
+              <i class="pi pi-align-left mr-2"></i>
+              Impostazioni Testo
+            </h4>
+            
+            <div class="p-field flex align-items-center gap-3 mb-3">
+              <label for="pastaTypeDescriptionsToggle" class="font-medium">Mostra Descrizioni:</label>
+              <p-toggleSwitch
+                id="pastaTypeDescriptionsToggle"
+                [ngModel]="pastaTypesSettings().showDescriptions"
+                (ngModelChange)="updatePastaTypeSettings('showDescriptions', $event)">
+              </p-toggleSwitch>
+            </div>
+
+            <div class="p-field mb-3">
+              <label for="pastaTypeFontSize" class="font-medium mb-2 block">
+                Dimensione Font: {{ pastaTypesSettings().fontSize }}%
+              </label>
+              <p-slider
+                id="pastaTypeFontSize"
+                [ngModel]="pastaTypesSettings().fontSize"
+                (ngModelChange)="updatePastaTypeSettings('fontSize', $event)"
+                [min]="fontSizeMin"
+                [max]="fontSizeMax"
+                [step]="5"
+                [style]="{ width: '100%' }">
+              </p-slider>
+              <div class="flex justify-content-between text-xs text-color-secondary mt-1">
+                <span>{{ fontSizeMin }}%</span>
+                <span>{{ fontSizeMax }}%</span>
+              </div>
+            </div>
+
+            <!-- Text Preview -->
+            <div class="text-preview">
+              <span class="text-sm text-color-secondary mb-2 block">Anteprima Testo:</span>
+              <div [style]="pastaTypeFontSizeStyle()">
+                <div class="font-bold">Penne Rigate</div>
+                @if (pastaTypesSettings().showDescriptions) {
+                <div class="text-color-secondary text-sm">Pasta corta con superficie rigata</div>
+                }
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </p-tabPanel>
+
+      <!-- Pasta Sauces Tab -->
+      <p-tabPanel header="Sughi per Pasta" leftIcon="pi pi-palette">
+        <div class="settings-grid">
+          
+          <!-- Image Settings -->
+          <div class="setting-group">
+            <h4 class="setting-group-title">
+              <i class="pi pi-image mr-2"></i>
+              Impostazioni Immagini
+            </h4>
+            
+            <div class="p-field flex align-items-center gap-3 mb-3">
+              <label for="pastaSauceImagesToggle" class="font-medium">Mostra Immagini:</label>
+              <p-toggleSwitch
+                id="pastaSauceImagesToggle"
+                [ngModel]="pastaSaucesSettings().showImages"
+                (ngModelChange)="updatePastaSauceSettings('showImages', $event)">
+              </p-toggleSwitch>
+            </div>
+
+            @if (pastaSaucesSettings().showImages) {
+            <div class="p-field mb-3">
+              <label for="pastaSauceImageSize" class="font-medium mb-2 block">Dimensione Immagini:</label>
+              <p-select
+                id="pastaSauceImageSize"
+                [ngModel]="pastaSaucesSettings().imageSize"
+                (ngModelChange)="updatePastaSauceSettings('imageSize', $event)"
+                [options]="imageSizeOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleziona dimensione"
+                [style]="{ width: '100%' }">
+              </p-select>
+            </div>
+
+            <!-- Image Preview -->
+            <div class="image-preview">
+              <span class="text-sm text-color-secondary mb-2 block">Anteprima:</span>
+              <div class="flex align-items-center gap-3">
+                <div [class]="'pasta-sauce-image preview-image ' + pastaSauceImageSizeClass()">
+                  <i class="pi pi-palette"></i>
+                </div>
+                <span class="text-sm">{{ pastaSaucesSettings().imageSize === 'size-small' ? '32x32px' : 
+                                        pastaSaucesSettings().imageSize === 'size-medium' ? '48x48px' : '64x64px' }}</span>
+              </div>
+            </div>
+            }
+          </div>
+
+          <!-- Text Settings -->
+          <div class="setting-group">
+            <h4 class="setting-group-title">
+              <i class="pi pi-align-left mr-2"></i>
+              Impostazioni Testo
+            </h4>
+            
+            <div class="p-field flex align-items-center gap-3 mb-3">
+              <label for="pastaSauceDescriptionsToggle" class="font-medium">Mostra Descrizioni:</label>
+              <p-toggleSwitch
+                id="pastaSauceDescriptionsToggle"
+                [ngModel]="pastaSaucesSettings().showDescriptions"
+                (ngModelChange)="updatePastaSauceSettings('showDescriptions', $event)">
+              </p-toggleSwitch>
+            </div>
+
+            <div class="p-field mb-3">
+              <label for="pastaSauceFontSize" class="font-medium mb-2 block">
+                Dimensione Font: {{ pastaSaucesSettings().fontSize }}%
+              </label>
+              <p-slider
+                id="pastaSauceFontSize"
+                [ngModel]="pastaSaucesSettings().fontSize"
+                (ngModelChange)="updatePastaSauceSettings('fontSize', $event)"
+                [min]="fontSizeMin"
+                [max]="fontSizeMax"
+                [step]="5"
+                [style]="{ width: '100%' }">
+              </p-slider>
+              <div class="flex justify-content-between text-xs text-color-secondary mt-1">
+                <span>{{ fontSizeMin }}%</span>
+                <span>{{ fontSizeMax }}%</span>
+              </div>
+            </div>
+
+            <!-- Text Preview -->
+            <div class="text-preview">
+              <span class="text-sm text-color-secondary mb-2 block">Anteprima Testo:</span>
+              <div [style]="pastaSauceFontSizeStyle()">
+                <div class="font-bold">Sugo al Pomodoro</div>
+                @if (pastaSaucesSettings().showDescriptions) {
+                <div class="text-color-secondary text-sm">Classico sugo di pomodoro fresco</div>
+                }
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </p-tabPanel>
+
+    </p-tabView>
+
+  </p-card>
+</div>

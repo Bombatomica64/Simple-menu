@@ -44,6 +44,9 @@
 
         <div class="section-header">
           <div class="section-info">
+            @if (section.header) {
+              <h3 class="section-header-text">{{ section.header }}</h3>
+            }
             <h4 class="section-name">{{ section.name }}</h4>
             <span class="item-count">({{ section.menuItems.length || 0 }} elementi)</span>
           </div>
@@ -152,6 +155,17 @@
           placeholder="Inserisci nome sezione"
         />
       </div>
+      <div class="p-field">
+        <label for="sectionHeader">Header Sezione (opzionale):</label>
+        <input
+          id="sectionHeader"
+          type="text"
+          pInputText
+          [value]="newSectionHeader()"
+          (input)="onSectionHeaderInput($event)"
+          placeholder="Inserisci header sezione (opzionale)"
+        />
+      </div>
     </div>
     <ng-template pTemplate="footer">
       <button
@@ -190,6 +204,9 @@
       @for (section of sectionsWithItems(); track section.id) {
         <div class="section-manage-item">
           <div class="section-info">
+            @if (section.header) {
+              <span class="section-header-text">{{ section.header }}</span>
+            }
             <span class="section-name">{{ section.name }}</span>
             <span class="item-count">({{ section.menuItems.length || 0 }} elementi)</span>
           </div>

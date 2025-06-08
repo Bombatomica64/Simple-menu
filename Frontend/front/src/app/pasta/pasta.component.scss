@@ -16,11 +16,33 @@
     left: 0;
     z-index: 1000;
   }
-
   .pasta-header {
     text-align: center;
     margin-bottom: 0.5rem;
     flex-shrink: 0;
+    position: relative;
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 1rem;
+
+      .title-section {
+        flex: 1;
+      }
+
+      .customization-btn {
+        margin-left: 1rem;
+        color: #8B4513 !important;
+        border-color: #8B4513 !important;
+
+        &:hover {
+          background-color: #8B4513 !important;
+          color: white !important;
+        }
+      }
+    }
 
     h1 {
       color: #8B4513;
@@ -409,30 +431,14 @@
         font-weight: 600;
         margin: 0 0 0.2rem 0;
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-      }
-
-      .item-description {
+      }      .item-description {
         color: #666;
         font-size: 0.7rem;
-        line-height: 1.2;
+        line-height: 1.3;
         margin-bottom: 0.3rem;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-
-      .item-price {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
-        color: white;
-        padding: 0.2rem 0.5rem;
-        border-radius: 10px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        display: inline-block;
-        box-shadow: 0 1px 4px rgba(255, 107, 107, 0.3);
-        margin-bottom: 0.2rem;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
       }
 
       .price-note {
@@ -462,101 +468,7 @@
           margin-bottom: 0.6rem;
         }
       }
-    }
-  }
-
-  // Price Information Section - ultra compact for fixed viewport
-  .price-info-section {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 0.3rem;
-    flex-shrink: 0;
-  }
-
-  .price-info-box {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    position: relative;
-    overflow: hidden;
-    max-width: 300px;
-
-    &:before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #D2691E, #ff6b6b);
-    }
-
-    .price-info-content {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-
-      .price-icon {
-        color: #8B4513;
-        font-size: 1.2rem;
-        background: linear-gradient(135deg, #ffecd2, #fcb69f);
-        padding: 0.5rem;
-        border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(139, 69, 19, 0.2);
-      }
-
-      .price-details {
-        flex: 1;
-
-        h4 {
-          color: #8B4513;
-          font-size: 0.8rem;
-          font-weight: 600;
-          margin: 0 0 0.3rem 0;
-        }
-
-        .price-breakdown {
-          display: flex;
-          flex-direction: column;
-          gap: 0.2rem;
-
-          span {
-            font-size: 0.7rem;
-            font-weight: 500;
-
-            &.pasta-price {
-              color: #D2691E;
-            }
-
-            &.sauce-price {
-              color: #ff6b6b;
-            }
-
-            &.total-price {
-              color: #8B4513;
-              font-weight: 700;
-              font-size: 0.75rem;
-              margin-top: 0.2rem;
-              padding-top: 0.2rem;
-              border-top: 1px solid rgba(139, 69, 19, 0.2);
-            }
-          }
-        }
-
-        .price-disclaimer {
-          font-size: 0.55rem;
-          color: #888;
-          font-style: italic;
-          margin-top: 0.2rem;
-          text-align: center;
-        }
-      }
-    }
-  }
+    }  }
 
   // Info section - ultra compact for fixed viewport
   .pasta-info {
@@ -696,15 +608,8 @@
       .item-content {
         .item-name {
           font-size: 0.85rem;
-        }
-
-        .item-description {
+        }        .item-description {
           font-size: 0.65rem;
-        }
-
-        .item-price {
-          font-size: 0.65rem;
-          padding: 0.15rem 0.4rem;
         }
       }
     }
@@ -718,40 +623,7 @@
       .page-indicator {
         font-size: 0.75rem;
         min-width: 50px;
-      }
-    }
-
-    .price-info-box {
-      padding: 0.8rem 1rem;
-      max-width: 250px;
-
-      .price-info-content {
-        gap: 0.8rem;
-
-        .price-icon {
-          font-size: 1.5rem;
-          padding: 0.6rem;
-        }
-
-        .price-details {
-          h4 {
-            font-size: 0.9rem;
-          }
-
-          .price-breakdown span {
-            font-size: 0.8rem;
-
-            &.total-price {
-              font-size: 0.85rem;
-            }
-          }
-
-          .price-disclaimer {
-            font-size: 0.5rem;
-          }
-        }
-      }
-    }
+      }    }
 
     .pasta-header h1 {
       font-size: 2.5rem;
@@ -809,29 +681,83 @@
         .item-name {
           font-size: 1rem;
         }
+      }    }
+  }
+
+  // Customization Menu Styling
+  .customization-menu {
+    padding: 1rem;
+    min-width: 250px;
+
+    h4 {
+      color: #8B4513;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .customization-option {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+
+      label {
+        color: #8B4513;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      .p-togglebutton {
+        min-width: 60px;
+      }
+
+      .p-selectbutton {
+        .p-button {
+          min-width: 35px;
+          padding: 0.3rem 0.5rem;
+          font-size: 0.8rem;
+        }
+      }
+    }
+  }
+
+  // Font size variations for item cards
+  .item-card {
+    &[data-font-size="small"] {
+      .item-name {
+        font-size: 0.8rem !important;
+      }
+      .item-description {
+        font-size: 0.6rem !important;
+      }
+      .price-note {
+        font-size: 0.5rem !important;
       }
     }
 
-    .price-info-box {
-      padding: 0.7rem;
+    &[data-font-size="medium"] {
+      .item-name {
+        font-size: 0.9rem !important;
+      }
+      .item-description {
+        font-size: 0.7rem !important;
+      }
+      .price-note {
+        font-size: 0.6rem !important;
+      }
+    }
 
-      .price-info-content {
-        gap: 0.6rem;
-
-        .price-icon {
-          font-size: 1.3rem;
-          padding: 0.5rem;
-        }
-
-        .price-details {
-          h4 {
-            font-size: 0.85rem;
-          }
-
-          .price-breakdown span {
-            font-size: 0.75rem;
-          }
-        }
+    &[data-font-size="large"] {
+      .item-name {
+        font-size: 1.1rem !important;
+      }
+      .item-description {
+        font-size: 0.9rem !important;
+      }
+      .price-note {
+        font-size: 0.7rem !important;
       }
     }
   }

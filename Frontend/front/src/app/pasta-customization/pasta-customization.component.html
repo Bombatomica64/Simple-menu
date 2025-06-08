@@ -1,0 +1,61 @@
+<!-- Customization Menu Button -->
+<button
+  pButton
+  type="button"
+  icon="pi pi-cog"
+  class="p-button-rounded p-button-outlined customization-btn"
+  (click)="customizationPanel.toggle($event)"
+  title="Personalizza visualizzazione"
+  aria-label="Personalizza visualizzazione">
+</button>
+
+<!-- Customization Overlay Panel -->
+<p-overlayPanel #customizationPanel>
+  <div class="customization-menu">
+    <h4>Personalizza Visualizzazione</h4>
+
+    <div class="customization-option">
+      <label>Mostra Immagini</label>
+      <p-toggleButton
+        [ngModel]="showImages()"
+        (ngModelChange)="showImages.set($event)"
+        onLabel="Sì"
+        offLabel="No">
+      </p-toggleButton>
+    </div>
+
+    <div class="customization-option">
+      <label>Mostra Descrizioni</label>
+      <p-toggleButton
+        [ngModel]="showDescriptions()"
+        (ngModelChange)="showDescriptions.set($event)"
+        onLabel="Sì"
+        offLabel="No">
+      </p-toggleButton>
+    </div>
+
+    <div class="customization-option">
+      <label>Dimensione Testo</label>
+      <p-selectButton
+        [ngModel]="fontSize()"
+        (ngModelChange)="fontSize.set($event)"
+        [options]="fontSizeOptions"
+        optionLabel="label"
+        optionValue="value">
+      </p-selectButton>
+    </div>
+
+    <div class="customization-actions">
+      <button
+        pButton
+        type="button"
+        label="Reset"
+        icon="pi pi-refresh"
+        class="p-button-sm p-button-outlined"
+        (click)="resetToDefaults()"
+        title="Ripristina impostazioni predefinite"
+        aria-label="Ripristina impostazioni predefinite">
+      </button>
+    </div>
+  </div>
+</p-overlayPanel>

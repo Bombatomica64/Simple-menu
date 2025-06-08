@@ -1,19 +1,26 @@
-<div class="pasta-container">
-  <!-- Header Section -->
+<div class="pasta-container">  <!-- Header Section -->
   <div class="pasta-header">
-    <h1>
-      <i class="pi pi-heart pasta-icon"></i>
-      Menu Completo
-    </h1>
-    <p>Pasta artigianale e specialità della casa</p>
+    <div class="header-content">
+      <div class="title-section">
+        <h1>
+          <i class="pi pi-heart pasta-icon"></i>
+          Menu Completo
+        </h1>
+        <p>Pasta artigianale e specialità della casa</p>
+      </div>
+        <!-- Customization Component -->
+      <app-pasta-customization
+        [customization]="customization()"
+        (customizationChange)="onCustomizationChange($event)">
+      </app-pasta-customization>
+    </div>
   </div>
 
   <!-- Main Two Column Layout -->
   <div class="main-layout">
     <!-- Left Column - Pasta Section (Bigger) -->
-    <div class="pasta-main-column">
-      <h2 class="section-title">
-        <i class="pi pi-star-fill mr-2"></i>
+    <div class="pasta-main-column">      <h2 class="section-title">
+        <i class="pi pi-star-fill mr-2" title="Stelle di qualità"></i>
         Combinazioni Perfette di Pasta
       </h2>
 
@@ -21,11 +28,15 @@
       <div class="pasta-sub-layout">
         <!-- Pasta Types -->
         <div class="pasta-types-section">
-          <h3 class="sub-title">Tipi di Pasta</h3>
-          <div class="items-grid">
+          <h3 class="sub-title">Tipi di Pasta</h3>          <div class="items-grid">
             @for (pasta of pastaTypes(); track $index) {
-              <div class="item-card">
-                @if (pasta.image && pasta.image !== 'assets/placeholder.png') {
+              <div class="item-card"
+                   [attr.data-font-size]="fontSize()"
+                   (contextmenu)="onItemLongPress($event, pasta, 'pasta')"
+                   (touchstart)="onItemTouchStart($event, pasta, 'pasta')"
+                   (touchend)="onItemTouchEnd()"
+                   (touchmove)="onItemTouchMove()">
+                @if (showImages() && pasta.image && pasta.image !== 'assets/placeholder.png') {
                   <img
                     [src]="pasta.image"
                     [alt]="pasta.name + ' - pasta tradizionale italiana'"
@@ -35,8 +46,9 @@
                 }
                 <div class="item-content">
                   <h4 class="item-name">{{ pasta.name }}</h4>
-                  <p class="item-description">{{ pasta.description }}</p>
-                  <div class="item-price">€{{ pasta.price }}</div>
+                  @if (showDescriptions()) {
+                    <p class="item-description">{{ pasta.description }}</p>
+                  }
                   @if (pasta.priceNote) {
                     <div class="price-note">{{ pasta.priceNote }}</div>
                   }
@@ -48,11 +60,15 @@
 
         <!-- Pasta Sauces -->
         <div class="pasta-sauces-section">
-          <h3 class="sub-title">Sughi per Pasta</h3>
-          <div class="items-grid">
+          <h3 class="sub-title">Sughi per Pasta</h3>          <div class="items-grid">
             @for (sauce of pastaSauces(); track $index) {
-              <div class="item-card">
-                @if (sauce.image && sauce.image !== 'assets/placeholder.png') {
+              <div class="item-card"
+                   [attr.data-font-size]="fontSize()"
+                   (contextmenu)="onItemLongPress($event, sauce, 'sauce')"
+                   (touchstart)="onItemTouchStart($event, sauce, 'sauce')"
+                   (touchend)="onItemTouchEnd()"
+                   (touchmove)="onItemTouchMove()">
+                @if (showImages() && sauce.image && sauce.image !== 'assets/placeholder.png') {
                   <img
                     [src]="sauce.image"
                     [alt]="sauce.name + ' - sugo italiano autentico'"
@@ -62,8 +78,9 @@
                 }
                 <div class="item-content">
                   <h4 class="item-name">{{ sauce.name }}</h4>
-                  <p class="item-description">{{ sauce.description }}</p>
-                  <div class="item-price">€{{ sauce.price }}</div>
+                  @if (showDescriptions()) {
+                    <p class="item-description">{{ sauce.description }}</p>
+                  }
                   @if (sauce.priceNote) {
                     <div class="price-note">{{ sauce.priceNote }}</div>
                   }
@@ -71,26 +88,7 @@
               </div>
             }
           </div>
-        </div>
-      </div>
-
-      <!-- Price Information Box -->
-      <div class="price-info-section">
-        <div class="price-info-box">
-          <div class="price-info-content">
-            <i class="pi pi-calculator price-icon"></i>
-            <div class="price-details">
-              <h4>Prezzo Base</h4>
-              <div class="price-breakdown">
-                <span class="pasta-price">Pasta: da €{{ getMinPastaPrice() }}</span>
-                <span class="sauce-price">Sugo: da €{{ getMinSaucePrice() }}</span>
-                <span class="total-price">Totale: da €{{ getMinTotalPrice() }}</span>
-              </div>
-              <p class="price-disclaimer">*I prezzi possono variare in base alla scelta specifica</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        </div>      </div>
     </div>
 
     <!-- Right Column - Menu Sections (Smaller) -->

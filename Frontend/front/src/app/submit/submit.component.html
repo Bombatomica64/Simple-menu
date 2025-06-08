@@ -148,36 +148,16 @@
 					(click)="openSaveMenuDialog()"
 					title="Salva il menu attuale per riutilizzarlo in seguito."
 				></button>
-			</div>
-			}
+			</div>			}
 		</div>
-		<!-- Pasta Types Section -->
+
+		<!-- Pasta Display Management Section -->
+		<div class="card p-mb-4">
+			<app-pasta-display-management></app-pasta-display-management>
+		</div>
+				<!-- Pasta Types Section -->
 		<div class="card p-mb-4">
 			<h3>Tipi di Pasta</h3>
-
-			<!-- Image Controls -->
-			<div class="image-controls">
-				<div class="control-group">
-					<label for="pastaTypeImagesToggle">Mostra Immagini:</label>
-					<p-toggleSwitch
-						id="pastaTypeImagesToggle"
-						[(ngModel)]="showPastaTypeImages"
-						[style]="{ '--p-button-sm-font-size': '0.75rem' }"
-					></p-toggleSwitch>
-				</div>
-				@if (showPastaTypeImages()) {
-				<div class="control-group">
-					<label for="imageSizeSelect">Dimensione Immagini:</label>
-					<p-select
-						id="imageSizeSelect"
-						[(ngModel)]="imageSizeOption"
-						[options]="imageSizeOptions"
-						placeholder="Seleziona dimensione"
-						[style]="{ minWidth: '180px' }"
-					></p-select>
-				</div>
-				}
-			</div>
 
 			<button
 				pButton
@@ -202,29 +182,36 @@
 					sourceFilterPlaceholder="Cerca per nome"
 					targetFilterPlaceholder="Cerca per nome"
 					(onMoveToTarget)="onPastaTypeMoveToTarget($event)"
-					(onMoveToSource)="onPastaTypeMoveToSource($event)"
-				>					<ng-template let-type pTemplate="item">
-						<div class="flex flex-wrap p-1 align-items-center gap-2 w-full">
-							@if (showPastaTypeImages() && type.imageUrl) {
+					(onMoveToSource)="onPastaTypeMoveToSource($event)"				>					<ng-template let-type pTemplate="item">
+						<div class="flex flex-wrap p-1 align-items-center gap-2 w-full" [style]="getPastaTypeFontSizeStyle()">
+							@if (shouldShowPastaTypeImages() && type.imageUrl) {
 							<img
-								[class]="'pasta-sauce-image ' + imageSizeClass()"
+								[class]="'pasta-sauce-image ' + getPastaTypeImageSizeClass()"
 								[src]="type.imageUrl"
 								[alt]="type.name + ' pasta type'"
 								title="Pasta type image"
 							/>
-							} @else if (showPastaTypeImages() && !type.imageUrl) {
+							} @else if (shouldShowPastaTypeImages() && !type.imageUrl) {
 							<i
-								[class]="'pi pi-image pasta-sauce-placeholder ' + imageSizeClass()"
+								[class]="'pi pi-image pasta-sauce-placeholder ' + getPastaTypeImageSizeClass()"
 								title="Nessuna immagine disponibile"
 							></i>
 							}
 							<div class="flex-1 flex flex-col">
 								<span class="font-bold text-sm">{{ type.name }}</span>
-								@if (type.description) {
+								@if (type.description && shouldShowPastaTypeDescriptions()) {
 								<span class="text-xs text-color-secondary">{{ type.description }}</span>
 								}
-							</div>
-							<div class="flex gap-1 image-management-buttons">
+							</div>							<div class="flex gap-1 image-management-buttons">
+								<button
+									pButton
+									type="button"
+									icon="pi pi-cog"
+									class="p-button-sm p-button-text"
+									(click)="openPastaTypeDisplaySettings(type)"
+									title="Impostazioni visualizzazione per {{ type.name }}"
+									[attr.aria-label]="'Impostazioni visualizzazione per ' + type.name"
+								></button>
 								<button
 									pButton
 									type="button"
@@ -239,26 +226,19 @@
 					</ng-template>
 				</p-pickList>
 			</div>
-		</div>
-		<!-- Pasta Sauces Section -->
+		</div>		<!-- Pasta Sauces Section -->
 		<div class="card p-mb-4">
-			<h3>Sughi per Pasta</h3>
-
-			<!-- Image Controls -->
-			<div class="image-controls">
-				<div class="control-group">
-					<label for="pastaSauceImagesToggle">Mostra Immagini:</label>
-					<p-toggleSwitch
-						id="pastaSauceImagesToggle"
-						[(ngModel)]="showPastaSauceImages"
-						[style]="{ '--p-button-sm-font-size': '0.75rem' }"
-					></p-toggleSwitch>
-				</div>				@if (showPastaSauceImages()) {
-				<div class="control-group">
-					<label>Dimensione condivisa con tipi di pasta</label>
-					<span class="text-sm text-color-secondary">({{ getCurrentImageSizeLabel() }})</span>
-				</div>
-				}
+			<div class="flex justify-content-between align-items-center p-mb-3">
+				<h3>Sughi per Pasta</h3>
+				<button
+					pButton
+					type="button"
+					icon="pi pi-cog"
+					class="p-button-rounded p-button-outlined p-button-sm"
+					(click)="openPastaSauceDisplaySettings()"
+					title="Impostazioni di visualizzazione sughi"
+					aria-label="Apri impostazioni di visualizzazione per i sughi per pasta"
+				></button>
 			</div>
 
 			<button
@@ -284,29 +264,36 @@
 					sourceFilterPlaceholder="Cerca per nome"
 					targetFilterPlaceholder="Cerca per nome"
 					(onMoveToTarget)="onPastaSauceMoveToTarget($event)"
-					(onMoveToSource)="onPastaSauceMoveToSource($event)"
-				>					<ng-template let-sauce pTemplate="item">
-						<div class="flex flex-wrap p-1 align-items-center gap-2 w-full">
-							@if (showPastaSauceImages() && sauce.imageUrl) {
+					(onMoveToSource)="onPastaSauceMoveToSource($event)"				>					<ng-template let-sauce pTemplate="item">
+						<div class="flex flex-wrap p-1 align-items-center gap-2 w-full" [style]="getPastaSauceFontSizeStyle()">
+							@if (shouldShowPastaSauceImages() && sauce.imageUrl) {
 							<img
-								[class]="'pasta-sauce-image ' + imageSizeClass()"
+								[class]="'pasta-sauce-image ' + getPastaSauceImageSizeClass()"
 								[src]="sauce.imageUrl"
 								[alt]="sauce.name + ' pasta sauce'"
 								title="Pasta sauce image"
 							/>
-							} @else if (showPastaSauceImages() && !sauce.imageUrl) {
+							} @else if (shouldShowPastaSauceImages() && !sauce.imageUrl) {
 							<i
-								[class]="'pi pi-image pasta-sauce-placeholder ' + imageSizeClass()"
+								[class]="'pi pi-image pasta-sauce-placeholder ' + getPastaSauceImageSizeClass()"
 								title="Nessuna immagine disponibile"
 							></i>
 							}
 							<div class="flex-1 flex flex-col">
 								<span class="font-bold text-sm">{{ sauce.name }}</span>
-								@if (sauce.description) {
+								@if (sauce.description && shouldShowPastaSauceDescriptions()) {
 								<span class="text-xs text-color-secondary">{{ sauce.description }}</span>
 								}
-							</div>
-							<div class="flex gap-1 image-management-buttons">
+							</div>							<div class="flex gap-1 image-management-buttons">
+								<button
+									pButton
+									type="button"
+									icon="pi pi-cog"
+									class="p-button-sm p-button-text"
+									(click)="onPastaSauceEvent({type: 'openDisplaySettings', pastaSauce: sauce})"
+									title="Impostazioni visualizzazione per {{ sauce.name }}"
+									[attr.aria-label]="'Impostazioni visualizzazione per ' + sauce.name"
+								></button>
 								<button
 									pButton
 									type="button"
@@ -316,7 +303,7 @@
 									title="Gestisci immagini per {{ sauce.name }}"
 									[attr.aria-label]="'Gestisci immagini per ' + sauce.name"
 								></button>
-							</div>						</div>
+							</div></div>
 					</ng-template>
 				</p-pickList>
 			</div>
@@ -950,8 +937,21 @@
 				(click)="saveMenuConfiguration()"
 				title="Salva configurazione menu"
 			></button>
-		</ng-template>
-	</p-dialog>
+		</ng-template>	</p-dialog>	<!-- Pasta Sauce Display Settings Dialog -->
+	<app-pasta-sauce-display-dialog
+		[(visible)]="showPastaSauceDisplayDialog"
+		[pastaSauce]="selectedPastaSauceForDisplay()"
+		[menuConnection]="menuWsConnection"
+		(settingsChange)="onPastaSauceDisplaySettingsChange($event)"
+	></app-pasta-sauce-display-dialog>
+
+	<!-- Pasta Type Display Settings Dialog -->
+	<app-pasta-type-display-dialog
+		[(visible)]="showPastaTypeDisplayDialog"
+		[pastaType]="selectedPastaTypeForDisplay()"
+		[menuConnection]="menuWsConnection"
+		(settingsChange)="onPastaTypeDisplaySettingsChange($event)"
+	></app-pasta-type-display-dialog>
 
 	<!-- Confirmation Dialog -->
 	<p-confirmDialog styleClass="confirmation-dialog"></p-confirmDialog>
