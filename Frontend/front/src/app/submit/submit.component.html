@@ -152,8 +152,10 @@
 		</div>
 
 		<!-- Pasta Display Management Section -->
-		<div class="card p-mb-4">
-			<app-pasta-display-management></app-pasta-display-management>
+		<div class="card p-mb-4">			<app-pasta-display-management
+				[menu]="menuWsConnection?.resource?.value() || null"
+				(settingsUpdate)="onPastaDisplaySettingsUpdate($event)">
+			</app-pasta-display-management>
 		</div>
 				<!-- Pasta Types Section -->
 		<div class="card p-mb-4">

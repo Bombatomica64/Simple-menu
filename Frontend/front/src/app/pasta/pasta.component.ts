@@ -44,12 +44,21 @@ export class PastaComponent implements OnInit, OnDestroy {
         showImages: true,
         showDescriptions: true,
         fontSize: 'medium'
-    });
-
-    // Computed properties for template access
+    });    // Computed properties for template access
     showImages = computed(() => this.customization().showImages);
     showDescriptions = computed(() => this.customization().showDescriptions);
-    fontSize = computed(() => this.customization().fontSize);    // Load customization from localStorage or API
+    fontSize = computed(() => this.customization().fontSize);
+
+    // Global font sizes from menu - these override individual per-type font sizes
+    pastaTypeFontSize = computed(() => {
+        const currentMenu = this.menu();
+        return currentMenu?.globalPastaTypeFontSize ?? 100;
+    });
+
+    pastaSauceFontSize = computed(() => {
+        const currentMenu = this.menu();
+        return currentMenu?.globalPastaSauceFontSize ?? 100;
+    });// Load customization from localStorage or API
     private loadCustomization() {
         // First try to load from backend
         this.http.get<PastaCustomization>(`${environment.apiUrl}/api/user/pasta-customization`).subscribe({

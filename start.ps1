@@ -184,7 +184,7 @@ function Start-PrometheusSetup {
     Start-Sleep -Seconds 10
     
     Write-Info "Starting Prometheus + Grafana monitoring..."
-    docker-compose -f docker-compose.monitoring-simple.yml up -d
+    docker-compose -f docker\docker-compose.monitoring-simple.yml up -d
     
     if ($LASTEXITCODE -eq 0) {
         Write-Info "Waiting for monitoring services to be ready..."
@@ -229,7 +229,7 @@ function Start-ELKSetup {
     Start-Sleep -Seconds 10
     
     Write-Info "Starting ELK Stack monitoring (this may take a few minutes)..."
-    docker-compose -f docker-compose.elk-simple.yml up -d
+    docker-compose -f docker\docker-compose.elk-simple.yml up -d
     
     if ($LASTEXITCODE -eq 0) {
         Write-Info "Waiting for ELK services to be ready (this can take 2-3 minutes)..."
@@ -268,7 +268,7 @@ function Start-UnifiedSetup {
     Write-Info "Starting unified monitoring stack (this will take several minutes)..."
     Write-Info "This includes: Simple Menu + Prometheus + Grafana + ELK Stack"
     
-    docker-compose -f docker-compose.unified.yml up -d
+    docker-compose -f docker\docker-compose.unified.yml up -d
     
     if ($LASTEXITCODE -eq 0) {
         Write-Info "Waiting for all services to be ready (this can take 3-5 minutes)..."
@@ -301,13 +301,13 @@ function Stop-AllServices {
     Write-Header "Stopping All Services"
     
     Write-Info "Stopping unified monitoring services..."
-    docker-compose -f docker-compose.unified.yml down 2>$null
+    docker-compose -f docker\docker-compose.unified.yml down 2>$null
     
     Write-Info "Stopping individual monitoring services..."
-    docker-compose -f docker-compose.monitoring-simple.yml down 2>$null
-    docker-compose -f docker-compose.elk-simple.yml down 2>$null
-    docker-compose -f docker-compose.monitoring.yml down 2>$null
-    docker-compose -f docker-compose.elk.yml down 2>$null
+    docker-compose -f docker\docker-compose.monitoring-simple.yml down 2>$null
+    docker-compose -f docker\docker-compose.elk-simple.yml down 2>$null
+    docker-compose -f docker\docker-compose.monitoring.yml down 2>$null
+    docker-compose -f docker\docker-compose.elk.yml down 2>$null
     
     Write-Info "Stopping Simple Menu application..."
     docker-compose down

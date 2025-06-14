@@ -154,6 +154,23 @@ export interface GetPastaTypeDisplaySettingsMessage {
 	pastaTypeId: number;
 }
 
+// Global display settings message types
+export interface GlobalPastaDisplaySettings {
+	pastaTypeShowImage: boolean;
+	pastaTypeImageSize: string;
+	pastaTypeShowDescription: boolean;
+	pastaTypeFontSize: number;
+	pastaSauceShowImage: boolean;
+	pastaSauceImageSize: string;
+	pastaSauceShowDescription: boolean;
+	pastaSauceFontSize: number;
+}
+
+export interface UpdateGlobalPastaDisplaySettingsMessage {
+	type: 'updateGlobalPastaDisplaySettings';
+	settings: GlobalPastaDisplaySettings;
+}
+
 // Saved menu message types
 export interface SaveCurrentMenuMessage {
 	type: 'saveCurrentMenu';
@@ -223,6 +240,17 @@ export interface ErrorResponse {
 	message: string;
 }
 
+// Pasta creation response message types
+export interface PastaTypeCreatedResponse {
+	type: 'pastaTypeCreated';
+	pastaType: any; // You can define a proper PastaType interface if needed
+}
+
+export interface PastaSauceCreatedResponse {
+	type: 'pastaSauceCreated';
+	pastaSauce: any; // You can define a proper PastaSauce interface if needed
+}
+
 // Display settings response message types
 export interface PastaSauceDisplaySettingsResponse {
 	type: 'pastaSauceDisplaySettings';
@@ -285,7 +313,8 @@ export type MenuUpdateMessage =
 	| UpdateBackgroundConfigMessage
 	| DeleteBackgroundConfigMessage
 	| GetBackgroundConfigMessage
-	| GetAllBackgroundConfigsMessage;
+	| GetAllBackgroundConfigsMessage
+	| UpdateGlobalPastaDisplaySettingsMessage;
 
 export type MenuResponseMessage =
 	| MenuSavedResponse
@@ -296,6 +325,8 @@ export type MenuResponseMessage =
 	| BackgroundConfigResponse
 	| AllBackgroundConfigsResponse
 	| BackgroundConfigDeletedResponse
+	| PastaTypeCreatedResponse
+	| PastaSauceCreatedResponse
 	| ErrorResponse;
 
 export type SendUpdateFn = (message: MenuUpdateMessage) => void;

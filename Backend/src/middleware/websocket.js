@@ -5,6 +5,24 @@ const menuService = require("../services/menuService");
 const clients = new Set();
 let wsServer = null;
 
+// Metrics for monitoring
+const wsMetrics = {
+  totalConnections: 0,
+  activeConnections: 0,
+  messagesReceived: 0,
+  messagesSent: 0,
+  errors: 0,
+  lastActivity: new Date()
+};
+
+// Expose metrics for Prometheus
+function getWebSocketMetrics() {
+  return {
+    ...wsMetrics,
+    connectedClients: clients.size
+  };
+}
+
 function setupWebSocket(server) {
   wsServer = new WebSocket.Server({ 
     server, 
@@ -26,27 +44,37 @@ function setupWebSocket(server) {
 
     const menuToSend = JSON.stringify(currentMenu);
     const deadClients = new Set();
+    let successfulBroadcasts = 0;
     
     clients.forEach((client) => {
       try {
         if (client.readyState === WebSocket.OPEN) {
           client.send(menuToSend);
+          successfulBroadcasts++;
+          wsMetrics.messagesSent++;
         } else if (client.readyState === WebSocket.CLOSED) {
           deadClients.add(client);
         }
       } catch (error) {
         console.error('❌ Error broadcasting to client:', error.message);
         deadClients.add(client);
+        wsMetrics.errors++;
       }
     });
     
     // Clean up dead connections
     deadClients.forEach(client => {
       clients.delete(client);
+      wsMetrics.activeConnections = Math.max(0, wsMetrics.activeConnections - 1);
     });
     
     if (deadClients.size > 0) {
       console.log(`🧹 Cleaned up ${deadClients.size} dead WebSocket connections`);
+    }
+    
+    if (successfulBroadcasts > 0) {
+      console.log(`📡 Broadcasted menu to ${successfulBroadcasts} clients`);
+      wsMetrics.lastActivity = new Date();
     }
   }
 
@@ -55,19 +83,31 @@ function setupWebSocket(server) {
       const currentMenu = menuService.getCurrentMenu();
       if (currentMenu && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify(currentMenu));
+        wsMetrics.messagesSent++;
+        wsMetrics.lastActivity = new Date();
       }
     } catch (error) {
       console.error('❌ Error sending menu to client:', error.message);
+      wsMetrics.errors++;
     }
   }
 
   wsServer.on("connection", (ws, req) => {
-    const clientIp = req.socket.remoteAddress;
-    console.log(`🔌 Client connected to WebSocket from ${clientIp}`);
+    const clientIp = req.socket.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    
+    console.log(`🔌 Client connected to WebSocket from ${clientIp} (${userAgent.substring(0, 50)}...)`);
+    
     clients.add(ws);
+    wsMetrics.totalConnections++;
+    wsMetrics.activeConnections++;
+    wsMetrics.lastActivity = new Date();
     
     // Set up ping/pong for connection health monitoring
     ws.isAlive = true;
+    ws.connectionTime = new Date();
+    ws.clientIp = clientIp;
+    
     ws.on('pong', () => {
       ws.isAlive = true;
     });
@@ -95,9 +135,9 @@ function setupWebSocket(server) {
           type: "error",
           message: "Invalid message format"
         }));
-        return;
-      }
+        return;      }
 
+      try {
         let updated = false;
         switch (message.type) {
           case "addItem":
@@ -144,6 +184,12 @@ function setupWebSocket(server) {
                 }
               });
               console.log("Pasta type created:", newPastaType);
+              
+              // Send success response
+              ws.send(JSON.stringify({
+                type: "pastaTypeCreated",
+                pastaType: newPastaType
+              }));
             } catch (error) {
               console.error("Failed to create pasta type:", error);
               ws.send(JSON.stringify({
@@ -180,6 +226,12 @@ function setupWebSocket(server) {
                 }
               });
               console.log("Pasta sauce created:", newPastaSauce);
+              
+              // Send success response
+              ws.send(JSON.stringify({
+                type: "pastaSauceCreated",
+                pastaSauce: newPastaSauce
+              }));
             } catch (error) {
               console.error("Failed to create pasta sauce:", error);
               ws.send(JSON.stringify({
@@ -227,6 +279,9 @@ function setupWebSocket(server) {
             break;
           case "updateMenuAvailableImages":
             updated = await menuService.updateMenuAvailableImages(message.availableImages);
+            break;
+          case "updateGlobalPastaDisplaySettings":
+            updated = await menuService.updateGlobalPastaDisplaySettings(message.settings);
             break;
           case "saveCurrentMenu":
             try {

@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, input, output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
@@ -7,17 +7,25 @@ import { SelectModule } from 'primeng/select';
 import { SliderModule } from 'primeng/slider';
 import { TabViewModule } from 'primeng/tabview';
 import { ButtonModule } from 'primeng/button';
+import { Menu } from '../../Menu/menu';
 
 interface DisplayOption {
   label: string;
   value: string;
 }
 
-interface DisplaySettings {
-  showImages: boolean;
-  imageSize: string;
-  showDescriptions: boolean;
-  fontSize: number;
+interface GlobalDisplaySettings {
+  // Pasta Types
+  pastaTypeShowImage: boolean;
+  pastaTypeImageSize: string;
+  pastaTypeShowDescription: boolean;
+  pastaTypeFontSize: number;
+
+  // Pasta Sauces
+  pastaSauceShowImage: boolean;
+  pastaSauceImageSize: string;
+  pastaSauceShowDescription: boolean;
+  pastaSauceFontSize: number;
 }
 
 @Component({
@@ -36,7 +44,13 @@ interface DisplaySettings {
   templateUrl: './pasta-display-management.component.html',
   styleUrls: ['./pasta-display-management.component.scss']
 })
-export class PastaDisplayManagementComponent {
+export class PastaDisplayManagementComponent implements OnInit {
+  // Input: current menu to load existing settings
+  menu = input<Menu | null | undefined>();
+
+  // Output: emit settings updates to parent component
+  settingsUpdate = output<GlobalDisplaySettings>();
+
   // Image size options
   imageSizeOptions: DisplayOption[] = [
     { label: 'Piccole (32px)', value: 'size-small' },
@@ -48,74 +62,121 @@ export class PastaDisplayManagementComponent {
   fontSizeMin = 75;
   fontSizeMax = 150;
 
-  // Pasta types display settings
-  pastaTypesSettings = signal<DisplaySettings>({
-    showImages: true,
-    imageSize: 'size-medium',
-    showDescriptions: true,
-    fontSize: 100
+  // Global display settings - unified for all pasta types and sauces
+  displaySettings = signal<GlobalDisplaySettings>({
+    pastaTypeShowImage: true,
+    pastaTypeImageSize: 'size-medium',
+    pastaTypeShowDescription: true,
+    pastaTypeFontSize: 100,
+
+    pastaSauceShowImage: true,
+    pastaSauceImageSize: 'size-medium',
+    pastaSauceShowDescription: true,
+    pastaSauceFontSize: 100
   });
 
-  // Pasta sauces display settings
-  pastaSaucesSettings = signal<DisplaySettings>({
-    showImages: true,
-    imageSize: 'size-medium',
-    showDescriptions: true,
-    fontSize: 100
-  });
-
-  // Computed properties for current settings
-  pastaTypeImageSizeClass = computed(() => this.pastaTypesSettings().imageSize);
-  pastaSauceImageSizeClass = computed(() => this.pastaSaucesSettings().imageSize);
+  // Computed properties for styling
+  pastaTypeImageSizeClass = computed(() => this.displaySettings().pastaTypeImageSize);
+  pastaSauceImageSizeClass = computed(() => this.displaySettings().pastaSauceImageSize);
 
   pastaTypeFontSizeStyle = computed(() => ({
-    fontSize: `${this.pastaTypesSettings().fontSize}%`
+    fontSize: `${this.displaySettings().pastaTypeFontSize}%`
   }));
 
   pastaSauceFontSizeStyle = computed(() => ({
-    fontSize: `${this.pastaSaucesSettings().fontSize}%`
+    fontSize: `${this.displaySettings().pastaSauceFontSize}%`
   }));
 
-  // Methods to update settings
-  updatePastaTypeSettings(key: keyof DisplaySettings, value: any) {
-    this.pastaTypesSettings.update(settings => ({
+  ngOnInit() {
+    // Load current settings from the menu if available
+    const currentMenu = this.menu();
+    if (currentMenu) {
+      this.displaySettings.update(settings => ({
+        ...settings,
+        pastaTypeShowImage: currentMenu.globalPastaTypeShowImage ?? true,
+        pastaTypeImageSize: currentMenu.globalPastaTypeImageSize ?? 'size-medium',
+        pastaTypeShowDescription: currentMenu.globalPastaTypeShowDescription ?? true,
+        pastaTypeFontSize: currentMenu.globalPastaTypeFontSize ?? 100,
+
+        pastaSauceShowImage: currentMenu.globalPastaSauceShowImage ?? true,
+        pastaSauceImageSize: currentMenu.globalPastaSauceImageSize ?? 'size-medium',
+        pastaSauceShowDescription: currentMenu.globalPastaSauceShowDescription ?? true,
+        pastaSauceFontSize: currentMenu.globalPastaSauceFontSize ?? 100
+      }));
+    }
+  }
+
+  // Update pasta type settings
+  updatePastaTypeSettings(key: keyof Pick<GlobalDisplaySettings, 'pastaTypeShowImage' | 'pastaTypeImageSize' | 'pastaTypeShowDescription' | 'pastaTypeFontSize'>, value: any) {
+    this.displaySettings.update(settings => ({
       ...settings,
       [key]: value
     }));
+    this.sendSettingsUpdate();
   }
 
-  updatePastaSauceSettings(key: keyof DisplaySettings, value: any) {
-    this.pastaSaucesSettings.update(settings => ({
+  // Update pasta sauce settings
+  updatePastaSauceSettings(key: keyof Pick<GlobalDisplaySettings, 'pastaSauceShowImage' | 'pastaSauceImageSize' | 'pastaSauceShowDescription' | 'pastaSauceFontSize'>, value: any) {
+    this.displaySettings.update(settings => ({
       ...settings,
       [key]: value
     }));
+    this.sendSettingsUpdate();
   }
 
-  // Apply all settings to both pasta types and sauces
-  applyToAll(sourceSettings: DisplaySettings) {
-    this.pastaTypesSettings.set({ ...sourceSettings });
-    this.pastaSaucesSettings.set({ ...sourceSettings });
+  // Apply pasta type settings to pasta sauces
+  applyPastaTypeToSauce() {
+    const current = this.displaySettings();
+    this.displaySettings.update(settings => ({
+      ...settings,
+      pastaSauceShowImage: current.pastaTypeShowImage,
+      pastaSauceImageSize: current.pastaTypeImageSize,
+      pastaSauceShowDescription: current.pastaTypeShowDescription,
+      pastaSauceFontSize: current.pastaTypeFontSize
+    }));
+    this.sendSettingsUpdate();
+  }
+
+  // Apply pasta sauce settings to pasta types
+  applySauceToPastaType() {
+    const current = this.displaySettings();
+    this.displaySettings.update(settings => ({
+      ...settings,
+      pastaTypeShowImage: current.pastaSauceShowImage,
+      pastaTypeImageSize: current.pastaSauceImageSize,
+      pastaTypeShowDescription: current.pastaSauceShowDescription,
+      pastaTypeFontSize: current.pastaSauceFontSize
+    }));
+    this.sendSettingsUpdate();
   }
 
   // Reset all settings to defaults
   resetToDefaults() {
-    const defaultSettings: DisplaySettings = {
-      showImages: true,
-      imageSize: 'size-medium',
-      showDescriptions: true,
-      fontSize: 100
+    const defaultSettings: GlobalDisplaySettings = {
+      pastaTypeShowImage: true,
+      pastaTypeImageSize: 'size-medium',
+      pastaTypeShowDescription: true,
+      pastaTypeFontSize: 100,
+
+      pastaSauceShowImage: true,
+      pastaSauceImageSize: 'size-medium',
+      pastaSauceShowDescription: true,
+      pastaSauceFontSize: 100
     };
 
-    this.pastaTypesSettings.set({ ...defaultSettings });
-    this.pastaSaucesSettings.set({ ...defaultSettings });
+    this.displaySettings.set(defaultSettings);
+    this.sendSettingsUpdate();
   }
 
-  // Get display settings for external components
-  getPastaTypeSettings() {
-    return this.pastaTypesSettings();
+  // Send settings update via Output signal to parent component
+  private sendSettingsUpdate() {
+    const settings = this.displaySettings();
+    this.settingsUpdate.emit(settings);
+    console.log('📡 Emitted global pasta display settings update:', settings);
   }
 
-  getPastaSauceSettings() {
-    return this.pastaSaucesSettings();
+  // Get current settings (for external access)
+  getCurrentSettings() {
+    return this.displaySettings();
   }
 }

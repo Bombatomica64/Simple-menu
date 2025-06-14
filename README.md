@@ -180,7 +180,7 @@ A modern, real-time digital menu management system built with Angular and Node.j
 
 ## 🚀 Quick Start
 
-### Using Docker (Recommended)
+### One-Command Deployment (Recommended)
 
 1. **Clone the repository**
    ```bash
@@ -188,15 +188,54 @@ A modern, real-time digital menu management system built with Angular and Node.j
    cd Simple-menu
    ```
 
-2. **Start with Docker Compose**
-   ```bash
-   docker-compose up -d
+2. **Interactive Deployment Menu**
+   ```powershell
+   # Windows - Choose your deployment option
+   .\start.ps1
    ```
 
-3. **Access the application**
-   - **Frontend**: http://localhost:4200
-   - **Backend API**: http://localhost:3000
-   - **WebSocket**: ws://localhost:3000/menu-updates
+   **Available Options:**
+   - **Basic Setup**: Just the Simple Menu application (~200MB RAM)
+   - **Prometheus + Grafana**: System monitoring with dashboards (~512MB RAM)  
+   - **ELK Stack**: Log analysis and search (~2GB RAM)
+   - **Unified Monitoring**: Complete observability stack (~3GB RAM) ⭐ **Recommended**
+
+3. **Quick Unified Deployment**
+   ```powershell
+   # Direct deployment with full monitoring
+   .\start-unified.ps1
+   ```
+
+### Manual Docker Deployment
+
+Choose your deployment option:
+
+```bash
+# Basic application only
+docker-compose up -d
+
+# With Prometheus + Grafana monitoring  
+docker-compose -f docker\docker-compose.monitoring-simple.yml up -d
+
+# With ELK logging stack
+docker-compose -f docker\docker-compose.elk-simple.yml up -d
+
+# Complete monitoring stack (Recommended)
+docker-compose -f docker\docker-compose.unified.yml up -d
+```
+
+### Access Points
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| 🍝 **Simple Menu** | http://localhost:4200 | Main application |
+| 🔧 **Backend API** | http://localhost:3000 | REST API |
+| 📊 **Grafana** | http://localhost:3001 | Metrics dashboards |
+| 🔍 **Prometheus** | http://localhost:9090 | Metrics collection |
+| 📋 **Kibana** | http://localhost:5601 | Log analysis |
+| 🔍 **Elasticsearch** | http://localhost:9200 | Log storage |
+
+> **💡 Pro Tip**: Use the unified monitoring option for production deployments - it provides comprehensive observability with both metrics and logs.
 
 ### Manual Setup
 
@@ -940,16 +979,70 @@ Simple-menu/
 │       │   └── environments/  # Environment configurations
 │       ├── Dockerfile         # Frontend container configuration
 │       └── package.json       # Frontend dependencies
-├── monitoring/                # Monitoring configurations
-│   ├── unified/               # Unified monitoring stack configs
-│   │   ├── prometheus.yml     # Prometheus scrape configuration
+├── docker/                    # 🐳 Container orchestration
+│   ├── docker-compose.unified.yml      # Complete monitoring stack ⭐
+│   ├── docker-compose.monitoring-simple.yml # Prometheus + Grafana
+│   ├── docker-compose.elk-simple.yml   # ELK logging stack
+│   ├── docker-compose.monitoring.yml   # Advanced Prometheus setup
+│   ├── docker-compose.elk.yml          # Advanced ELK setup
+│   └── docker-compose.override.yml     # Development overrides
+├── monitoring/                # 📊 Observability configurations
+│   ├── unified/               # Complete monitoring stack configs
+│   │   ├── prometheus.yml     # Metrics collection configuration
 │   │   ├── grafana-datasources.yml # Grafana data sources
-│   │   ├── grafana-dashboards.yml  # Dashboard configuration
-│   │   ├── logstash.conf      # Logstash pipeline configuration
-│   │   ├── filebeat.yml       # Filebeat log collection
+│   │   ├── grafana-dashboards.yml  # Dashboard provisioning
+│   │   ├── logstash.conf      # Log processing pipeline
+│   │   ├── filebeat.yml       # Log shipping configuration
 │   │   └── dashboards/        # Pre-built Grafana dashboards
-│   │       └── unified-overview.json # Main dashboard
-│   ├── prometheus/            # Simple Prometheus configs
+│   ├── simple/                # Basic Prometheus + Grafana configs
+│   │   ├── prometheus.yml     # Simple metrics collection
+│   │   ├── grafana-datasources.yml # Basic data sources
+│   │   └── dashboards/        # Essential dashboards
+│   └── elk-simple/            # Basic ELK stack configs
+│       ├── logstash.conf      # Simple log processing
+│       └── filebeat.yml       # Basic log collection
+├── scripts/                   # 🛠️ Automation and utilities
+│   ├── deployment/            # Deployment automation
+│   │   ├── deploy.ps1         # Windows deployment script
+│   │   ├── deploy.sh          # Linux deployment script
+│   │   ├── docker-start.ps1   # Docker startup helpers
+│   │   ├── integrate.sh       # Integration deployment
+│   │   └── test-deployment.sh # Deployment testing
+│   ├── monitoring/            # Monitoring and performance
+│   │   ├── monitor.sh         # System monitoring
+│   │   ├── performance-monitor.sh # Performance tracking
+│   │   ├── start-monitoring-elk.ps1    # ELK startup
+│   │   ├── start-monitoring-simple.ps1 # Prometheus startup
+│   │   └── simple-menu-monitor.service # Systemd service
+│   ├── lan-setup/             # Network configuration
+│   │   ├── setup-lan-auto.ps1 # Automatic LAN setup
+│   │   ├── setup-lan.ps1      # Manual LAN configuration
+│   │   └── setup-lan.bat      # Batch LAN setup
+│   └── database/              # Database management
+│       ├── db-manager.sh      # Database utilities
+│       └── cron-jobs.txt      # Scheduled maintenance tasks
+├── docs/                      # 📚 Documentation
+│   ├── PROJECT_STRUCTURE.md   # This file organization guide
+│   ├── QUICK_START.md         # Getting started guide
+│   ├── DEPLOYMENT_GUIDE.md    # Detailed deployment instructions
+│   ├── MONITORING_OPTIONS.md  # Monitoring setup options
+│   ├── MONITORING_SIMPLE.md   # Basic monitoring guide
+│   └── LAN-SETUP.md          # Network configuration guide
+├── docker-compose.yml         # 🚀 Main application stack
+├── start.ps1                  # 🎮 Interactive deployment menu
+├── start-unified.ps1          # ⚡ Quick unified deployment
+├── start.sh                   # 🐧 Linux startup script
+└── README.md                  # 📖 Main project documentation
+```
+
+### 🗂️ Organization Benefits
+
+- **🎯 Focused Root**: Only essential startup files in root directory
+- **📦 Logical Grouping**: Related files organized by purpose
+- **🔍 Easy Navigation**: Clear structure for finding components
+- **⚡ Quick Access**: Main startup scripts remain easily accessible
+- **📈 Scalable**: Easy to add new configurations and scripts
+- **🔧 Maintainable**: Simplified updates and version control
 │   │   └── prometheus.yml     # Basic metrics collection
 │   └── elk/                   # Simple ELK configs
 │       ├── logstash.conf      # Basic log processing

@@ -19,6 +19,27 @@ function getRelativeImagePath(filename) {
   return `/assets/${filename}`;
 }
 
+// --- General Image Upload ---
+
+// General image upload endpoint (returns just the URL for further processing)
+router.post('/upload', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No image file provided' });
+  }
+  try {
+    const imageUrl = getRelativeImagePath(req.file.filename);
+    
+    res.json({
+      message: 'Image uploaded successfully',
+      imageUrl: imageUrl
+    });
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    if (req.file) cleanupFile(req.file.path);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
 // --- General Image Upload for Menu Items ---
 
 // Upload image for menu items (returns just the URL for further processing via WebSocket)

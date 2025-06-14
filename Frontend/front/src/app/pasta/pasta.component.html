@@ -8,11 +8,6 @@
         </h1>
         <p>Pasta artigianale e specialità della casa</p>
       </div>
-        <!-- Customization Component -->
-      <app-pasta-customization
-        [customization]="customization()"
-        (customizationChange)="onCustomizationChange($event)">
-      </app-pasta-customization>
     </div>
   </div>
 
@@ -28,10 +23,9 @@
       <div class="pasta-sub-layout">
         <!-- Pasta Types -->
         <div class="pasta-types-section">
-          <h3 class="sub-title">Tipi di Pasta</h3>          <div class="items-grid">
-            @for (pasta of pastaTypes(); track $index) {
+          <h3 class="sub-title">Tipi di Pasta</h3>          <div class="items-grid">            @for (pasta of pastaTypes(); track $index) {
               <div class="item-card"
-                   [attr.data-font-size]="fontSize()"
+                   [style.fontSize.%]="pastaTypeFontSize()"
                    (contextmenu)="onItemLongPress($event, pasta, 'pasta')"
                    (touchstart)="onItemTouchStart($event, pasta, 'pasta')"
                    (touchend)="onItemTouchEnd()"
@@ -61,10 +55,9 @@
 
         <!-- Pasta Sauces -->
         <div class="pasta-sauces-section">
-          <h3 class="sub-title">Sughi per Pasta</h3>          <div class="items-grid">
-            @for (sauce of pastaSauces(); track $index) {
+          <h3 class="sub-title">Sughi per Pasta</h3>          <div class="items-grid">            @for (sauce of pastaSauces(); track $index) {
               <div class="item-card"
-                   [attr.data-font-size]="fontSize()"
+                   [style.fontSize.%]="pastaSauceFontSize()"
                    (contextmenu)="onItemLongPress($event, sauce, 'sauce')"
                    (touchstart)="onItemTouchStart($event, sauce, 'sauce')"
                    (touchend)="onItemTouchEnd()"

@@ -656,6 +656,46 @@ async function updateItemPositions(itemUpdates) {
   }
 }
 
+async function updateGlobalPastaDisplaySettings(settings) {
+  if (!currentInMemoryMenu) return false;
+
+  try {
+    // Update the database
+    const menuId = currentInMemoryMenu.id;
+    if (menuId) {
+      await prisma.menu.update({
+        where: { id: menuId },
+        data: {
+          globalPastaTypeFontSize: settings.pastaTypeFontSize,
+          globalPastaSauceFontSize: settings.pastaSauceFontSize,
+          globalPastaTypeShowImage: settings.pastaTypeShowImage,
+          globalPastaTypeImageSize: settings.pastaTypeImageSize,
+          globalPastaTypeShowDescription: settings.pastaTypeShowDescription,
+          globalPastaSauceShowImage: settings.pastaSauceShowImage,
+          globalPastaSauceImageSize: settings.pastaSauceImageSize,
+          globalPastaSauceShowDescription: settings.pastaSauceShowDescription,
+        }
+      });
+    }
+
+    // Update the in-memory menu
+    currentInMemoryMenu.globalPastaTypeFontSize = settings.pastaTypeFontSize;
+    currentInMemoryMenu.globalPastaSauceFontSize = settings.pastaSauceFontSize;
+    currentInMemoryMenu.globalPastaTypeShowImage = settings.pastaTypeShowImage;
+    currentInMemoryMenu.globalPastaTypeImageSize = settings.pastaTypeImageSize;
+    currentInMemoryMenu.globalPastaTypeShowDescription = settings.pastaTypeShowDescription;
+    currentInMemoryMenu.globalPastaSauceShowImage = settings.pastaSauceShowImage;
+    currentInMemoryMenu.globalPastaSauceImageSize = settings.pastaSauceImageSize;
+    currentInMemoryMenu.globalPastaSauceShowDescription = settings.pastaSauceShowDescription;
+
+    console.log("✅ Global pasta display settings updated:", settings);
+    return true;
+  } catch (error) {
+    console.error("❌ Error updating global pasta display settings:", error);
+    return false;
+  }
+}
+
 module.exports = {
   loadInitialMenu,
   getCurrentMenu,
@@ -682,4 +722,5 @@ module.exports = {
   updateSectionOrder,
   moveItemToSection,
   updateItemPositions,
+  updateGlobalPastaDisplaySettings,
 };

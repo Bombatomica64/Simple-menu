@@ -1,0 +1,53 @@
+# Simple Menu Cron Jobs Configuration
+# Copy this file to /etc/cron.d/simple-menu or add entries to user's crontab
+
+# Set environment variables
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=admin@example.com
+
+# Performance monitoring - collect metrics every 5 minutes
+*/5 * * * * pi /home/pi/simple-menu/performance-monitor.sh collect >/dev/null 2>&1
+
+# Database backup - daily at 2:00 AM
+0 2 * * * pi /home/pi/simple-menu/db-manager.sh auto-backup
+
+# Performance alert check - every 10 minutes
+*/10 * * * * pi /home/pi/simple-menu/performance-monitor.sh alert-check >/dev/null 2>&1
+
+# Weekly database maintenance - Sunday at 3:00 AM
+0 3 * * 0 pi /home/pi/simple-menu/db-manager.sh maintain
+
+# Monthly cleanup of old metrics - first day of month at 4:00 AM
+0 4 1 * * pi /home/pi/simple-menu/performance-monitor.sh cleanup
+
+# System resource monitoring report - daily at 6:00 AM
+0 6 * * * pi /home/pi/simple-menu/performance-monitor.sh report >/dev/null 2>&1
+
+# Health check and report generation - every hour
+0 * * * * pi /home/pi/simple-menu/monitor.sh --check >/dev/null 2>&1
+
+# Docker system cleanup - weekly on Saturday at 5:00 AM
+0 5 * * 6 pi docker system prune -f >/dev/null 2>&1
+
+# Log rotation trigger - daily at 1:00 AM (in addition to logrotate)
+0 1 * * * pi find /var/log -name "simple-menu*.log" -size +50M -exec truncate -s 10M {} \; >/dev/null 2>&1
+
+# Temperature monitoring for Raspberry Pi - every 2 minutes during daytime
+*/2 8-20 * * * pi if [ -f /sys/class/thermal/thermal_zone0/temp ]; then temp=$(($(cat /sys/class/thermal/thermal_zone0/temp) / 1000)); if [ $temp -gt 75 ]; then echo "High CPU temp: ${temp}°C" | logger -t simple-menu-temp; fi; fi
+
+# Weekly performance report email - Monday at 8:00 AM
+0 8 * * 1 pi /home/pi/simple-menu/performance-monitor.sh report && if [ -n "$MAILTO" ] && [ -f /tmp/simple-menu-performance-report.html ]; then cat /tmp/simple-menu-performance-report.html | mail -s "Weekly Performance Report - $(hostname)" -a "Content-Type: text/html" "$MAILTO"; fi
+
+# Disk usage monitoring - every 30 minutes
+*/30 * * * * pi df / | tail -1 | awk '{if($5+0 > 90) print "High disk usage: " $5}' | grep -q "High" && echo "Disk usage critical: $(df / | tail -1 | awk '{print $5}')" | logger -t simple-menu-disk
+
+# Memory usage monitoring - every 15 minutes
+*/15 * * * * pi free | grep Mem | awk '{if($3/$2 * 100.0 > 90) print "High memory usage: " $3/$2*100 "%"}' | grep -q "High" && echo "Memory usage critical: $(free | grep Mem | awk '{printf "%.1f", $3/$2 * 100.0}')%" | logger -t simple-menu-memory
+
+# Application connectivity check - every 5 minutes
+*/5 * * * * pi curl -sf http://localhost:3000/health >/dev/null 2>&1 || echo "Backend health check failed" | logger -t simple-menu-backend
+*/5 * * * * pi curl -sf http://localhost:4200 >/dev/null 2>&1 || echo "Frontend health check failed" | logger -t simple-menu-frontend
+
+# Monthly comprehensive system report - first day of month at 9:00 AM
+0 9 1 * * pi /home/pi/simple-menu/generate-monthly-report.sh >/dev/null 2>&1

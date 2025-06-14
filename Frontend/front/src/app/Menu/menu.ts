@@ -61,7 +61,19 @@ export class Menu {
         public pastaTypes: MenuPastaTypeEntry[],
         public pastaSauces: MenuPastaSauceEntry[],
         public orientation: 'vertical' | 'horizontal' = 'vertical',
-        public availableImages: string | null = null
+        public availableImages: string | null = null,
+
+        // Global display preferences for pasta types
+        public globalPastaTypeShowImage: boolean = true,
+        public globalPastaTypeImageSize: string = 'size-medium',
+        public globalPastaTypeShowDescription: boolean = true,
+        public globalPastaTypeFontSize: number = 100,
+
+        // Global display preferences for pasta sauces
+        public globalPastaSauceShowImage: boolean = true,
+        public globalPastaSauceImageSize: string = 'size-medium',
+        public globalPastaSauceShowDescription: boolean = true,
+        public globalPastaSauceFontSize: number = 100
     ) {}
 
     static fromJson(json: any): Menu {
@@ -73,7 +85,18 @@ export class Menu {
             json.pastaTypes || [], // These are already MenuPastaTypeEntry from backend
             json.pastaSauces || [], // These are already MenuPastaSauceEntry from backend
             json.orientation || 'vertical',
-            json.availableImages || null
+            json.availableImages || null,
+
+            // Global display preferences
+            json.globalPastaTypeShowImage ?? true,
+            json.globalPastaTypeImageSize ?? 'size-medium',
+            json.globalPastaTypeShowDescription ?? true,
+            json.globalPastaTypeFontSize ?? 100,
+
+            json.globalPastaSauceShowImage ?? true,
+            json.globalPastaSauceImageSize ?? 'size-medium',
+            json.globalPastaSauceShowDescription ?? true,
+            json.globalPastaSauceFontSize ?? 100
         );
     }
 }

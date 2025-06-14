@@ -35,12 +35,15 @@ import {
 	MoveItemToSectionMessage,
 	UpdateItemPositionsMessage,
 	AddSectionMessage,
-	RemoveSectionMessage,	UpdateMenuOrientationMessage,
+	RemoveSectionMessage,
+	UpdateMenuOrientationMessage,
 	UpdateMenuAvailableImagesMessage,
 	UpdateBackgroundConfigMessage,
 	DeleteBackgroundConfigMessage,
 	GetBackgroundConfigMessage,
 	GetAllBackgroundConfigsMessage,
+	UpdateGlobalPastaDisplaySettingsMessage,
+	GlobalPastaDisplaySettings,
 } from '../webSocketResource';
 import {
 	Menu,
@@ -80,7 +83,8 @@ export interface PastaSauceEvent {
 
 @Component({
 	selector: 'app-submit',
-	standalone: true,	imports: [
+	standalone: true,
+	imports: [
 		FormsModule,
 		PickListModule,
 		ButtonModule,
@@ -95,7 +99,8 @@ export interface PastaSauceEvent {
 		SelectModule,
 		ScrollerModule,
 		OverlayModule,
-		SavedMenusComponent,		MenuSectionsComponent,
+		SavedMenusComponent,
+		MenuSectionsComponent,
 		PastaDisplayManagementComponent,
 		PastaSauceDisplayDialogComponent,
 		PastaTypeDisplayDialogComponent,
@@ -112,7 +117,8 @@ export class SubmitComponent implements OnInit {
 	private apiUrl = environment.apiUrl;
 
 	@ViewChild(SavedMenusComponent) savedMenusComponent!: SavedMenusComponent;
-	@ViewChild(PastaDisplayManagementComponent) pastaDisplayManagement!: PastaDisplayManagementComponent;
+	@ViewChild(PastaDisplayManagementComponent)
+	pastaDisplayManagement!: PastaDisplayManagementComponent;
 
 	menuWsConnection: MenuConnection | null = null;
 	// For adding new item
@@ -183,7 +189,7 @@ export class SubmitComponent implements OnInit {
 		showImages: true,
 		showDescriptions: true,
 		imageSize: 'medium',
-		fontSize: 'medium'
+		fontSize: 'medium',
 	});
 
 	// Image management
@@ -306,7 +312,6 @@ export class SubmitComponent implements OnInit {
 		}
 	}
 
-
 	// Handle sections changes - sync with backend
 	onSectionsChanged(sections: MenuSection[]) {
 		console.log('Sections changed:', sections);
@@ -414,8 +419,7 @@ export class SubmitComponent implements OnInit {
 	ngOnInit() {
 		if (isPlatformBrowser(this.platformId)) {
 			runInInjectionContext(this.injector, () => {
-				this.menuWsConnection = menuConnection(environment.wsUrl);
-						// Set up effect to handle background configuration WebSocket responses
+				this.menuWsConnection = menuConnection(environment.wsUrl);				// Set up effect to handle background configuration WebSocket responses
 				effect(() => {
 					const lastMessage = this.menuWsConnection?.responseMessages();
 					if (!lastMessage) return;
@@ -425,18 +429,38 @@ export class SubmitComponent implements OnInit {
 						this.backgroundConfigs.set(lastMessage.configs);
 					} else if (lastMessage.type === 'backgroundConfig') {
 						// Update existing config or add new one
-						this.backgroundConfigs.update(configs => {
-							const existingIndex = configs.findIndex(c => c.id === lastMessage.config.id);
+						this.backgroundConfigs.update((configs) => {
+							const existingIndex = configs.findIndex(
+								(c) => c.id === lastMessage.config.id
+							);
 							if (existingIndex >= 0) {
 								configs[existingIndex] = lastMessage.config;
 								return [...configs];
 							} else {
 								return [...configs, lastMessage.config];
 							}
-						});					} else if (lastMessage.type === 'backgroundConfigDeleted') {
-						this.backgroundConfigs.update(configs =>
-							configs.filter(c => c.page !== lastMessage.page)
-						);
+						});
+					} else if (lastMessage.type === 'backgroundConfigDeleted') {
+						this.backgroundConfigs.update((configs) =>
+							configs.filter((c) => c.page !== lastMessage.page)
+						);					} else if (lastMessage.type === 'pastaTypeCreated') {
+						// Handle successful pasta type creation
+						console.log('Pasta type created successfully:', lastMessage.pastaType);
+						this.loadAllPastaTypes(); // Refresh the list
+						this.showNewPastaTypeDialog.set(false);
+						this.resetNewPastaTypeForm();
+					} else if (lastMessage.type === 'pastaSauceCreated') {
+						// Handle successful pasta sauce creation
+						console.log('Pasta sauce created successfully:', lastMessage.pastaSauce);
+						this.loadAllPastaSauces(); // Refresh the list
+						this.showNewPastaSauceDialog.set(false);
+						this.resetNewPastaSauceForm();
+					} else if (lastMessage.type === 'error') {
+						// Handle errors from WebSocket operations
+						console.error('WebSocket error:', lastMessage.message);
+						this.uploadingNewPastaTypeImage.set(false);
+						this.uploadingNewPastaSauceImage.set(false);
+						alert(`Errore: ${lastMessage.message}`);
 					}
 				});
 			});
@@ -461,11 +485,15 @@ export class SubmitComponent implements OnInit {
 	}
 
 	loadBackgroundConfigs() {
-		this.http.get<{ id: number; page: string; background: string }[]>(`${this.apiUrl}/backgrounds`).subscribe({
-			next: (configs) => this.backgroundConfigs.set(configs),
-			error: (err) => console.error('Failed to load background configs', err),
-		});
-	}// --- Menu Item Actions ---
+		this.http
+			.get<{ id: number; page: string; background: string }[]>(
+				`${this.apiUrl}/backgrounds`
+			)
+			.subscribe({
+				next: (configs) => this.backgroundConfigs.set(configs),
+				error: (err) => console.error('Failed to load background configs', err),
+			});
+	} // --- Menu Item Actions ---
 	addItem() {
 		// Validation with better error messages
 		const errors: string[] = [];
@@ -593,14 +621,37 @@ export class SubmitComponent implements OnInit {
 		if (file) {
 			this.newPastaTypeSelectedFile.set(file);
 		}
-	}
-	saveNewPastaType() {
+	}	saveNewPastaType() {
 		if (!this.newPastaTypeName().trim()) {
 			alert('Il nome del tipo di pasta è obbligatorio.');
 			return;
 		}
 
-		// Create pasta type via WebSocket
+		this.uploadingNewPastaTypeImage.set(true);
+		const selectedFile = this.newPastaTypeSelectedFile();
+
+		// If there's an image file, upload it first, then create the pasta type
+		if (selectedFile) {
+			const formData = new FormData();
+			formData.append('image', selectedFile);
+
+			this.http.post<any>(`${this.apiUrl}/images/upload`, formData).subscribe({
+				next: (response) => {
+					console.log('Image uploaded successfully:', response);
+					this.createPastaTypeWithImage(response.imageUrl);
+				},
+				error: (err) => {
+					console.error('Failed to upload image:', err);
+					alert(`Errore caricamento immagine: ${err.error?.error || 'Errore sconosciuto'}`);
+					this.uploadingNewPastaTypeImage.set(false);
+				},
+			});
+		} else {
+			// Create pasta type without image
+			this.createPastaTypeWithImage('');
+		}
+	}
+	private createPastaTypeWithImage(imageUrl: string) {
 		const message: CreatePastaTypeMessage = {
 			type: 'createPastaType',
 			pastaType: {
@@ -608,23 +659,16 @@ export class SubmitComponent implements OnInit {
 				description: this.newPastaTypeDescription() || undefined,
 				basePrice: this.newPastaTypeBasePrice(),
 				priceNote: this.newPastaTypePriceNote() || undefined,
-				imageUrl: '', // Start with empty image
+				imageUrl: imageUrl,
 			},
 		};
 		this.menuWsConnection?.sendUpdate(message);
 
-		// Handle image upload if present (still via HTTP for file upload)
-		const selectedFile = this.newPastaTypeSelectedFile();
-		if (selectedFile) {
-			// Note: Image upload will still need to be HTTP due to file handling
-			// The backend should handle this after pasta type creation
-			console.log('Image file selected for upload:', selectedFile.name);
-		}
+		// Don't close immediately - wait for WebSocket response
+		// Clear form and close dialog will happen in the WebSocket response handler
+	}
 
-		// Clear form and close dialog
-		this.loadAllPastaTypes(); // Refresh list
-		this.showNewPastaTypeDialog.set(false);
-		// Reset form
+	private resetNewPastaTypeForm() {
 		this.newPastaTypeName.set('');
 		this.newPastaTypeDescription.set('');
 		this.newPastaTypeBasePrice.set(8.5);
@@ -677,7 +721,31 @@ export class SubmitComponent implements OnInit {
 			return;
 		}
 
-		// Create pasta sauce via WebSocket
+		this.uploadingNewPastaSauceImage.set(true);
+		const selectedFile = this.newPastaSauceSelectedFile();
+
+		// If there's an image file, upload it first, then create the pasta sauce
+		if (selectedFile) {
+			const formData = new FormData();
+			formData.append('image', selectedFile);
+
+			this.http.post<any>(`${this.apiUrl}/images/upload`, formData).subscribe({
+				next: (response) => {
+					console.log('Image uploaded successfully:', response);
+					this.createPastaSauceWithImage(response.imageUrl);
+				},
+				error: (err) => {
+					console.error('Failed to upload image:', err);
+					alert(`Errore caricamento immagine: ${err.error?.error || 'Errore sconosciuto'}`);
+					this.uploadingNewPastaSauceImage.set(false);
+				},
+			});
+		} else {
+			// Create pasta sauce without image
+			this.createPastaSauceWithImage('');
+		}
+	}
+	private createPastaSauceWithImage(imageUrl: string) {
 		const message: CreatePastaSauceMessage = {
 			type: 'createPastaSauce',
 			pastaSauce: {
@@ -685,23 +753,16 @@ export class SubmitComponent implements OnInit {
 				description: this.newPastaSauceDescription() || undefined,
 				basePrice: this.newPastaSauceBasePrice(),
 				priceNote: this.newPastaSaucePriceNote() || undefined,
-				imageUrl: '', // Start with empty image
+				imageUrl: imageUrl,
 			},
 		};
 		this.menuWsConnection?.sendUpdate(message);
 
-		// Handle image upload if present (still via HTTP for file upload)
-		const selectedFile = this.newPastaSauceSelectedFile();
-		if (selectedFile) {
-			// Note: Image upload will still need to be HTTP due to file handling
-			// The backend should handle this after pasta sauce creation
-			console.log('Image file selected for upload:', selectedFile.name);
-		}
+		// Don't close immediately - wait for WebSocket response
+		// Clear form and close dialog will happen in the WebSocket response handler
+	}
 
-		// Clear form and close dialog
-		this.loadAllPastaSauces(); // Refresh list
-		this.showNewPastaSauceDialog.set(false);
-		// Reset form
+	private resetNewPastaSauceForm() {
 		this.newPastaSauceName.set('');
 		this.newPastaSauceDescription.set('');
 		this.newPastaSauceBasePrice.set(3.5);
@@ -874,7 +935,8 @@ export class SubmitComponent implements OnInit {
 					? `${this.apiUrl}/images/pasta-types/${selectedItem.id}/delete`
 					: `${this.apiUrl}/images/pasta-sauces/${selectedItem.id}/delete`;
 
-			this.http.post<any>(endpoint, { imageUrl }).subscribe({				next: (response) => {
+			this.http.post<any>(endpoint, { imageUrl }).subscribe({
+				next: (response) => {
 					console.log('Image deleted successfully:', response);
 					// Refresh the data
 					this.loadAllPastaTypes();
@@ -882,7 +944,7 @@ export class SubmitComponent implements OnInit {
 				},
 				error: (error) => {
 					console.error('Error deleting image:', error);
-				}
+				},
 			});
 		}
 	}
@@ -906,7 +968,9 @@ export class SubmitComponent implements OnInit {
 	}
 	deletePastaSauce(pastaSauce: AppPastaSauce) {
 		// Implement pasta sauce deletion via WebSocket
-		if (confirm(`Sei sicuro di voler eliminare il sugo "${pastaSauce.name}"?`)) {
+		if (
+			confirm(`Sei sicuro di voler eliminare il sugo "${pastaSauce.name}"?`)
+		) {
 			const message: DeletePastaSauceMessage = {
 				type: 'deletePastaSauce',
 				pastaSauceId: pastaSauce.id,
@@ -938,9 +1002,12 @@ export class SubmitComponent implements OnInit {
 		if (!settings) return 'medium-image';
 
 		switch (settings.imageSize) {
-			case 'small': return 'small-image';
-			case 'large': return 'large-image';
-			default: return 'medium-image';
+			case 'small':
+				return 'small-image';
+			case 'large':
+				return 'large-image';
+			default:
+				return 'medium-image';
 		}
 	}
 
@@ -949,25 +1016,33 @@ export class SubmitComponent implements OnInit {
 		if (!settings) return {};
 
 		switch (settings.fontSize) {
-			case 'small': return { 'font-size': '0.875rem' };
-			case 'large': return { 'font-size': '1.25rem' };
-			default: return { 'font-size': '1rem' };
+			case 'small':
+				return { 'font-size': '0.875rem' };
+			case 'large':
+				return { 'font-size': '1.25rem' };
+			default:
+				return { 'font-size': '1rem' };
 		}
 	}
 	deletePastaSauceImage(pastaSauce: AppPastaSauce) {
 		if (pastaSauce.id && pastaSauce.imageUrl) {
-			this.http.post<any>(`${this.apiUrl}/images/pasta-sauces/${pastaSauce.id}/delete`, {
-				imageUrl: pastaSauce.imageUrl
-			}).subscribe({
-				next: (response: any) => {
-					console.log('Pasta sauce image deleted successfully:', response);
-					// Refresh the data
-					this.loadAllPastaSauces();
-				},
-				error: (error: any) => {
-					console.error('Error deleting pasta sauce image:', error);
-				}
-			});
+			this.http
+				.post<any>(
+					`${this.apiUrl}/images/pasta-sauces/${pastaSauce.id}/delete`,
+					{
+						imageUrl: pastaSauce.imageUrl,
+					}
+				)
+				.subscribe({
+					next: (response: any) => {
+						console.log('Pasta sauce image deleted successfully:', response);
+						// Refresh the data
+						this.loadAllPastaSauces();
+					},
+					error: (error: any) => {
+						console.error('Error deleting pasta sauce image:', error);
+					},
+				});
 		}
 	}
 	openPastaSauceDisplaySettings() {
@@ -977,7 +1052,8 @@ export class SubmitComponent implements OnInit {
 	openPastaTypeDisplaySettings(pastaType: AppPastaType) {
 		this.selectedPastaTypeForDisplay.set(pastaType);
 		this.showPastaTypeDisplayDialog.set(true);
-	}	onPastaSauceDisplaySettingsChange(settings: any) {
+	}
+	onPastaSauceDisplaySettingsChange(settings: any) {
 		this.pastaSauceDisplaySettings.set(settings);
 		// Save settings to localStorage or backend as needed
 		localStorage.setItem('pastaSauceDisplaySettings', JSON.stringify(settings));
@@ -1023,14 +1099,14 @@ export class SubmitComponent implements OnInit {
 		// Save orientation
 		const orientationMessage: UpdateMenuOrientationMessage = {
 			type: 'updateMenuOrientation',
-			orientation: this.selectedOrientation()
+			orientation: this.selectedOrientation(),
 		};
 		this.menuWsConnection?.sendUpdate(orientationMessage);
 
 		// Save available images
 		const imagesMessage: UpdateMenuAvailableImagesMessage = {
 			type: 'updateMenuAvailableImages',
-			availableImages: this.availableImagesText()
+			availableImages: this.availableImagesText(),
 		};
 		this.menuWsConnection?.sendUpdate(imagesMessage);
 
@@ -1045,7 +1121,7 @@ export class SubmitComponent implements OnInit {
 
 	loadBackgroundConfigsViaWebSocket() {
 		const message: GetAllBackgroundConfigsMessage = {
-			type: 'getAllBackgroundConfigs'
+			type: 'getAllBackgroundConfigs',
 		};
 		this.menuWsConnection?.sendUpdate(message);
 	}
@@ -1054,15 +1130,16 @@ export class SubmitComponent implements OnInit {
 		// Remove background config for the specified page via WebSocket
 		const message: DeleteBackgroundConfigMessage = {
 			type: 'deleteBackgroundConfig',
-			page: page
+			page: page,
 		};
 		this.menuWsConnection?.sendUpdate(message);
 
 		// Update local state immediately for UI feedback
-		this.backgroundConfigs.update(configs =>
-			configs.filter(config => config.page !== page)
+		this.backgroundConfigs.update((configs) =>
+			configs.filter((config) => config.page !== page)
 		);
-	}	onBackgroundImageUpload(event: any) {
+	}
+	onBackgroundImageUpload(event: any) {
 		const file = event.files[0];
 		if (file) {
 			this.uploadingBackground.set(true);
@@ -1070,7 +1147,8 @@ export class SubmitComponent implements OnInit {
 			const formData = new FormData();
 			formData.append('image', file);
 
-			this.http.post<any>(`${this.apiUrl}/images/backgrounds/upload`, formData)
+			this.http
+				.post<any>(`${this.apiUrl}/images/backgrounds/upload`, formData)
 				.subscribe({
 					next: (response) => {
 						console.log('Background uploaded:', response);
@@ -1081,7 +1159,7 @@ export class SubmitComponent implements OnInit {
 					error: (error) => {
 						console.error('Error uploading background:', error);
 						this.uploadingBackground.set(false);
-					}
+					},
 				});
 		}
 	}
@@ -1096,17 +1174,19 @@ export class SubmitComponent implements OnInit {
 		const message: UpdateBackgroundConfigMessage = {
 			type: 'updateBackgroundConfig',
 			page: this.selectedPage(),
-			background: this.newBackgroundValue()
+			background: this.newBackgroundValue(),
 		};
 		this.menuWsConnection?.sendUpdate(message);
 
 		// Update local state immediately for UI feedback
-		this.backgroundConfigs.update(configs => {
-			const existingIndex = configs.findIndex(c => c.page === this.selectedPage());
+		this.backgroundConfigs.update((configs) => {
+			const existingIndex = configs.findIndex(
+				(c) => c.page === this.selectedPage()
+			);
 			const newConfig = {
 				id: Date.now(),
 				page: this.selectedPage(),
-				background: this.newBackgroundValue()
+				background: this.newBackgroundValue(),
 			};
 
 			if (existingIndex >= 0) {
@@ -1122,5 +1202,17 @@ export class SubmitComponent implements OnInit {
 		this.selectedPage.set('');
 		this.newBackgroundValue.set('');
 		this.showBackgroundConfigDialog.set(false);
+	}
+
+	// Handle pasta display settings update from pasta-display-management component
+	onPastaDisplaySettingsUpdate(settings: GlobalPastaDisplaySettings) {
+		console.log('📡 Received pasta display settings update:', settings);
+
+		const message: UpdateGlobalPastaDisplaySettingsMessage = {
+			type: 'updateGlobalPastaDisplaySettings',
+			settings: settings
+		};
+
+		this.menuWsConnection?.sendUpdate(message);
 	}
 }

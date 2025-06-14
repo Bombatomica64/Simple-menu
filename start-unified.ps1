@@ -30,12 +30,11 @@ Write-Host ""
 Write-Host "🔧 Starting all services..." -ForegroundColor Yellow
 Write-Host "   This includes:"
 Write-Host "   • Simple Menu Application (Frontend + Backend)"
-Write-Host "   • Prometheus + Grafana (Metrics & Dashboards)"
-Write-Host "   • ELK Stack (Logs & Search)"
+Write-Host "   • Prometheus + Grafana (Metrics and Dashboards)"
+Write-Host "   • ELK Stack (Logs and Search)"
 Write-Host ""
 
-# Start unified stack
-docker-compose -f docker-compose.unified.yml up -d
+# Start unified stack    docker-compose -f docker\docker-compose.unified.yml up -d
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "⏳ Waiting for services to initialize (3-5 minutes)..." -ForegroundColor Yellow
