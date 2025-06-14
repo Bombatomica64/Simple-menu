@@ -1,155 +1,148 @@
-<div class="pasta-container">  <!-- Header Section -->
-  <div class="pasta-header">
-    <div class="header-content">
-      <div class="title-section">
-        <h1>
-          <i class="pi pi-heart pasta-icon"></i>
-          Menu Completo
-        </h1>
-        <p>Pasta artigianale e specialità della casa</p>
-      </div>
-    </div>
-  </div>
+<div class="pasta-container">
+	<!-- Header Section -->
+	<div class="pasta-header">
+		<div class="header-content">
+			<div class="title-section">
+				<h1>
+					<i class="pi pi-heart pasta-icon"></i>
+					Menu Completo
+				</h1>
+				<p>Pasta artigianale e specialità della casa</p>
+			</div>
+		</div>
+	</div>
 
-  <!-- Main Two Column Layout -->
-  <div class="main-layout">
-    <!-- Left Column - Pasta Section (Bigger) -->
-    <div class="pasta-main-column">      <h2 class="section-title">
-        <i class="pi pi-star-fill mr-2" title="Stelle di qualità"></i>
-        Combinazioni Perfette di Pasta
-      </h2>
+	<!-- Main Two Column Layout -->
+	<div class="main-layout">
+		<!-- Left Column - Pasta Section (Bigger) -->
+		<div class="pasta-main-column">
+			<h2 class="section-title">
+				<i class="pi pi-star-fill mr-2" title="Stelle di qualità"></i>
+				Combinazioni Perfette di Pasta
+			</h2>
 
-      <!-- Pasta Types and Sauces in two sub-columns -->
-      <div class="pasta-sub-layout">
-        <!-- Pasta Types -->
-        <div class="pasta-types-section">
-          <h3 class="sub-title">Tipi di Pasta</h3>          <div class="items-grid">            @for (pasta of pastaTypes(); track $index) {
-              <div class="item-card"
-                   [style.fontSize.%]="pastaTypeFontSize()"
-                   (contextmenu)="onItemLongPress($event, pasta, 'pasta')"
-                   (touchstart)="onItemTouchStart($event, pasta, 'pasta')"
-                   (touchend)="onItemTouchEnd()"
-                   (touchmove)="onItemTouchMove()">
-                @if (showImages() && pasta.image && pasta.image !== 'assets/placeholder.png') {
-                  <img
-                    [src]="pasta.image"
-                    [alt]="pasta.name + ' - pasta tradizionale italiana'"
-                    [title]="pasta.name + ' - Pasta tradizionale italiana'"
-										title="Pasta tradizionale italiana"
-                    class="item-image"
-                  />
-                }
-                <div class="item-content">
-                  <h4 class="item-name">{{ pasta.name }}</h4>
-                  @if (showDescriptions()) {
-                    <p class="item-description">{{ pasta.description }}</p>
-                  }
-                  @if (pasta.priceNote) {
-                    <div class="price-note">{{ pasta.priceNote }}</div>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-        </div>
+			<!-- Pasta Types and Sauces in two sub-columns -->
+			<div class="pasta-sub-layout">
+				<!-- Pasta Types -->
+				<div class="pasta-types-section">
+					<h3 class="sub-title">Tipi di Pasta</h3>
+					<div class="items-grid">						@for (pasta of pastaTypes(); track $index) {
+						<div
+							class="item-card"
+							[style.fontSize]="pastaTypeFontSize()"
+							(contextmenu)="onItemLongPress($event, pasta, 'pasta')"
+							(touchstart)="onItemTouchStart($event, pasta, 'pasta')"
+							(touchend)="onItemTouchEnd()"
+							(touchmove)="onItemTouchMove()"
+						>
+							@if (showImages() && pasta.imageUrl && pasta.imageUrl !==
+							'assets/placeholder.png') {
+							<img
+								[src]="pasta.imageUrl"
+								[alt]="pasta.name + ' - pasta tradizionale italiana'"
+								[title]="pasta.name + ' - Pasta tradizionale italiana'"
+								title="Pasta tradizionale italiana"
+								class="item-image"
+							/>
+							}
+							<div class="item-content">
+								<h4 class="item-name">{{ pasta.name }}</h4>
+								@if (showDescriptions()) {
+								<p class="item-description">{{ pasta.description }}</p>
+								} @if (pasta.priceNote) {
+								<div class="price-note">{{ pasta.priceNote }}</div>
+								}
+							</div>
+						</div>
+						}
+					</div>
+				</div>
 
-        <!-- Pasta Sauces -->
-        <div class="pasta-sauces-section">
-          <h3 class="sub-title">Sughi per Pasta</h3>          <div class="items-grid">            @for (sauce of pastaSauces(); track $index) {
-              <div class="item-card"
-                   [style.fontSize.%]="pastaSauceFontSize()"
-                   (contextmenu)="onItemLongPress($event, sauce, 'sauce')"
-                   (touchstart)="onItemTouchStart($event, sauce, 'sauce')"
-                   (touchend)="onItemTouchEnd()"
-                   (touchmove)="onItemTouchMove()">
-                @if (showImages() && sauce.image && sauce.image !== 'assets/placeholder.png') {
-                  <img
-                    [src]="sauce.image"
-                    [alt]="sauce.name + ' - sugo italiano autentico'"
-                    [title]="sauce.name + ' - Sugo italiano autentico'"
-										title="Sugo italiano autentico"
-                    class="item-image"
-                  />
-                }
-                <div class="item-content">
-                  <h4 class="item-name">{{ sauce.name }}</h4>
-                  @if (showDescriptions()) {
-                    <p class="item-description">{{ sauce.description }}</p>
-                  }
-                  @if (sauce.priceNote) {
-                    <div class="price-note">{{ sauce.priceNote }}</div>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-        </div>      </div>
-    </div>
+				<!-- Pasta Sauces -->
+				<div class="pasta-sauces-section">
+					<h3 class="sub-title">Sughi per Pasta</h3>
+					<div class="items-grid">						@for (sauce of pastaSauces(); track $index) {						<div
+							class="item-card"
+							[style.fontSize]="pastaSauceFontSize()"
+							[attr.data-sauce-font-size]="pastaSauceFontSize()"
+							(contextmenu)="onItemLongPress($event, sauce, 'sauce')"
+							(touchstart)="onItemTouchStart($event, sauce, 'sauce')"
+							(touchend)="onItemTouchEnd()"
+							(touchmove)="onItemTouchMove()"
+						>
+							@if (showImages() && sauce.imageUrl && sauce.imageUrl !==
+							'assets/placeholder.png') {
+							<img
+								[src]="sauce.imageUrl"
+								[alt]="sauce.name + ' - sugo italiano autentico'"
+								[title]="sauce.name + ' - Sugo italiano autentico'"
+								title="Sugo italiano autentico"
+								class="item-image"
+							/>
+							}
+							<div class="item-content">
+								<h4 class="item-name">{{ sauce.name }}</h4>
+								@if (showDescriptions()) {
+								<p class="item-description">{{ sauce.description }}</p>
+								} @if (sauce.priceNote) {
+								<div class="price-note">{{ sauce.priceNote }}</div>
+								}
+							</div>
+						</div>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
 
-    <!-- Right Column - Menu Sections (Smaller) -->
-    <div class="menu-sections-column">
-      @if (menuSections().length > 0) {
-        <div class="sections-header">
-          <h2 class="section-title">
-            <i class="pi pi-list mr-2"></i>
-            Altre Specialità
-          </h2>
+		<!-- Right Column - Menu Sections (Smaller) -->
+		<div class="menu-sections-column">
+			@if (menuSections().length > 0) {
+			<div class="sections-header">
+				<h2 class="section-title">
+					<i class="pi pi-list mr-2"></i>
+					Altre Specialità
+				</h2>
 
-          <!-- Pagination Controls -->
-          @if (totalSectionPages() > 1) {
-            <div class="pagination-controls">
-              <button
-                pButton
-                type="button"
-                icon="pi pi-chevron-left"
-                class="p-button-rounded p-button-outlined p-button-sm"
-                (click)="prevSectionPage()"
-                [disabled]="!hasPrevPage()"
-                title="Pagina precedente">
-              </button>
-              <span class="page-indicator">{{ currentSectionPage() + 1 }} / {{ totalSectionPages() }}</span>
-              <button
-                pButton
-                type="button"
-                icon="pi pi-chevron-right"
-                class="p-button-rounded p-button-outlined p-button-sm"
-                (click)="nextSectionPage()"
-                [disabled]="!hasNextPage()"
-                title="Pagina successiva">
-              </button>
-            </div>
-          }
-        </div>
+				<!-- Pagination Controls -->
+				@if (totalSectionPages() > 1) {
+				<div class="pagination-controls">
+					<button
+						pButton
+						type="button"
+						icon="pi pi-chevron-left"
+						class="p-button-rounded p-button-outlined p-button-sm"
+						(click)="prevSectionPage()"
+						[disabled]="!hasPrevPage()"
+						title="Pagina precedente"
+					></button>
+					<span class="page-indicator"
+						>{{ currentSectionPage() + 1 }} / {{ totalSectionPages() }}</span
+					>
+					<button
+						pButton
+						type="button"
+						icon="pi pi-chevron-right"
+						class="p-button-rounded p-button-outlined p-button-sm"
+						(click)="nextSectionPage()"
+						[disabled]="!hasNextPage()"
+						title="Pagina successiva"
+					></button>
+				</div>
+				}
+			</div>
 
-        <!-- Current Page Sections -->
-        <div class="sections-container">
-          @for (section of currentPageSections(); track section.id) {
-            <app-menu-section-viewer
-              [section]="section"
-              [items]="getItemsForSection(section.id)">
-            </app-menu-section-viewer>
-          }
-        </div>
-      } @else {
-        <!-- Quality Info when no sections -->
-        <div class="pasta-info">
-          <h3>Perché la Nostra Pasta è Speciale</h3>
-          <div class="quality-indicators">
-            <div class="quality-item">
-              <i class="pi pi-clock"></i>
-              <span>Fresca Ogni Giorno</span>
-            </div>
-            <div class="quality-item">
-              <i class="pi pi-heart"></i>
-              <span>Fatta con Amore</span>
-            </div>
-            <div class="quality-item">
-              <i class="pi pi-globe"></i>
-              <span>Autentica Italiana</span>
-            </div>
-          </div>
-        </div>
-      }
-    </div>
-  </div>
+			<!-- Current Page Sections -->
+			<div class="sections-container">
+				@for (section of currentPageSections(); track section.id) {
+				<app-menu-section-viewer
+					[section]="section"
+					[items]="getItemsForSection(section.id)"
+				>
+				</app-menu-section-viewer>
+				}
+			</div>
+			}
+		</div>
+	</div>
 </div>

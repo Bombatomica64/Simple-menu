@@ -136,3 +136,4 @@ dist
 .pnp.*
 *.db
 Backend/assets/*
+Backend/prisma/dev.db

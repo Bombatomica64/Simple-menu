@@ -21,7 +21,6 @@ interface PastaTypeDisplaySettings {
   showImage: boolean;
   imageSize: string;
   showDescription: boolean;
-  fontSize: number;
   customDescription?: string;
   customFontColor?: string;
   customBgColor?: string;
@@ -68,7 +67,6 @@ export class PastaTypeDisplayDialogComponent implements OnInit {
     showImage: true,
     imageSize: 'size-medium',
     showDescription: true,
-    fontSize: 100,
     customDescription: '',
     customFontColor: '',
     customBgColor: ''
@@ -83,9 +81,6 @@ export class PastaTypeDisplayDialogComponent implements OnInit {
     { label: 'Medie (48px)', value: 'size-medium' },
     { label: 'Grandi (64px)', value: 'size-large' }
   ];
-
-  fontSizeMin = 75;
-  fontSizeMax = 150;
 
   constructor() {
     // Set up effect to handle WebSocket responses
@@ -146,7 +141,6 @@ export class PastaTypeDisplayDialogComponent implements OnInit {
       showImage: true,
       imageSize: 'size-medium',
       showDescription: true,
-      fontSize: 100,
       customDescription: '',
       customFontColor: '',
       customBgColor: ''
@@ -163,9 +157,7 @@ export class PastaTypeDisplayDialogComponent implements OnInit {
   }
 
   get previewTextStyle(): any {
-    const style: any = {
-      fontSize: `${this.settings().fontSize}%`
-    };
+    const style: any = {};
 
     if (this.settings().customFontColor) {
       style.color = this.settings().customFontColor;

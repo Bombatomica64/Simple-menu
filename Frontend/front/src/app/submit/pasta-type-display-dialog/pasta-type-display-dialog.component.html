@@ -100,25 +100,6 @@
           </p-toggleSwitch>
         </div>
       </div>
-
-      <div class="p-field mb-3">
-        <label for="fontSizeSlider" class="font-medium mb-2 block">
-          Dimensione Font: {{ settings().fontSize }}%
-        </label>
-        <p-slider
-          id="fontSizeSlider"
-          [ngModel]="settings().fontSize"
-          (ngModelChange)="updateSetting('fontSize', $event)"
-          [min]="fontSizeMin"
-          [max]="fontSizeMax"
-          [step]="5"
-          [style]="{ width: '100%' }">
-        </p-slider>
-        <div class="flex justify-content-between text-xs text-color-secondary mt-1">
-          <span>{{ fontSizeMin }}%</span>
-          <span>{{ fontSizeMax }}%</span>
-        </div>
-      </div>
     </div>
 
     <!-- Advanced Settings -->

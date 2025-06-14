@@ -9,10 +9,10 @@ import { SliderModule } from 'primeng/slider';
 import { InputTextModule } from 'primeng/inputtext';
 import { ColorPickerModule } from 'primeng/colorpicker';
 import { TextareaModule } from 'primeng/textarea';
-import { 
-  MenuConnection, 
-  PastaSauceDisplaySettings, 
-  UpdatePastaSauceDisplaySettingsMessage, 
+import {
+  MenuConnection,
+  PastaSauceDisplaySettings,
+  UpdatePastaSauceDisplaySettingsMessage,
   GetPastaSauceDisplaySettingsMessage,
   PastaSauceDisplaySettingsResponse,
   MenuResponseMessage
@@ -56,7 +56,6 @@ export class PastaSauceDisplayDialogComponent implements OnInit {
     showImage: true,
     imageSize: 'size-medium',
     showDescription: true,
-    fontSize: 100,
     customDescription: '',
     customFontColor: '',
     customBgColor: ''
@@ -71,9 +70,6 @@ export class PastaSauceDisplayDialogComponent implements OnInit {
     { label: 'Medie (48px)', value: 'size-medium' },
     { label: 'Grandi (64px)', value: 'size-large' }
   ];
-
-  fontSizeMin = 75;
-  fontSizeMax = 150;
 
   constructor() {
     // Watch for WebSocket response messages
@@ -95,13 +91,13 @@ export class PastaSauceDisplayDialogComponent implements OnInit {
     if (!this.pastaSauce || !this.menuConnection) return;
 
     this.loading.set(true);
-    
+
     // Send WebSocket message to get display settings
     const message: GetPastaSauceDisplaySettingsMessage = {
       type: 'getPastaSauceDisplaySettings',
       pastaSauceId: this.pastaSauce.id
     };
-    
+
     this.menuConnection.sendUpdate(message);
   }
 
@@ -109,14 +105,14 @@ export class PastaSauceDisplayDialogComponent implements OnInit {
     if (!this.pastaSauce || !this.menuConnection) return;
 
     this.saving.set(true);
-    
+
     // Send WebSocket message to update display settings
     const message: UpdatePastaSauceDisplaySettingsMessage = {
       type: 'updatePastaSauceDisplaySettings',
       pastaSauceId: this.pastaSauce.id,
       settings: this.settings()
     };
-    
+
     this.menuConnection.sendUpdate(message);
   }
 
@@ -132,7 +128,6 @@ export class PastaSauceDisplayDialogComponent implements OnInit {
       showImage: true,
       imageSize: 'size-medium',
       showDescription: true,
-      fontSize: 100,
       customDescription: '',
       customFontColor: '',
       customBgColor: ''
@@ -146,14 +141,14 @@ export class PastaSauceDisplayDialogComponent implements OnInit {
 
   private handleResponseMessage(response: MenuResponseMessage) {
     // Only handle responses for our current pasta sauce
-    if (response.type === 'pastaSauceDisplaySettings' && 
+    if (response.type === 'pastaSauceDisplaySettings' &&
         response.pastaSauceId === this.pastaSauce?.id) {
       this.settings.set(response.settings);
-      
+
       if (this.loading()) {
         this.loading.set(false);
       }
-      
+
       if (this.saving()) {
         this.settingsChange.emit(response.settings);
         this.closeDialog();
@@ -171,9 +166,7 @@ export class PastaSauceDisplayDialogComponent implements OnInit {
   }
 
   get previewTextStyle(): any {
-    const style: any = {
-      fontSize: `${this.settings().fontSize}%`
-    };
+    const style: any = {};
 
     if (this.settings().customFontColor) {
       style.color = this.settings().customFontColor;

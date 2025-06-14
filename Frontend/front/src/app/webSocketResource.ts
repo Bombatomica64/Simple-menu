@@ -116,7 +116,6 @@ export interface PastaSauceDisplaySettings {
 	showImage: boolean;
 	imageSize: string;
 	showDescription: boolean;
-	fontSize: number;
 	customDescription?: string;
 	customFontColor?: string;
 	customBgColor?: string;
@@ -137,7 +136,6 @@ export interface PastaTypeDisplaySettings {
 	showImage: boolean;
 	imageSize: string;
 	showDescription: boolean;
-	fontSize: number;
 	customDescription?: string;
 	customFontColor?: string;
 	customBgColor?: string;
