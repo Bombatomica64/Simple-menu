@@ -4,10 +4,10 @@ const { prisma } = require("../config/database");
 let currentInMemoryMenu = null;
 
 async function loadInitialMenu() {
-  try {
-    const latestMenuFromDB = await prisma.menu.findFirst({
+  try {    const latestMenuFromDB = await prisma.menu.findFirst({
       orderBy: { createdAt: "desc" },
       include: {
+        logo: true, // Include logo details
         menuItems: {
           orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
         },
@@ -696,6 +696,236 @@ async function updateGlobalPastaDisplaySettings(settings) {
   }
 }
 
+// Logo Management Functions
+
+async function updateLogo(logoUrl, logoSettings = {}) {
+  try {
+    if (!currentInMemoryMenu) {
+      console.error("No current menu to update logo");
+      return false;
+    }
+
+    // Create or update logo
+    let logo;
+    if (currentInMemoryMenu.logoId) {
+      // Update existing logo
+      logo = await prisma.logo.update({
+        where: { id: currentInMemoryMenu.logoId },
+        data: {
+          imageUrl: logoUrl,
+          name: logoSettings.name || 'Menu Logo',
+          position: logoSettings.position || 'top-left',
+          size: logoSettings.size || 'medium',
+          opacity: logoSettings.opacity || 1.0,
+          isActive: true
+        }
+      });
+    } else {
+      // Create new logo
+      logo = await prisma.logo.create({
+        data: {
+          name: logoSettings.name || 'Menu Logo',
+          imageUrl: logoUrl,
+          position: logoSettings.position || 'top-left',
+          size: logoSettings.size || 'medium',
+          opacity: logoSettings.opacity || 1.0,
+          isActive: true
+        }
+      });
+
+      // Link logo to current menu
+      await prisma.menu.update({
+        where: { id: currentInMemoryMenu.id },
+        data: { logoId: logo.id }
+      });
+    }
+
+    // Update in-memory menu
+    currentInMemoryMenu.logoId = logo.id;
+    currentInMemoryMenu.logo = logo;
+
+    console.log("✅ Logo updated successfully");
+    return true;
+  } catch (error) {
+    console.error("❌ Error updating logo:", error);
+    return false;
+  }
+}
+
+async function removeLogo() {
+  try {
+    if (!currentInMemoryMenu || !currentInMemoryMenu.logoId) {
+      console.error("No current menu or logo to remove");
+      return false;
+    }
+
+    // Remove logo reference from menu (but keep logo in database for reuse)
+    await prisma.menu.update({
+      where: { id: currentInMemoryMenu.id },
+      data: { logoId: null }
+    });
+
+    // Update in-memory menu
+    currentInMemoryMenu.logoId = null;
+    currentInMemoryMenu.logo = null;
+
+    console.log("✅ Logo removed from menu successfully");
+    return true;
+  } catch (error) {
+    console.error("❌ Error removing logo:", error);
+    return false;
+  }
+}
+
+async function updateLogoSettings(logoSettings = {}) {
+  try {
+    if (!currentInMemoryMenu || !currentInMemoryMenu.logoId) {
+      console.error("No current menu or logo to update settings");
+      return false;
+    }
+
+    // Update logo settings in the database
+    const updatedLogo = await prisma.logo.update({
+      where: { id: currentInMemoryMenu.logoId },
+      data: {
+        name: logoSettings.name || currentInMemoryMenu.logo?.name || 'Menu Logo',
+        position: logoSettings.position || currentInMemoryMenu.logo?.position || 'top-left',
+        size: logoSettings.size || currentInMemoryMenu.logo?.size || 'medium',
+        opacity: logoSettings.opacity !== undefined ? logoSettings.opacity : (currentInMemoryMenu.logo?.opacity || 1.0),
+        isActive: logoSettings.isActive !== undefined ? logoSettings.isActive : true
+      }
+    });
+
+    // Update in-memory menu
+    currentInMemoryMenu.logo = updatedLogo;
+
+    console.log("✅ Logo settings updated successfully");
+    return true;
+  } catch (error) {
+    console.error("❌ Error updating logo settings:", error);
+    return false;
+  }
+}
+
+async function getAvailableLogos() {
+  try {
+    const logos = await prisma.logo.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    return logos;
+  } catch (error) {
+    console.error("❌ Error getting available logos:", error);
+    return [];
+  }
+}
+
+async function setMenuLogo(logoId) {
+  try {
+    if (!currentInMemoryMenu) {
+      console.error("No current menu to set logo");
+      return false;
+    }
+
+    // Verify logo exists
+    const logo = await prisma.logo.findUnique({
+      where: { id: logoId }
+    });
+
+    if (!logo) {
+      console.error("Logo not found:", logoId);
+      return false;
+    }
+
+    // Update menu with new logo
+    await prisma.menu.update({
+      where: { id: currentInMemoryMenu.id },
+      data: { logoId: logoId }
+    });
+
+    // Update in-memory menu
+    currentInMemoryMenu.logoId = logoId;
+    currentInMemoryMenu.logo = logo;
+
+    console.log("✅ Menu logo set successfully");
+    return true;
+  } catch (error) {
+    console.error("❌ Error setting menu logo:", error);
+    return false;
+  }
+}
+
+async function deleteLogo(logoId) {
+  try {
+    // Check if logo is being used by any menus
+    const menusUsingLogo = await prisma.menu.findMany({
+      where: { logoId: logoId }
+    });
+
+    if (menusUsingLogo.length > 0) {
+      // Remove logo from all menus first
+      await prisma.menu.updateMany({
+        where: { logoId: logoId },
+        data: { logoId: null }
+      });
+
+      // Update in-memory menu if it's using this logo
+      if (currentInMemoryMenu && currentInMemoryMenu.logoId === logoId) {
+        currentInMemoryMenu.logoId = null;
+        currentInMemoryMenu.logo = null;
+      }
+    }
+
+    // Delete the logo
+    await prisma.logo.delete({
+      where: { id: logoId }
+    });
+
+    console.log("✅ Logo deleted successfully");
+    return true;
+  } catch (error) {
+    console.error("❌ Error deleting logo:", error);
+    return false;
+  }
+}
+
+// Enhanced Section Management Functions
+
+async function updateSectionStyle(sectionId, style = {}) {
+  try {
+    if (!currentInMemoryMenu) {
+      console.error("No current menu to update section style");
+      return false;
+    }
+
+    // Update section style in database
+    const updatedSection = await prisma.menuSection.update({
+      where: { id: sectionId },
+      data: {
+        sectionType: style.sectionType || 'general',
+        backgroundColor: style.backgroundColor || null,
+        textColor: style.textColor || null
+      }
+    });
+
+    // Update in-memory menu
+    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
+    if (sectionIndex !== -1) {
+      currentInMemoryMenu.menuSections[sectionIndex] = {
+        ...currentInMemoryMenu.menuSections[sectionIndex],
+        sectionType: style.sectionType || 'general',
+        backgroundColor: style.backgroundColor || null,
+        textColor: style.textColor || null
+      };
+    }
+
+    console.log("✅ Section style updated successfully");
+    return true;
+  } catch (error) {
+    console.error("❌ Error updating section style:", error);
+    return false;
+  }
+}
+
 module.exports = {
   loadInitialMenu,
   getCurrentMenu,
@@ -723,4 +953,13 @@ module.exports = {
   moveItemToSection,
   updateItemPositions,
   updateGlobalPastaDisplaySettings,
+  // Logo management functions
+  updateLogo,
+  removeLogo,
+  updateLogoSettings,
+  getAvailableLogos,
+  setMenuLogo,
+  deleteLogo,
+  // Enhanced section management
+  updateSectionStyle,
 };

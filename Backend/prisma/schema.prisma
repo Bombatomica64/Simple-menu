@@ -7,11 +7,28 @@ datasource db {
   url      = "file:./dev.db"
 }
 
+model Logo {
+  id          Int      @id @default(autoincrement())
+  name        String   // Name/description of the logo
+  imageUrl    String   // URL to the logo image file
+  position    String   @default("top-left") // "top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"
+  size        String   @default("medium") // "small", "medium", "large", "extra-large"
+  opacity     Float    @default(1.0) // 0.0 to 1.0 for transparency
+  isActive    Boolean  @default(true) // Whether this logo is currently active
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationship - Multiple menus can use the same logo
+  menus       Menu[]
+}
+
 model Menu {
   id                        Int               @id @default(autoincrement())
   createdAt                 DateTime          @default(now())
   backgroundId              Int?              // Optional FK to BackgroundConfig
   background                BackgroundConfig? @relation(fields: [backgroundId], references: [id], onDelete: SetNull)
+  logoId                    Int?              // Optional FK to Logo
+  logo                      Logo?             @relation(fields: [logoId], references: [id], onDelete: SetNull)
   orientation               String            @default("vertical") // "vertical" or "horizontal" layout
   availableImages           String?           // JSON string of available images for menu items
   
@@ -38,6 +55,9 @@ model MenuSection {
   id        Int        @id @default(autoincrement())
   name      String
   header    String?    // Optional header text for the section
+  sectionType String   @default("general") // "general", "pasta", "sauce", "insalatone", "poke"
+  backgroundColor String? // Optional background color for the section
+  textColor String?   // Optional text color for the section
   position  Int        @default(0) // Position/order of the section in the menu
   menuId    Int
   menu      Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)

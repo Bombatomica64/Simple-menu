@@ -1304,4 +1304,48 @@ docker-compose up --build -d
 
 ---
 
+
+## 🎯 Upcoming Features
+
+### 🎨 Visual & Styling Enhancements
+- **Color-coded Menu Categories**: 
+  - Pasta sections: Light yellow background (`#FFFACD`) 
+  - Sauce sections: Light red background (`#FFE4E1`)
+  - Insalatone sections: Light green background (`#F0FFF0`)
+  - Poke sections: Light red background (`#FFE4E1`)
+- **Logo Integration**: Company logo display in top-left corner with automatic positioning
+- **Clean White Theme**: Pure white background with improved contrast and readability
+
+### 📋 Menu Structure & Content Management
+- **Standardized Menu Counts**: 
+  - Limit Insalatone to 3 items with descriptions
+  - Limit Poke to 2 items with descriptions
+- **Simplified Content Display**: Remove descriptions from pasta types and sauce items
+- **Price Management**: 
+  - Remove individual prices from pasta and sauce items
+  - Add fixed pricing notes and portion size information
+- **Smart Menu Organization**: Automatic categorization with drag-and-drop reordering
+
+### 🤖 Automation & Scheduling
+- **Scheduled Messaging**: Automatic "Kitchen Opens at 11:45" message with logo integration
+- **Content Automation**: Automated content simplification and menu validation
+- **Real-time Updates**: Instant synchronization of menu changes across all displays
+
+### 📝 Menu Information & Compliance
+- **Footer Information**: 
+  - "All products used are fresh" disclaimer
+  - "Large portions and/or fresh pasta +€2" pricing note
+  - "Combine your pasta with your preferred sauce" instruction
+- **Fixed Pricing Display**: Consistent pricing presentation for Insalatone and Poke items
+- **Professional Presentation**: Clean, restaurant-grade menu display
+
+### 🔄 Enhanced Real-time Features
+- **WebSocket-based Updates**: All menu changes propagate instantly via WebSocket
+- **Multi-client Synchronization**: Changes reflect immediately across all connected devices
+- **Automated Validation**: Real-time validation of menu structure and content limits
+- **Background Automation**: Scheduled tasks for content updates and system maintenance
+
+
+---
+
 *Built with ❤️ using Angular, Node.js, and modern web technologies*

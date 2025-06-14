@@ -19,7 +19,7 @@ if (!fs.existsSync(logsDir)) {
 const menuService = require("./services/menuService");
 
 // Import middleware
-const { setupWebSocket } = require("./middleware/websocket");
+const { setupWebSocket } = require("./websocket/manager");
 
 // Import routes
 const pastaTypesRoutes = require("./routes/pastaTypes");
@@ -28,6 +28,7 @@ const imageManagementRoutes = require("./routes/imageManagement");
 const backgroundsRoutes = require("./routes/backgrounds");
 const userPreferencesRoutes = require("./routes/userPreferences");
 const displaySettingsRoutes = require("./routes/displaySettings");
+const logosRoutes = require("./routes/logos");
 
 // Initialize Express app
 const app = express();
@@ -47,6 +48,7 @@ app.use('/images', imageManagementRoutes);
 app.use('/api/backgrounds', backgroundsRoutes);
 app.use('/api/user', userPreferencesRoutes);
 app.use('/api/menu', displaySettingsRoutes);
+app.use('/api/logos', logosRoutes);
 
 // Health check endpoint with comprehensive status
 app.get('/health', (req, res) => {
