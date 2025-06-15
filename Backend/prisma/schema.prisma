@@ -31,18 +31,19 @@ model Menu {
   logo                      Logo?             @relation(fields: [logoId], references: [id], onDelete: SetNull)
   orientation               String            @default("vertical") // "vertical" or "horizontal" layout
   availableImages           String?           // JSON string of available images for menu items
-  
-  // Global display preferences for pasta types
+    // Global display preferences for pasta types
   globalPastaTypeShowImage       Boolean  @default(true)
   globalPastaTypeImageSize       String   @default("size-medium")
   globalPastaTypeShowDescription Boolean  @default(true)
   globalPastaTypeFontSize        Int      @default(100)
+  globalPastaTypeBackgroundColor String?  // Global background color for pasta types section
   
   // Global display preferences for pasta sauces
   globalPastaSauceShowImage       Boolean  @default(true)
   globalPastaSauceImageSize       String   @default("size-medium")
   globalPastaSauceShowDescription Boolean  @default(true)
   globalPastaSauceFontSize        Int      @default(100)
+  globalPastaSauceBackgroundColor String? // Global background color for pasta sauces section
   
   menuItems                 MenuItem[]
   menuSections              MenuSection[]     // Menu sections for organizing items
@@ -86,6 +87,8 @@ model PastaType {
   description     String?           // Optional description for the pasta type
   basePrice       Float             @default(8.50) // Base price for this pasta type
   priceNote       String?           // Optional note about pricing (e.g., "+€2 for large portion")
+  backgroundColor String?           // Optional background color for the pasta type
+  textColor       String?           // Optional text color for the pasta type
   menus           MenuToPastaType[]
 }
 
@@ -96,6 +99,8 @@ model PastaSauce {
   description     String?            // Optional description for the pasta sauce
   basePrice       Float              @default(3.50) // Base price for this pasta sauce
   priceNote       String?            // Optional note about pricing (e.g., "+€1 for truffle sauce")
+  backgroundColor String?            // Optional background color for the pasta sauce
+  textColor       String?            // Optional text color for the pasta sauce
   menus           MenuToPastaSauce[]
 }
 

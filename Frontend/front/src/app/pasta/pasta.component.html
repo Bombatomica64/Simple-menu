@@ -20,13 +20,17 @@
 				<i class="pi pi-star-fill mr-2" title="Stelle di qualità"></i>
 				Combinazioni Perfette di Pasta
 			</h2>
-
 			<!-- Pasta Types and Sauces in two sub-columns -->
 			<div class="pasta-sub-layout">
 				<!-- Pasta Types -->
-				<div class="pasta-types-section">
+				<div
+					class="pasta-types-section"
+					[style.backgroundColor]="getPastaTypesSectionBackgroundColor()"
+					[style.color]="getPastaTypesSectionTextColor()"
+				>
 					<h3 class="sub-title">Tipi di Pasta</h3>
-					<div class="items-grid">						@for (pasta of pastaTypes(); track $index) {
+					<div class="items-grid">
+						@for (pasta of pastaTypes(); track $index) {
 						<div
 							class="item-card"
 							[style.fontSize]="pastaTypeFontSize()"
@@ -57,11 +61,16 @@
 						}
 					</div>
 				</div>
-
 				<!-- Pasta Sauces -->
-				<div class="pasta-sauces-section">
+				<div
+					class="pasta-sauces-section"
+					[style.backgroundColor]="getPastaSaucesSectionBackgroundColor()"
+					[style.color]="getPastaSaucesSectionTextColor()"
+				>
 					<h3 class="sub-title">Sughi per Pasta</h3>
-					<div class="items-grid">						@for (sauce of pastaSauces(); track $index) {						<div
+					<div class="items-grid">
+						@for (sauce of pastaSauces(); track $index) {
+						<div
 							class="item-card"
 							[style.fontSize]="pastaSauceFontSize()"
 							[attr.data-sauce-font-size]="pastaSauceFontSize()"

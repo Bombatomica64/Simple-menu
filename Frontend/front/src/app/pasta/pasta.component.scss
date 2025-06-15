@@ -376,16 +376,15 @@
 			background: rgba(139, 69, 19, 0.5);
 		}
 	}
-
 	// Compact item cards for fixed viewport
 	.item-card {
-		background: rgba(255, 255, 255, 0.95);
-		border-radius: 8px;
-		padding: 0.5rem;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		background: rgba(255, 255, 255, 0.85);
+		border-radius: 6px;
+		padding: 0.4rem;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 		-webkit-backdrop-filter: blur(10px);
 		backdrop-filter: blur(10px);
-		border: 1px solid rgba(255, 255, 255, 0.2);
+		border: 1px solid rgba(255, 255, 255, 0.3);
 		transition: all 0.3s ease;
 		position: relative;
 		overflow: hidden;
@@ -394,29 +393,18 @@
 		text-align: left;
 		margin-bottom: 0.2rem;
 
-		&:before {
-			content: "";
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			height: 3px;
-			background: linear-gradient(90deg, #ff6b6b, #ffa500, #32cd32);
-		}
-
 		&:hover {
-			transform: translateY(-2px) scale(1.01) !important;
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+			transform: translateY(-1px) scale(1.02) !important;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 		}
-
 		.item-image {
-			width: 40px;
-			height: 40px;
+			width: 32px;
+			height: 32px;
 			border-radius: 50%;
 			object-fit: cover;
-			margin-right: 0.6rem;
-			border: 2px solid #fff;
-			box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+			margin-right: 0.5rem;
+			border: 1px solid rgba(255, 255, 255, 0.8);
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 			transition: all 0.3s ease;
 			flex-shrink: 0;
 
@@ -424,48 +412,50 @@
 				transform: scale(1.05);
 			}
 		}
-
 		.item-content {
 			flex: 1;
 
 			.item-name {
-				color: #8b4513;
+				color: inherit; // Use the dynamic color from the parent
 				font-weight: 600;
-				margin: 0 0 0.2rem 0;
-				text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+				margin: 0 0 0.1rem 0;
+				text-shadow: none; // Remove text shadow to let custom colors show
+				font-size: 0.85rem;
 			}
 			.item-description {
-				color: #666;
-				line-height: 1.3;
-				margin-bottom: 0.3rem;
+				color: inherit; // Use the dynamic color from the parent
+				opacity: 0.8;
+				line-height: 1.2;
+				margin-bottom: 0.2rem;
 				overflow: visible;
 				text-overflow: clip;
 				white-space: normal;
+				font-size: 0.7rem;
 			}
 
 			.price-note {
-				font-size: 0.6rem;
-				color: #8b4513;
+				font-size: 0.55rem;
+				color: inherit;
+				opacity: 0.9;
 				font-style: italic;
-				background: rgba(255, 215, 0, 0.2);
-				padding: 0.1rem 0.3rem;
-				border-radius: 6px;
+				background: rgba(255, 215, 0, 0.15);
+				padding: 0.1rem 0.25rem;
+				border-radius: 4px;
 				display: inline-block;
-				border: 1px solid rgba(255, 215, 0, 0.4);
+				border: 1px solid rgba(255, 215, 0, 0.3);
 			}
 		}
-
 		// Styling adjustments when no image is present
 		&:not(:has(.item-image)) {
 			.item-content {
-				padding-left: 0.5rem;
+				padding-left: 0.3rem;
 
 				.item-name {
-					margin-bottom: 0.5rem;
+					margin-bottom: 0.3rem;
 				}
 
 				.item-description {
-					margin-bottom: 0.6rem;
+					margin-bottom: 0.4rem;
 				}
 			}
 		}
@@ -617,21 +607,20 @@
 				font-size: 0.75rem;
 			}
 		}
-
 		.item-card {
-			padding: 0.4rem;
+			padding: 0.3rem;
 
 			.item-image {
-				width: 35px;
-				height: 35px;
+				width: 28px;
+				height: 28px;
 			}
 
 			.item-content {
 				.item-name {
-					font-size: 0.85rem;
+					font-size: 0.75rem;
 				}
 				.item-description {
-					font-size: 0.65rem;
+					font-size: 0.6rem;
 				}
 			}
 		}
@@ -746,42 +735,41 @@
 			}
 		}
 	}
-
 	// Font size variations for item cards
 	.item-card {
 		&[data-font-size="small"] {
 			.item-name {
-				font-size: 0.8rem !important;
+				font-size: 0.7rem !important;
 			}
 			.item-description {
-				font-size: 0.6rem !important;
+				font-size: 0.55rem !important;
 			}
 			.price-note {
-				font-size: 0.5rem !important;
+				font-size: 0.45rem !important;
 			}
 		}
 
 		&[data-font-size="medium"] {
 			.item-name {
-				font-size: 0.9rem !important;
+				font-size: 0.85rem !important;
 			}
 			.item-description {
 				font-size: 0.7rem !important;
 			}
 			.price-note {
-				font-size: 0.6rem !important;
+				font-size: 0.55rem !important;
 			}
 		}
 
 		&[data-font-size="large"] {
 			.item-name {
-				font-size: 1.1rem !important;
+				font-size: 1rem !important;
 			}
 			.item-description {
-				font-size: 0.9rem !important;
+				font-size: 0.85rem !important;
 			}
 			.price-note {
-				font-size: 0.7rem !important;
+				font-size: 0.65rem !important;
 			}
 		}
 	}

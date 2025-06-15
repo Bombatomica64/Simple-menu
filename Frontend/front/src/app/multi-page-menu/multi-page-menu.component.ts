@@ -241,4 +241,13 @@ export class MultiPageMenuComponent implements OnDestroy {
     const minSauce = parseFloat(this.getMinSaucePrice());
     return (minPasta + minSauce).toFixed(2);
   }
+
+  // Get background style from menu configuration
+  getBackgroundStyle(): string | null {
+    const menuData = this.menu();
+    if (!menuData?.background?.background) {
+      return null;
+    }
+    return menuData.background.background;
+  }
 }

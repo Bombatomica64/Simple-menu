@@ -1,0 +1,122 @@
+<div class="color-palette-container">
+  <h3 class="title">Gestione Colori</h3>
+
+  <div class="color-grid">
+    <!-- Menu Sections -->
+    <div class="section-group">
+      <h4 class="group-title">Sezioni Menu</h4>
+      <div class="color-items">
+        @for (section of sections(); track section.id) {
+          <div class="color-item"
+               [style.background-color]="section.backgroundColor || '#f8f9fa'"
+               (click)="openColorPicker(section, 'section')">
+            <div class="color-info">
+              <span class="item-name">{{ section.name }}</span>
+              <span class="color-value">{{ section.backgroundColor || '#f8f9fa' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Pasta Types -->
+    <div class="section-group">
+      <h4 class="group-title">Tipi di Pasta</h4>
+      <div class="color-items">
+        <div class="color-item"
+             [style.background-color]="pastaTypesBackgroundColor()"
+             (click)="openColorPicker({name: 'Tipi di Pasta'}, 'pastaTypes')">
+          <div class="color-info">
+            <span class="item-name">Tipi di Pasta</span>
+            <span class="color-value">{{ pastaTypesBackgroundColor() }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pasta Sauces -->
+    <div class="section-group">
+      <h4 class="group-title">Sughi</h4>
+      <div class="color-items">
+        <div class="color-item"
+             [style.background-color]="pastaSaucesBackgroundColor()"
+             (click)="openColorPicker({name: 'Sughi'}, 'pastaSauces')">
+          <div class="color-info">
+            <span class="item-name">Sughi</span>
+            <span class="color-value">{{ pastaSaucesBackgroundColor() }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Color Picker Dialog -->
+<p-dialog
+  [visible]="showColorDialog()"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="color-dialog"
+  header="Seleziona Colore"
+  (onHide)="closeDialog()">
+
+  <div class="color-picker-content">
+    <div class="selected-item-info">
+      <strong>{{ selectedItemName() }}</strong>
+    </div>
+
+    <div class="color-controls">
+      <div class="color-preview" [style.background-color]="selectedColor()"></div>
+
+      <div class="color-inputs">
+        <div class="input-group">
+          <label for="colorPicker">Colore:</label>
+          <input
+            id="colorPicker"
+            type="color"
+            [value]="selectedColor()"
+            (input)="onColorChange($event)"
+            class="color-input">
+        </div>
+
+        <div class="input-group">
+          <label for="hexInput">Hex:</label>
+          <input
+            id="hexInput"
+            type="text"
+            [value]="selectedColor()"
+            (input)="onHexChange($event)"
+            class="hex-input"
+            placeholder="#ffffff">
+        </div>
+      </div>
+    </div>
+
+    <div class="dialog-actions">
+      <p-button
+        label="Annulla"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="closeDialog()">
+      </p-button>
+
+      <p-button
+        label="Rimuovi"
+        icon="pi pi-trash"
+        severity="danger"
+        (onClick)="removeColor()">
+      </p-button>
+
+      <p-button
+        label="Salva"
+        icon="pi pi-check"
+        severity="success"
+        (onClick)="saveColor()">
+      </p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<p-toast></p-toast>

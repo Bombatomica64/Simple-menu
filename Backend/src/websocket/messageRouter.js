@@ -23,6 +23,11 @@ const MESSAGE_HANDLERS = {
   "updateSectionOrder": sectionHandlers.handleUpdateSectionOrder,
   "moveItemToSection": sectionHandlers.handleMoveItemToSection,
   "updateSectionStyle": sectionHandlers.handleUpdateSectionStyle,
+  "updateSectionColors": sectionHandlers.handleUpdateSectionColors,
+  "resetSectionColors": sectionHandlers.handleResetSectionColors,
+  "updateSectionType": sectionHandlers.handleUpdateSectionType,
+  "updatePastaTypesColor": sectionHandlers.handleUpdatePastaTypesColor,
+  "updatePastaSaucesColor": sectionHandlers.handleUpdatePastaSaucesColor,
 
   // Pasta Operations
   "addPastaTypeToMenu": pastaHandlers.handleAddPastaTypeToMenu,
@@ -33,6 +38,10 @@ const MESSAGE_HANDLERS = {
   "deletePastaType": pastaHandlers.handleDeletePastaType,
   "createPastaSauce": pastaHandlers.handleCreatePastaSauce,
   "deletePastaSauce": pastaHandlers.handleDeletePastaSauce,
+  "updatePastaTypeColors": pastaHandlers.handleUpdatePastaTypeColors,
+  "resetPastaTypeColors": pastaHandlers.handleResetPastaTypeColors,
+  "updatePastaSauceColors": pastaHandlers.handleUpdatePastaSauceColors,
+  "resetPastaSauceColors": pastaHandlers.handleResetPastaSauceColors,
 
   // Logo Operations
   "updateLogo": logoHandlers.handleUpdateLogo,

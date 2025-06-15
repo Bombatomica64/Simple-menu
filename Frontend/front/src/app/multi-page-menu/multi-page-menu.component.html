@@ -2,7 +2,8 @@
 <div class="multi-page-menu-container"
      [class.transitioning]="isTransitioning()"
      [class.vertical-orientation]="isVerticalOrientation()"
-     [class.horizontal-orientation]="isHorizontalOrientation()">  <!-- Big Price Display at Top Left -->
+     [class.horizontal-orientation]="isHorizontalOrientation()"
+     [style.background]="getBackgroundStyle()">  <!-- Big Price Display at Top Left -->
   @if (menu()?.pastaTypes?.length || menu()?.pastaSauces?.length) {
     <div class="big-price-display">
       <div class="price-value">€{{ getMinTotalPrice() }}</div>

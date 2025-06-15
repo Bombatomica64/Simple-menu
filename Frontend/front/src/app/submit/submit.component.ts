@@ -44,6 +44,11 @@ import {
 	GetAllBackgroundConfigsMessage,
 	UpdateGlobalPastaDisplaySettingsMessage,
 	GlobalPastaDisplaySettings,
+	GetAvailableLogosMessage,
+	SetMenuLogoMessage,
+	UpdateLogoSettingsMessage,
+	RemoveLogoMessage,
+	DeleteLogoMessage,
 } from '../webSocketResource';
 import {
 	Menu,
@@ -74,6 +79,12 @@ import { MenuSectionsComponent } from '../menu-sections/menu-sections.component'
 import { PastaDisplayManagementComponent } from './pasta-display-management/pasta-display-management.component'; // Import PastaDisplayManagementComponent
 import { PastaSauceDisplayDialogComponent } from './pasta-sauce-display-dialog/pasta-sauce-display-dialog.component'; // Import PastaSauceDisplayDialogComponent
 import { PastaTypeDisplayDialogComponent } from './pasta-type-display-dialog/pasta-type-display-dialog.component'; // Import PastaTypeDisplayDialogComponent
+import { LogoUploadComponent } from '../logo-upload/logo-upload.component'; // Import LogoUploadComponent
+import { ColorPaletteComponent } from '../color-palette/color-palette.component'; // Import ColorPaletteComponent
+import {
+	SectionOperations,
+	LogoOperations,
+} from '../services/menu-components.service'; // Import operation interfaces
 
 // Define pasta sauce event interface for handling display settings
 export interface PastaSauceEvent {
@@ -104,6 +115,8 @@ export interface PastaSauceEvent {
 		PastaDisplayManagementComponent,
 		PastaSauceDisplayDialogComponent,
 		PastaTypeDisplayDialogComponent,
+		LogoUploadComponent,
+		ColorPaletteComponent,
 	],
 	templateUrl: './submit.component.html',
 	styleUrls: ['./submit.component.scss'],
@@ -121,6 +134,34 @@ export class SubmitComponent implements OnInit {
 	pastaDisplayManagement!: PastaDisplayManagementComponent;
 
 	menuWsConnection: MenuConnection | null = null;
+
+	// Operations for child components
+	sectionOperations: SectionOperations = {
+		addSection: (name: string, header?: string) =>
+			this.addSection(name, header),
+		removeSection: (sectionId: number) => this.removeSection(sectionId),
+		updateSectionColors: (
+			sectionId: number,
+			backgroundColor: string,
+			textColor: string
+		) => this.updateSectionColors(sectionId, backgroundColor, textColor),
+		resetSectionColors: (sectionId: number) =>
+			this.resetSectionColors(sectionId),
+	};
+
+	logoOperations: LogoOperations = {
+		uploadLogo: (file: File, name: string, position: string, size: string) =>
+			this.uploadLogo(file, name, position, size),
+		activateLogo: (logoId: number) => this.activateLogo(logoId),
+		deleteLogo: (logoId: number) => this.deleteLogo(logoId),
+		updateLogoSettings: (
+			logoId: number,
+			position: string,
+			size: string,
+			opacity: number
+		) => this.updateLogoSettings(logoId, position, size, opacity),
+	};
+
 	// For adding new item
 	newItemName: string = '';
 	newItemPrice: number | null = null;
@@ -419,7 +460,7 @@ export class SubmitComponent implements OnInit {
 	ngOnInit() {
 		if (isPlatformBrowser(this.platformId)) {
 			runInInjectionContext(this.injector, () => {
-				this.menuWsConnection = menuConnection(environment.wsUrl);				// Set up effect to handle background configuration WebSocket responses
+				this.menuWsConnection = menuConnection(environment.wsUrl); // Set up effect to handle background configuration WebSocket responses
 				effect(() => {
 					const lastMessage = this.menuWsConnection?.responseMessages();
 					if (!lastMessage) return;
@@ -443,15 +484,22 @@ export class SubmitComponent implements OnInit {
 					} else if (lastMessage.type === 'backgroundConfigDeleted') {
 						this.backgroundConfigs.update((configs) =>
 							configs.filter((c) => c.page !== lastMessage.page)
-						);					} else if (lastMessage.type === 'pastaTypeCreated') {
+						);
+					} else if (lastMessage.type === 'pastaTypeCreated') {
 						// Handle successful pasta type creation
-						console.log('Pasta type created successfully:', lastMessage.pastaType);
+						console.log(
+							'Pasta type created successfully:',
+							lastMessage.pastaType
+						);
 						this.loadAllPastaTypes(); // Refresh the list
 						this.showNewPastaTypeDialog.set(false);
 						this.resetNewPastaTypeForm();
 					} else if (lastMessage.type === 'pastaSauceCreated') {
 						// Handle successful pasta sauce creation
-						console.log('Pasta sauce created successfully:', lastMessage.pastaSauce);
+						console.log(
+							'Pasta sauce created successfully:',
+							lastMessage.pastaSauce
+						);
 						this.loadAllPastaSauces(); // Refresh the list
 						this.showNewPastaSauceDialog.set(false);
 						this.resetNewPastaSauceForm();
@@ -621,7 +669,8 @@ export class SubmitComponent implements OnInit {
 		if (file) {
 			this.newPastaTypeSelectedFile.set(file);
 		}
-	}	saveNewPastaType() {
+	}
+	saveNewPastaType() {
 		if (!this.newPastaTypeName().trim()) {
 			alert('Il nome del tipo di pasta è obbligatorio.');
 			return;
@@ -642,7 +691,11 @@ export class SubmitComponent implements OnInit {
 				},
 				error: (err) => {
 					console.error('Failed to upload image:', err);
-					alert(`Errore caricamento immagine: ${err.error?.error || 'Errore sconosciuto'}`);
+					alert(
+						`Errore caricamento immagine: ${
+							err.error?.error || 'Errore sconosciuto'
+						}`
+					);
 					this.uploadingNewPastaTypeImage.set(false);
 				},
 			});
@@ -715,7 +768,8 @@ export class SubmitComponent implements OnInit {
 		if (file) {
 			this.newPastaSauceSelectedFile.set(file);
 		}
-	}	saveNewPastaSauce() {
+	}
+	saveNewPastaSauce() {
 		if (!this.newPastaSauceName().trim()) {
 			alert('Il nome del sugo per pasta è obbligatorio.');
 			return;
@@ -736,7 +790,11 @@ export class SubmitComponent implements OnInit {
 				},
 				error: (err) => {
 					console.error('Failed to upload image:', err);
-					alert(`Errore caricamento immagine: ${err.error?.error || 'Errore sconosciuto'}`);
+					alert(
+						`Errore caricamento immagine: ${
+							err.error?.error || 'Errore sconosciuto'
+						}`
+					);
 					this.uploadingNewPastaSauceImage.set(false);
 				},
 			});
@@ -1210,9 +1268,251 @@ export class SubmitComponent implements OnInit {
 
 		const message: UpdateGlobalPastaDisplaySettingsMessage = {
 			type: 'updateGlobalPastaDisplaySettings',
-			settings: settings
+			settings: settings,
 		};
 
 		this.menuWsConnection?.sendUpdate(message);
+	} // Section operations implementation
+	addSection(name: string, header?: string) {
+		if (!this.menuWsConnection) return;
+
+		const message: AddSectionMessage = {
+			type: 'addSection',
+			section: { name },
+		};
+		this.menuWsConnection.sendUpdate(message);
+	}
+
+	removeSection(sectionId: number) {
+		if (!this.menuWsConnection) return;
+
+		const message: RemoveSectionMessage = {
+			type: 'removeSection',
+			sectionId,
+		};
+		this.menuWsConnection.sendUpdate(message);
+	}
+
+	updateSectionColors(
+		sectionId: number,
+		backgroundColor: string,
+		textColor: string
+	) {
+		if (!this.menuWsConnection) return;
+
+		// For now, use a generic message - we'll need to add proper WebSocket message types later
+		this.menuWsConnection.sendUpdate({
+			type: 'updateSectionColors',
+			sectionId,
+			backgroundColor,
+			textColor,
+		} as any);
+	}
+
+	resetSectionColors(sectionId: number) {
+		if (!this.menuWsConnection) return;
+
+		// For now, use a generic message - we'll need to add proper WebSocket message types later
+		this.menuWsConnection.sendUpdate({
+			type: 'resetSectionColors',
+			sectionId,
+		} as any);
+	}
+	// Pasta type color management
+	updatePastaTypeColors(
+		pastaTypeId: number,
+		backgroundColor: string,
+		textColor: string
+	) {
+		if (this.menuWsConnection) {
+			this.menuWsConnection.sendUpdate({
+				type: 'updatePastaTypeColors',
+				pastaTypeId,
+				backgroundColor,
+				textColor,
+			} as any);
+		}
+	}
+
+	resetPastaTypeColors(pastaTypeId: number) {
+		if (this.menuWsConnection) {
+			this.menuWsConnection.sendUpdate({
+				type: 'resetPastaTypeColors',
+				pastaTypeId,
+			} as any);
+		}
+	}
+
+	// Pasta sauce color management
+	updatePastaSauceColors(
+		pastaSauceId: number,
+		backgroundColor: string,
+		textColor: string
+	) {
+		if (this.menuWsConnection) {
+			this.menuWsConnection.sendUpdate({
+				type: 'updatePastaSauceColors',
+				pastaSauceId,
+				backgroundColor,
+				textColor,
+			} as any);
+		}
+	}
+
+	resetPastaSauceColors(pastaSauceId: number) {
+		if (this.menuWsConnection) {
+			this.menuWsConnection.sendUpdate({
+				type: 'resetPastaSauceColors',
+				pastaSauceId,
+			} as any);
+		}
+	}
+	// Logo operations implementation
+	uploadLogo(file: File, name: string, position: string, size: string) {
+		const formData = new FormData();
+		formData.append('logo', file);
+		formData.append('name', name);
+		formData.append('position', position);
+		formData.append('size', size);
+		formData.append('opacity', '1.0');
+
+		// Use HTTP request for file upload
+		fetch(environment.apiUrl + '/logos/upload', {
+			method: 'POST',
+			body: formData,
+		})
+			.then((response) => response.json())
+			.then((data) => {
+				if (data.success) {
+					console.log('Logo uploaded successfully:', data.logo);
+					// After successful upload, activate the logo via WebSocket
+					if (data.logo?.id) {
+						this.activateLogo(data.logo.id);
+					}
+				} else {
+					console.error('Logo upload failed:', data.message);
+				}
+			})
+			.catch((error) => {
+				console.error('Logo upload error:', error);
+			});
+	}
+
+	activateLogo(logoId: number) {
+		const message: SetMenuLogoMessage = {
+			type: 'setMenuLogo',
+			logoId: logoId,
+		};
+		this.menuWsConnection?.sendUpdate(message);
+	}
+
+	deleteLogo(logoId: number) {
+		const message: DeleteLogoMessage = {
+			type: 'deleteLogo',
+			logoId: logoId,
+		};
+		this.menuWsConnection?.sendUpdate(message);
+	}
+
+	updateLogoSettings(
+		logoId: number,
+		position: string,
+		size: string,
+		opacity: number
+	) {
+		const message: UpdateLogoSettingsMessage = {
+			type: 'updateLogoSettings',
+			logoSettings: {
+				position,
+				size,
+				opacity,
+			},
+		};
+		this.menuWsConnection?.sendUpdate(message);
+	}
+
+	removeCurrentLogo() {
+		const message: RemoveLogoMessage = {
+			type: 'removeLogo',
+		};
+		this.menuWsConnection?.sendUpdate(message);
+	}
+
+	requestAvailableLogos() {
+		const message: GetAvailableLogosMessage = {
+			type: 'getAvailableLogos',
+		};
+		this.menuWsConnection?.sendUpdate(message);
+	}
+	// Event handlers for child components
+	handleSectionColorUpdate(event: {
+		sectionId: number;
+		backgroundColor: string;
+	}) {
+		this.updateSectionColors(event.sectionId, event.backgroundColor, '#000000');
+	}
+
+	handlePastaTypesColorUpdate(event: { backgroundColor: string }) {
+		// Store pasta types background color globally
+		// You could implement a global settings service or use a different approach
+		console.log(
+			'Updating pasta types background color:',
+			event.backgroundColor
+		);
+		// For now, we'll store it in a signal or service
+	}
+
+	handlePastaSaucesColorUpdate(event: { backgroundColor: string }) {
+		// Store pasta sauces background color globally
+		console.log(
+			'Updating pasta sauces background color:',
+			event.backgroundColor
+		);
+		// For now, we'll store it in a signal or service
+	}
+
+	handleSectionColorReset(event: { itemId: number; itemType: string }) {
+		switch (event.itemType) {
+			case 'section':
+				this.resetSectionColors(event.itemId);
+				break;
+			case 'pastaType':
+				this.resetPastaTypeColors(event.itemId);
+				break;
+			case 'pastaSauce':
+				this.resetPastaSauceColors(event.itemId);
+				break;
+		}
+	}
+
+	handleLogoUpload(event: {
+		file: File;
+		name: string;
+		position: string;
+		size: string;
+	}) {
+		this.uploadLogo(event.file, event.name, event.position, event.size);
+	}
+
+	handleLogoActivation(event: { logoId: number }) {
+		this.activateLogo(event.logoId);
+	}
+
+	handleLogoDeletion(event: { logoId: number }) {
+		this.deleteLogo(event.logoId);
+	}
+
+	handleLogoSettingsUpdate(event: {
+		logoId: number;
+		position: string;
+		size: string;
+		opacity: number;
+	}) {
+		this.updateLogoSettings(
+			event.logoId,
+			event.position,
+			event.size,
+			event.opacity
+		);
 	}
 }

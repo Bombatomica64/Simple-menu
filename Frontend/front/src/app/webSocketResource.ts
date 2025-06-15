@@ -279,6 +279,105 @@ export interface BackgroundConfigDeletedResponse {
 	page: string;
 }
 
+// Color management message types
+export interface UpdatePastaTypeColorsMessage {
+	type: 'updatePastaTypeColors';
+	pastaTypeId: number;
+	backgroundColor: string;
+	textColor: string;
+}
+
+export interface ResetPastaTypeColorsMessage {
+	type: 'resetPastaTypeColors';
+	pastaTypeId: number;
+}
+
+export interface UpdatePastaSauceColorsMessage {
+	type: 'updatePastaSauceColors';
+	pastaSauceId: number;
+	backgroundColor: string;
+	textColor: string;
+}
+
+export interface ResetPastaSauceColorsMessage {
+	type: 'resetPastaSauceColors';
+	pastaSauceId: number;
+}
+
+export interface UpdateSectionColorsMessage {
+	type: 'updateSectionColors';
+	sectionId: number;
+	backgroundColor: string;
+	textColor: string;
+}
+
+export interface ResetSectionColorsMessage {
+	type: 'resetSectionColors';
+	sectionId: number;
+}
+
+// Color update response message types
+export interface PastaTypeColorsUpdatedResponse {
+	type: 'pastaTypeColorsUpdated';
+	pastaTypeId: number;
+	backgroundColor: string;
+	textColor: string;
+}
+
+export interface PastaSauceColorsUpdatedResponse {
+	type: 'pastaSauceColorsUpdated';
+	pastaSauceId: number;
+	backgroundColor: string;
+	textColor: string;
+}
+
+export interface SectionColorsUpdatedResponse {
+	type: 'sectionColorsUpdated';
+	sectionId: number;
+	backgroundColor: string;
+	textColor: string;
+}
+
+// Logo management message types
+export interface GetAvailableLogosMessage {
+	type: 'getAvailableLogos';
+}
+
+export interface SetMenuLogoMessage {
+	type: 'setMenuLogo';
+	logoId: number;
+}
+
+export interface UpdateLogoSettingsMessage {
+	type: 'updateLogoSettings';
+	logoSettings: {
+		position?: string;
+		size?: string;
+		opacity?: number;
+		name?: string;
+	};
+}
+
+export interface RemoveLogoMessage {
+	type: 'removeLogo';
+}
+
+export interface DeleteLogoMessage {
+	type: 'deleteLogo';
+	logoId: number;
+}
+
+// Logo response message types
+export interface AvailableLogosResponse {
+	type: 'availableLogos';
+	logos: any[]; // You can define a proper Logo interface if needed
+}
+
+export interface LogoDeletedResponse {
+	type: 'logoDeleted';
+	logoId: number;
+}
+
 export type MenuUpdateMessage =
 	| AddItemMessage
 	| RemoveItemMessage
@@ -312,7 +411,18 @@ export type MenuUpdateMessage =
 	| DeleteBackgroundConfigMessage
 	| GetBackgroundConfigMessage
 	| GetAllBackgroundConfigsMessage
-	| UpdateGlobalPastaDisplaySettingsMessage;
+	| UpdateGlobalPastaDisplaySettingsMessage
+	| UpdatePastaTypeColorsMessage
+	| ResetPastaTypeColorsMessage
+	| UpdatePastaSauceColorsMessage
+	| ResetPastaSauceColorsMessage
+	| UpdateSectionColorsMessage
+	| ResetSectionColorsMessage
+	| GetAvailableLogosMessage
+	| SetMenuLogoMessage
+	| UpdateLogoSettingsMessage
+	| RemoveLogoMessage
+	| DeleteLogoMessage;
 
 export type MenuResponseMessage =
 	| MenuSavedResponse
@@ -325,6 +435,11 @@ export type MenuResponseMessage =
 	| BackgroundConfigDeletedResponse
 	| PastaTypeCreatedResponse
 	| PastaSauceCreatedResponse
+	| PastaTypeColorsUpdatedResponse
+	| PastaSauceColorsUpdatedResponse
+	| SectionColorsUpdatedResponse
+	| AvailableLogosResponse
+	| LogoDeletedResponse
 	| ErrorResponse;
 
 export type SendUpdateFn = (message: MenuUpdateMessage) => void;
@@ -374,12 +489,19 @@ export function menuConnection(websocketUrl: string): MenuConnection {
 						...current,
 						value: currentMenu
 					}));
-				};
-
-				wsConnectionInstance.onmessage = (event) => {
+				};				wsConnectionInstance.onmessage = (event) => {
 					try {
-						const data = JSON.parse(event.data);						// Check if it's a menu update or a response message
-						if (data.type && ['menuSaved', 'menuDeleted', 'savedMenusList', 'pastaSauceDisplaySettings', 'pastaTypeDisplaySettings', 'backgroundConfig', 'allBackgroundConfigs', 'backgroundConfigDeleted', 'error'].includes(data.type)) {
+						const data = JSON.parse(event.data);
+						
+						// Check if it's a menu update or a response message
+						if (data.type && [
+							'menuSaved', 'menuDeleted', 'savedMenusList',
+							'pastaSauceDisplaySettings', 'pastaTypeDisplaySettings',
+							'backgroundConfig', 'allBackgroundConfigs', 'backgroundConfigDeleted',
+							'pastaTypeColorsUpdated', 'pastaSauceColorsUpdated', 'sectionColorsUpdated',
+							'availableLogos', 'logoDeleted',
+							'error'
+						].includes(data.type)) {
 							// Handle response messages
 							console.log('[WebSocket response] Response received:', data);
 							responseMessages.set(data as MenuResponseMessage);

@@ -118,6 +118,131 @@ async function handleDeletePastaSauce(message, ws, { sendToClient }) {
   }
 }
 
+// Color management handlers for pasta types and sauces
+async function handleUpdatePastaTypeColors(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+  try {
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: message.pastaTypeId },
+      data: {
+        backgroundColor: message.backgroundColor,
+        textColor: message.textColor,
+      },
+    });
+
+    console.log("✅ Updated pasta type colors:", updatedPastaType.name);
+    
+    // Send confirmation response to the specific client
+    sendToClient(ws, {
+      type: "pastaTypeColorsUpdated",
+      pastaTypeId: message.pastaTypeId,
+      backgroundColor: message.backgroundColor,
+      textColor: message.textColor,
+    });
+
+    // Broadcast updated menu to all clients
+    broadcastInMemoryMenu();
+  } catch (error) {
+    console.error("❌ Failed to update pasta type colors:", error);
+    sendToClient(ws, {
+      type: "error",
+      message: "Failed to update pasta type colors: " + error.message,
+    });
+  }
+}
+
+async function handleResetPastaTypeColors(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+  try {
+    const updatedPastaType = await prisma.pastaType.update({
+      where: { id: message.pastaTypeId },
+      data: {
+        backgroundColor: null,
+        textColor: null,
+      },
+    });
+
+    console.log("✅ Reset pasta type colors:", updatedPastaType.name);
+    
+    // Send confirmation response to the specific client
+    sendToClient(ws, {
+      type: "pastaTypeColorsUpdated",
+      pastaTypeId: message.pastaTypeId,
+      backgroundColor: null,
+      textColor: null,
+    });
+
+    // Broadcast updated menu to all clients
+    broadcastInMemoryMenu();
+  } catch (error) {
+    console.error("❌ Failed to reset pasta type colors:", error);
+    sendToClient(ws, {
+      type: "error",
+      message: "Failed to reset pasta type colors: " + error.message,
+    });
+  }
+}
+
+async function handleUpdatePastaSauceColors(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+  try {
+    const updatedPastaSauce = await prisma.pastaSauce.update({
+      where: { id: message.pastaSauceId },
+      data: {
+        backgroundColor: message.backgroundColor,
+        textColor: message.textColor,
+      },
+    });
+
+    console.log("✅ Updated pasta sauce colors:", updatedPastaSauce.name);
+    
+    // Send confirmation response to the specific client
+    sendToClient(ws, {
+      type: "pastaSauceColorsUpdated",
+      pastaSauceId: message.pastaSauceId,
+      backgroundColor: message.backgroundColor,
+      textColor: message.textColor,
+    });
+
+    // Broadcast updated menu to all clients
+    broadcastInMemoryMenu();
+  } catch (error) {
+    console.error("❌ Failed to update pasta sauce colors:", error);
+    sendToClient(ws, {
+      type: "error",
+      message: "Failed to update pasta sauce colors: " + error.message,
+    });
+  }
+}
+
+async function handleResetPastaSauceColors(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+  try {
+    const updatedPastaSauce = await prisma.pastaSauce.update({
+      where: { id: message.pastaSauceId },
+      data: {
+        backgroundColor: null,
+        textColor: null,
+      },
+    });
+
+    console.log("✅ Reset pasta sauce colors:", updatedPastaSauce.name);
+    
+    // Send confirmation response to the specific client
+    sendToClient(ws, {
+      type: "pastaSauceColorsUpdated",
+      pastaSauceId: message.pastaSauceId,
+      backgroundColor: null,
+      textColor: null,
+    });
+
+    // Broadcast updated menu to all clients
+    broadcastInMemoryMenu();
+  } catch (error) {
+    console.error("❌ Failed to reset pasta sauce colors:", error);
+    sendToClient(ws, {
+      type: "error",
+      message: "Failed to reset pasta sauce colors: " + error.message,
+    });
+  }
+}
+
 module.exports = {
   handleAddPastaTypeToMenu,
   handleRemovePastaTypeFromMenu,
@@ -126,5 +251,9 @@ module.exports = {
   handleCreatePastaType,
   handleDeletePastaType,
   handleCreatePastaSauce,
-  handleDeletePastaSauce
+  handleDeletePastaSauce,
+  handleUpdatePastaTypeColors,
+  handleResetPastaTypeColors,
+  handleUpdatePastaSauceColors,
+  handleResetPastaSauceColors
 };

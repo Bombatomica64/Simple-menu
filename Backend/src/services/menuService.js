@@ -8,6 +8,7 @@ async function loadInitialMenu() {
       orderBy: { createdAt: "desc" },
       include: {
         logo: true, // Include logo details
+        background: true, // Include background configuration
         menuItems: {
           orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
         },
@@ -26,25 +27,25 @@ async function loadInitialMenu() {
     if (latestMenuFromDB) {
       currentInMemoryMenu = latestMenuFromDB;
       console.log("Initial menu loaded from DB into memory.");
-    } else {
-      // Seed default data if database is empty
+    } else {      // Seed default data if database is empty
       const { seedDefaultData } = require("./seedService");      await seedDefaultData();
       currentInMemoryMenu = {
         createdAt: new Date().toISOString(),
         orientation: 'vertical',
         availableImages: null,
+        background: null, // No background configuration
         menuItems: [],
         menuSections: [],
         pastaTypes: [],
         pastaSauces: [],
       };
       console.log("No menu in DB, seeded default data and initialized empty in-memory menu.");
-    }
-  } catch (error) {    console.error("Error loading initial menu:", error);
+    }  } catch (error) {    console.error("Error loading initial menu:", error);
     currentInMemoryMenu = {
       createdAt: new Date().toISOString(),
       orientation: 'vertical',
       availableImages: null,
+      background: null, // No background configuration
       menuItems: [],
       menuSections: [],
       pastaTypes: [],
@@ -717,7 +718,7 @@ async function updateLogo(logoUrl, logoSettings = {}) {
           position: logoSettings.position || 'top-left',
           size: logoSettings.size || 'medium',
           opacity: logoSettings.opacity || 1.0,
-          isActive: true
+          // Remove isActive - use in-memory menu state instead
         }
       });
     } else {
@@ -729,7 +730,7 @@ async function updateLogo(logoUrl, logoSettings = {}) {
           position: logoSettings.position || 'top-left',
           size: logoSettings.size || 'medium',
           opacity: logoSettings.opacity || 1.0,
-          isActive: true
+          isActive: false // Default to false, activation is through menu linkage
         }
       });
 
@@ -792,7 +793,7 @@ async function updateLogoSettings(logoSettings = {}) {
         position: logoSettings.position || currentInMemoryMenu.logo?.position || 'top-left',
         size: logoSettings.size || currentInMemoryMenu.logo?.size || 'medium',
         opacity: logoSettings.opacity !== undefined ? logoSettings.opacity : (currentInMemoryMenu.logo?.opacity || 1.0),
-        isActive: logoSettings.isActive !== undefined ? logoSettings.isActive : true
+        // Remove isActive - use in-memory menu state for activation
       }
     });
 
@@ -926,6 +927,176 @@ async function updateSectionStyle(sectionId, style = {}) {
   }
 }
 
+// Specific section color management functions
+async function updateSectionColors(sectionId, backgroundColor, textColor) {
+  if (!currentInMemoryMenu) return false;
+
+  try {
+    // Validate colors if provided
+    if (backgroundColor || textColor) {
+      const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+      if (backgroundColor && !hexColorRegex.test(backgroundColor)) {
+        throw new Error('Invalid background color format');
+      }
+      if (textColor && !hexColorRegex.test(textColor)) {
+        throw new Error('Invalid text color format');
+      }
+    }
+
+    // Update section colors in database
+    const updatedSection = await prisma.menuSection.update({
+      where: { id: sectionId },
+      data: {
+        backgroundColor: backgroundColor || null,
+        textColor: textColor || null
+      }
+    });
+
+    // Update in-memory menu
+    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
+    if (sectionIndex !== -1) {
+      currentInMemoryMenu.menuSections[sectionIndex] = {
+        ...currentInMemoryMenu.menuSections[sectionIndex],
+        backgroundColor: backgroundColor || null,
+        textColor: textColor || null
+      };
+    }
+
+    console.log(`✅ Section colors updated: ${sectionId} - bg: ${backgroundColor}, text: ${textColor}`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error updating section colors:", error);
+    return false;
+  }
+}
+
+async function resetSectionColors(sectionId) {
+  if (!currentInMemoryMenu) return false;
+
+  try {
+    // Reset section colors in database
+    const updatedSection = await prisma.menuSection.update({
+      where: { id: sectionId },
+      data: {
+        backgroundColor: null,
+        textColor: null
+      }
+    });
+
+    // Update in-memory menu
+    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
+    if (sectionIndex !== -1) {
+      currentInMemoryMenu.menuSections[sectionIndex] = {
+        ...currentInMemoryMenu.menuSections[sectionIndex],
+        backgroundColor: null,
+        textColor: null
+      };
+    }
+
+    console.log(`✅ Section colors reset to default: ${sectionId}`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error resetting section colors:", error);
+    return false;
+  }
+}
+
+async function updateSectionType(sectionId, sectionType) {
+  if (!currentInMemoryMenu) return false;
+
+  try {
+    // Validate section type
+    const validTypes = ['general', 'pasta', 'sauce', 'insalatone', 'poke'];
+    if (!validTypes.includes(sectionType)) {
+      throw new Error(`Invalid section type: ${sectionType}`);
+    }
+
+    // Update section type in database
+    const updatedSection = await prisma.menuSection.update({
+      where: { id: sectionId },
+      data: { sectionType }
+    });
+
+    // Update in-memory menu
+    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
+    if (sectionIndex !== -1) {
+      currentInMemoryMenu.menuSections[sectionIndex] = {
+        ...currentInMemoryMenu.menuSections[sectionIndex],
+        sectionType
+      };
+    }
+
+    console.log(`✅ Section type updated: ${sectionId} -> ${sectionType}`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error updating section type:", error);
+    return false;
+  }
+}
+
+// Global pasta types and sauces color management
+async function updatePastaTypesGlobalColor(backgroundColor) {
+  if (!currentInMemoryMenu) return false;
+
+  try {
+    // Validate color if provided
+    if (backgroundColor) {
+      const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+      if (!hexColorRegex.test(backgroundColor)) {
+        throw new Error('Invalid background color format');
+      }
+    }
+
+    // Update global pasta types color in database
+    const updatedMenu = await prisma.menu.update({
+      where: { id: currentInMemoryMenu.id },
+      data: {
+        globalPastaTypeBackgroundColor: backgroundColor || null
+      }
+    });
+
+    // Update in-memory menu
+    currentInMemoryMenu.globalPastaTypeBackgroundColor = backgroundColor || null;
+
+    console.log(`✅ Global pasta types background color updated: ${backgroundColor}`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error updating pasta types global color:", error);
+    return false;
+  }
+}
+
+async function updatePastaSaucesGlobalColor(backgroundColor) {
+  if (!currentInMemoryMenu) return false;
+
+  try {
+    // Validate color if provided
+    if (backgroundColor) {
+      const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+      if (!hexColorRegex.test(backgroundColor)) {
+        throw new Error('Invalid background color format');
+      }
+    }
+
+    // Update global pasta sauces color in database
+    const updatedMenu = await prisma.menu.update({
+      where: { id: currentInMemoryMenu.id },
+      data: {
+        globalPastaSauceBackgroundColor: backgroundColor || null
+      }
+    });
+
+    // Update in-memory menu
+    currentInMemoryMenu.globalPastaSauceBackgroundColor = backgroundColor || null;
+
+    console.log(`✅ Global pasta sauces background color updated: ${backgroundColor}`);
+    return true;
+  } catch (error) {
+    console.error("❌ Error updating pasta sauces global color:", error);
+    return false;
+  }
+}
+
 module.exports = {
   loadInitialMenu,
   getCurrentMenu,
@@ -962,4 +1133,10 @@ module.exports = {
   deleteLogo,
   // Enhanced section management
   updateSectionStyle,
+  updateSectionColors,
+  resetSectionColors,
+  updateSectionType,
+  // Global pasta types and sauces color management
+  updatePastaTypesGlobalColor,
+  updatePastaSaucesGlobalColor,
 };

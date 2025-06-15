@@ -43,10 +43,93 @@ async function handleUpdateSectionStyle(message, ws, { broadcastInMemoryMenu }) 
   }
 }
 
+async function handleUpdateSectionColors(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+  const updated = await menuService.updateSectionColors(
+    message.sectionId,
+    message.backgroundColor,
+    message.textColor
+  );
+  if (updated) {
+    console.log("✅ Updated section colors for section ID:", message.sectionId);
+    
+    // Send confirmation response to the specific client
+    sendToClient(ws, {
+      type: "sectionColorsUpdated",
+      sectionId: message.sectionId,
+      backgroundColor: message.backgroundColor,
+      textColor: message.textColor,
+    });
+
+    broadcastInMemoryMenu();
+  }
+}
+
+async function handleResetSectionColors(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+  const updated = await menuService.resetSectionColors(message.sectionId);
+  if (updated) {
+    console.log("✅ Reset section colors for section ID:", message.sectionId);
+    
+    // Send confirmation response to the specific client
+    sendToClient(ws, {
+      type: "sectionColorsUpdated",
+      sectionId: message.sectionId,
+      backgroundColor: null,
+      textColor: null,
+    });
+
+    broadcastInMemoryMenu();
+  }
+}
+
+async function handleUpdateSectionType(message, ws, { broadcastInMemoryMenu }) {
+  const updated = await menuService.updateSectionType(
+    message.sectionId,
+    message.sectionType
+  );
+  if (updated) {
+    broadcastInMemoryMenu();
+  }
+}
+
+async function handleUpdatePastaTypesColor(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+  const updated = await menuService.updatePastaTypesGlobalColor(message.backgroundColor);
+  if (updated) {
+    console.log("✅ Updated pasta types global color:", message.backgroundColor);
+    
+    // Send confirmation response to the specific client
+    sendToClient(ws, {
+      type: "pastaTypesColorUpdated",
+      backgroundColor: message.backgroundColor,
+    });
+
+    broadcastInMemoryMenu();
+  }
+}
+
+async function handleUpdatePastaSaucesColor(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+  const updated = await menuService.updatePastaSaucesGlobalColor(message.backgroundColor);
+  if (updated) {
+    console.log("✅ Updated pasta sauces global color:", message.backgroundColor);
+    
+    // Send confirmation response to the specific client
+    sendToClient(ws, {
+      type: "pastaSaucesColorUpdated",
+      backgroundColor: message.backgroundColor,
+    });
+
+    broadcastInMemoryMenu();
+  }
+}
+
 module.exports = {
   handleAddSection,
   handleRemoveSection,
   handleUpdateSectionOrder,
   handleMoveItemToSection,
-  handleUpdateSectionStyle
+  handleUpdateSectionStyle,
+  handleUpdateSectionColors,
+  handleResetSectionColors,
+  handleUpdateSectionType,
+  handleUpdatePastaTypesColor,
+  handleUpdatePastaSaucesColor
 };

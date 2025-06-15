@@ -1,4 +1,4 @@
-// Logo management routes
+// Logo file management routes (upload/delete only - all other operations via WebSocket)
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
@@ -51,7 +51,7 @@ router.post("/upload", upload.single("logo"), async (req, res) => {
 
     const logoUrl = `/assets/logos/${req.file.filename}`;
     const logoName = req.body.name || `Logo ${new Date().toISOString()}`;
-    
+
     // Create logo record in database
     const newLogo = await prisma.logo.create({
       data: {
@@ -60,20 +60,20 @@ router.post("/upload", upload.single("logo"), async (req, res) => {
         position: req.body.position || 'top-left',
         size: req.body.size || 'medium',
         opacity: parseFloat(req.body.opacity) || 1.0,
-        isActive: true
+        isActive: false // File upload doesn't automatically activate - use WebSocket for activation
       }
     });
-    
+
     console.log("✅ Logo uploaded and created successfully:", req.file.filename);
-    
+
     res.json({
       success: true,
       logo: newLogo,
-      message: "Logo uploaded and created successfully",
+      message: "Logo uploaded successfully. Use WebSocket to activate or configure.",
     });
   } catch (error) {
     console.error("❌ Logo upload error:", error);
-    
+
     // Clean up uploaded file if database operation failed
     if (req.file) {
       try {
@@ -82,7 +82,7 @@ router.post("/upload", upload.single("logo"), async (req, res) => {
         console.error("❌ Failed to cleanup uploaded file:", cleanupError);
       }
     }
-    
+
     res.status(500).json({
       success: false,
       message: "Failed to upload logo: " + error.message,
@@ -90,92 +90,18 @@ router.post("/upload", upload.single("logo"), async (req, res) => {
   }
 });
 
-// Get all logos
-router.get("/", async (req, res) => {
-  try {
-    const logos = await prisma.logo.findMany({
-      orderBy: { createdAt: 'desc' }
-    });
-
-    res.json({
-      success: true,
-      logos: logos,
-    });
-  } catch (error) {
-    console.error("❌ Error getting logos:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to get logos: " + error.message,
-    });
-  }
-});
-
-// Get single logo
-router.get("/:id", async (req, res) => {
-  try {
-    const logoId = parseInt(req.params.id);
-    const logo = await prisma.logo.findUnique({
-      where: { id: logoId }
-    });
-
-    if (!logo) {
-      return res.status(404).json({
-        success: false,
-        message: "Logo not found",
-      });
-    }
-
-    res.json({
-      success: true,
-      logo: logo,
-    });
-  } catch (error) {
-    console.error("❌ Error getting logo:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to get logo: " + error.message,
-    });
-  }
-});
-
-// Update logo settings
-router.put("/:id", async (req, res) => {
-  try {
-    const logoId = parseInt(req.params.id);
-    const { name, position, size, opacity, isActive } = req.body;
-
-    const updatedLogo = await prisma.logo.update({
-      where: { id: logoId },
-      data: {
-        ...(name && { name }),
-        ...(position && { position }),
-        ...(size && { size }),
-        ...(opacity !== undefined && { opacity: parseFloat(opacity) }),
-        ...(isActive !== undefined && { isActive: Boolean(isActive) }),
-      }
-    });
-
-    console.log("✅ Logo updated successfully:", logoId);
-    
-    res.json({
-      success: true,
-      logo: updatedLogo,
-      message: "Logo updated successfully",
-    });
-  } catch (error) {
-    console.error("❌ Logo update error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to update logo: " + error.message,
-    });
-  }
-});
-
-// Delete logo
+// Delete logo (file cleanup only - removes both database record and file)
 router.delete("/:id", async (req, res) => {
   try {
     const logoId = parseInt(req.params.id);
-    
+
+    if (isNaN(logoId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid logo ID",
+      });
+    }
+
     // Get logo details first
     const logo = await prisma.logo.findUnique({
       where: { id: logoId }
@@ -209,14 +135,14 @@ router.delete("/:id", async (req, res) => {
     // Delete logo file
     const filename = path.basename(logo.imageUrl);
     const filePath = path.join(__dirname, "../../assets/logos", filename);
-    
+
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
       console.log("✅ Logo file deleted:", filename);
     }
 
     console.log("✅ Logo deleted successfully:", logoId);
-    
+
     res.json({
       success: true,
       message: "Logo deleted successfully",
@@ -230,5 +156,14 @@ router.delete("/:id", async (req, res) => {
     });
   }
 });
+
+// All other logo operations are handled via WebSocket
+// See logoHandlers.js for WebSocket message handlers:
+// - "getAvailableLogos" - Get all logos
+// - "setMenuLogo" - Set current menu logo (activation)
+// - "updateLogoSettings" - Update logo properties (position, size, opacity, etc.)
+// - "updateLogo" - Update logo with new settings
+// - "removeLogo" - Remove logo from current menu (without deleting file)
+// - "deleteLogo" - Delete logo (handled here via REST for file cleanup)
 
 module.exports = router;

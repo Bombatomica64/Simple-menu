@@ -118,6 +118,46 @@ export class PastaComponent implements OnInit, OnDestroy {
         return currentMenu?.globalPastaTypeShowDescription ?? true;
     });
 
+    // Color management based on new centralized color model
+    getPastaTypesSectionBackgroundColor() {
+        const currentMenu = this.menu();
+        // Use global pasta types background color, or default to giallino (yellowish)
+        return currentMenu?.globalPastaTypeBackgroundColor || '#FFFACD';
+    }
+
+    getPastaTypesSectionTextColor() {
+        // Always use dark text for pasta types section
+        return '#2c3e50';
+    }
+
+    getPastaSaucesSectionBackgroundColor() {
+        const currentMenu = this.menu();
+        // Use global pasta sauces background color, or default to rossino (reddish)
+        return currentMenu?.globalPastaSauceBackgroundColor || '#FFE4E1';
+    }
+
+    getPastaSaucesSectionTextColor() {
+        // Always use dark text for pasta sauces section
+        return '#2c3e50';
+    }    getSectionBackgroundColor(section: any) {
+        // Default section colors based on section type
+        const defaultColors: { [key: string]: string } = {
+            'pasta': '#FFFACD',      // Giallino (yellowish)
+            'sauce': '#FFE4E1',      // Rossino (reddish)
+            'insalatone': '#F0FFF0', // Verdolino (greenish)
+            'poke': '#FFE4E1',       // Rossino (reddish)
+            'general': '#ffffff'     // White
+        };
+
+        // Use section-specific background color if set, otherwise use default for section type
+        return section.backgroundColor || defaultColors[section.sectionType] || '#ffffff';
+    }
+
+    getSectionTextColor(section: any) {
+        // Use section-specific text color if set, otherwise default to dark
+        return section.textColor || '#2c3e50';
+    }
+
     ngOnInit() {
         // Add pasta-page class to body for fixed viewport
         document.body.classList.add('pasta-page');
