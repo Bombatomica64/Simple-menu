@@ -157,7 +157,9 @@ model SavedMenu {
 model BackgroundConfig {
   id          Int      @id @default(autoincrement())
   page        String?  // e.g., "pasta", "main", "sections" - now optional since menus can have their own
-  background  String   // CSS background value (gradient, color, image url, etc.)
+  type        String   @default("color") // "color", "gradient", "image"
+  value       String   // CSS background value (gradient, color, image url, etc.)
+  background  String?  // Legacy field for backwards compatibility
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   menus       Menu[]   // One background config can be used by multiple menus

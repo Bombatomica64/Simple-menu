@@ -1,0 +1,386 @@
+// Background Palette Component Styles
+.background-palette-container {
+	.header-section {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1.5rem;
+
+		.title {
+			margin: 0;
+			color: var(--text-color);
+			font-size: 1.25rem;
+			font-weight: 600;
+		}
+	}
+
+	.section-title {
+		color: var(--text-color);
+		font-size: 1.1rem;
+		font-weight: 500;
+		margin-bottom: 1rem;
+	}
+
+	.configs-grid {
+		.config-card {
+			background: var(--surface-card);
+			border: 1px solid var(--surface-border);
+			border-radius: 8px;
+			overflow: hidden;
+			transition: all 0.3s ease;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+
+			&:hover {
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+				transform: translateY(-2px);
+			}
+
+			.card-header {
+				padding: 1rem;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				background: var(--surface-ground);
+				border-bottom: 1px solid var(--surface-border);
+
+				.page-name {
+					margin: 0;
+					font-size: 0.95rem;
+					font-weight: 600;
+					color: var(--text-color);
+					flex: 1;
+				}
+
+				.type-badge {
+					padding: 0.25rem 0.5rem;
+					border-radius: 4px;
+					font-size: 0.75rem;
+					font-weight: 500;
+					text-transform: uppercase;
+					margin-right: 0.5rem;
+
+					&.type-color {
+						background: #e3f2fd;
+						color: #1976d2;
+					}
+
+					&.type-gradient {
+						background: #f3e5f5;
+						color: #7b1fa2;
+					}
+
+					&.type-image {
+						background: #e8f5e8;
+						color: #388e3c;
+					}
+				}
+
+				.delete-btn {
+					width: 2rem;
+					height: 2rem;
+				}
+			}
+
+			.background-preview {
+				height: 120px;
+				position: relative;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				overflow: hidden;
+
+				.preview-overlay {
+					background: rgba(0, 0, 0, 0.6);
+					color: white;
+					padding: 0.5rem 1rem;
+					border-radius: 4px;
+					font-size: 0.875rem;
+					font-weight: 500;
+				}
+			}
+
+			.config-details {
+				padding: 1rem;
+				background: var(--surface-card);
+				flex: 1;
+
+				.config-value {
+					font-size: 0.8rem;
+					color: var(--text-color-secondary);
+					word-break: break-all;
+					line-height: 1.4;
+				}
+			}
+		}
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: 3rem 1rem;
+		color: var(--text-color-secondary);
+
+		.empty-icon {
+			font-size: 3rem;
+			margin-bottom: 1rem;
+			opacity: 0.5;
+		}
+
+		p {
+			margin: 0.5rem 0;
+		}
+
+		.empty-subtitle {
+			font-size: 0.875rem;
+			opacity: 0.7;
+		}
+	}
+
+	.loading-state {
+		text-align: center;
+		padding: 2rem;
+		color: var(--text-color-secondary);
+
+		i {
+			font-size: 2rem;
+			margin-bottom: 1rem;
+		}
+	}
+}
+
+// Dialog Styles
+:host ::ng-deep .background-config-dialog {
+	.p-dialog-content {
+		padding: 0;
+	}
+
+	.dialog-content {
+		padding: 1.5rem;
+
+		.field-label {
+			display: block;
+			margin-bottom: 0.5rem;
+			font-weight: 500;
+			color: var(--text-color);
+		}
+
+		.background-tabs {
+			margin: 1.5rem 0;
+
+			.tab-content {
+				padding: 1rem 0;
+
+				.tab-description {
+					margin-bottom: 1.5rem;
+					color: var(--text-color-secondary);
+					font-size: 0.9rem;
+				}
+			}
+
+			.color-picker-section {
+				.color-input-group {
+					display: flex;
+					gap: 0.75rem;
+					align-items: center;
+
+					.color-input {
+						width: 50px;
+						height: 40px;
+						border: 1px solid var(--surface-border);
+						border-radius: 4px;
+						cursor: pointer;
+						background: none;
+
+						&::-webkit-color-swatch-wrapper {
+							padding: 0;
+						}
+
+						&::-webkit-color-swatch {
+							border: none;
+							border-radius: 3px;
+						}
+					}
+
+					.hex-input {
+						flex: 1;
+						padding: 0.75rem;
+						border: 1px solid var(--surface-border);
+						border-radius: 4px;
+						font-family: monospace;
+						background: var(--surface-card);
+						color: var(--text-color);
+
+						&:focus {
+							outline: none;
+							border-color: var(--primary-color);
+							box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+						}
+					}
+				}
+			}
+
+			.gradient-presets {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+				gap: 1rem;
+
+				.gradient-option {
+					cursor: pointer;
+					border: 2px solid transparent;
+					border-radius: 8px;
+					padding: 0.5rem;
+					transition: all 0.3s ease;
+					text-align: center;
+
+					&:hover {
+						border-color: var(--primary-color);
+					}
+
+					&.selected {
+						border-color: var(--primary-color);
+						box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+					}
+
+					.gradient-preview {
+						height: 60px;
+						border-radius: 6px;
+						margin-bottom: 0.5rem;
+						border: 1px solid var(--surface-border);
+					}
+
+					.gradient-name {
+						font-size: 0.875rem;
+						font-weight: 500;
+						color: var(--text-color);
+					}
+				}
+			}
+
+			.image-upload-section {
+				.upload-button {
+					margin-bottom: 1rem;
+				}
+
+				.upload-status {
+					display: flex;
+					align-items: center;
+					gap: 0.5rem;
+					color: var(--primary-color);
+					margin: 1rem 0;
+
+					i {
+						font-size: 1.2rem;
+					}
+				}
+
+				.image-preview {
+					margin-top: 1rem;
+					text-align: center;
+
+					.preview-image {
+						max-width: 200px;
+						max-height: 150px;
+						border-radius: 6px;
+						border: 1px solid var(--surface-border);
+						object-fit: cover;
+					}
+
+					.image-info {
+						margin-top: 0.5rem;
+						color: var(--green-500);
+						font-size: 0.875rem;
+					}
+				}
+			}
+		}
+
+		.preview-section {
+			margin-top: 2rem;
+			padding-top: 1.5rem;
+			border-top: 1px solid var(--surface-border);
+
+			.preview-title {
+				margin-bottom: 1rem;
+				color: var(--text-color);
+				font-size: 1.1rem;
+				font-weight: 500;
+			}
+
+			.live-preview {
+				height: 200px;
+				border-radius: 8px;
+				border: 1px solid var(--surface-border);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				position: relative;
+				overflow: hidden;
+
+				.preview-content {
+					text-align: center;
+					background: rgba(255, 255, 255, 0.9);
+					padding: 1.5rem;
+					border-radius: 6px;
+					border: 1px solid rgba(255, 255, 255, 0.2);
+
+					h2 {
+						margin: 0 0 0.5rem 0;
+						font-size: 1.25rem;
+						color: #333;
+					}
+
+					p {
+						margin: 0;
+						color: #666;
+						font-size: 0.9rem;
+					}
+				}
+			}
+		}
+	}
+
+	.dialog-footer {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.75rem;
+		padding: 1.5rem;
+		border-top: 1px solid var(--surface-border);
+		background: var(--surface-ground);
+	}
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+	.background-palette-container {
+		.header-section {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 1rem;
+		}
+	}
+
+	:host ::ng-deep .background-config-dialog {
+		.dialog-content {
+			.background-tabs {
+				.gradient-presets {
+					grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+					gap: 0.75rem;
+
+					.gradient-option {
+						.gradient-preview {
+							height: 50px;
+						}
+					}
+				}
+
+				.color-picker-section {
+					.color-input-group {
+						flex-direction: column;
+						align-items: stretch;
+					}
+				}
+			}
+		}
+	}
+}

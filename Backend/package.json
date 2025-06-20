@@ -1,7 +1,8 @@
 {
   "name": "digital-menu-backend",
   "version": "1.0.0",
-  "main": "src/index.js",  "scripts": {
+  "main": "src/index.js",
+  "scripts": {
     "start": "node src/index.js",
     "dev": "node src/index.js",
     "migrate": "prisma migrate dev --name init",
@@ -12,7 +13,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@prisma/client": "^6.9.0",
+    "@prisma/client": "^6.10.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",

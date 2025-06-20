@@ -2,11 +2,17 @@
 	@if (section().header) {
 	<h2 class="section-header">{{ section().header }}</h2>
 	}
-	<p-panel [header]="section().name" styleClass="menu-section-panel">
+	<p-panel
+		[header]="section().name"
+		styleClass="menu-section-panel"
+		[style.background-color]="section().backgroundColor || '#f8f9fa'"
+		[style.color]="section().textColor || '#000000'">
 		<div class="grid">
 			@for (item of itemsWithFullImageUrls(); track item.id) {
-			<div class="col-12 mb-3">
-				<div class="menu-item-row">
+			<div class="col-12 mb-3">			<div
+				class="menu-item-row"
+				[style.background-color]="section().backgroundColor || '#f8f9fa'"
+				[style.color]="section().textColor || '#000000'">
 					@if (item.imageUrl && item.showImage) {
 					<img
 						[src]="item.imageUrl"

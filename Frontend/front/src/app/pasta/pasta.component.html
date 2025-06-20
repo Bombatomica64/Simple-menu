@@ -1,7 +1,22 @@
-<div class="pasta-container">
+<div class="pasta-container" [ngStyle]="backgroundStyle()">
 	<!-- Header Section -->
 	<div class="pasta-header">
 		<div class="header-content">
+			<!-- Logo Section -->
+			@if (menu()?.logo && menu()?.logo?.isActive) {
+			<div class="logo-section" [class]="'logo-' + menu()?.logo?.position">
+				<img
+					[src]="menu()!.logo!.imageUrl"
+					[alt]="menu()!.logo!.name"
+					[title]="menu()!.logo!.name"
+					class="menu-logo"
+					[style.width]="getLogoSize()"
+					[style.height]="getLogoSize()"
+					[style.opacity]="menu()!.logo!.opacity / 100"
+				/>
+			</div>
+			}
+
 			<div class="title-section">
 				<h1>
 					<i class="pi pi-heart pasta-icon"></i>

@@ -304,6 +304,17 @@ export interface ResetPastaSauceColorsMessage {
 	pastaSauceId: number;
 }
 
+// Global pasta types and sauces color management
+export interface UpdatePastaTypesGlobalColorMessage {
+	type: 'updatePastaTypesColor';
+	backgroundColor: string;
+}
+
+export interface UpdatePastaSaucesGlobalColorMessage {
+	type: 'updatePastaSaucesColor';
+	backgroundColor: string;
+}
+
 export interface UpdateSectionColorsMessage {
 	type: 'updateSectionColors';
 	sectionId: number;
@@ -416,6 +427,8 @@ export type MenuUpdateMessage =
 	| ResetPastaTypeColorsMessage
 	| UpdatePastaSauceColorsMessage
 	| ResetPastaSauceColorsMessage
+	| UpdatePastaTypesGlobalColorMessage
+	| UpdatePastaSaucesGlobalColorMessage
 	| UpdateSectionColorsMessage
 	| ResetSectionColorsMessage
 	| GetAvailableLogosMessage
@@ -492,7 +505,7 @@ export function menuConnection(websocketUrl: string): MenuConnection {
 				};				wsConnectionInstance.onmessage = (event) => {
 					try {
 						const data = JSON.parse(event.data);
-						
+
 						// Check if it's a menu update or a response message
 						if (data.type && [
 							'menuSaved', 'menuDeleted', 'savedMenusList',

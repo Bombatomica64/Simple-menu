@@ -30,6 +30,40 @@
 			justify-content: space-between;
 			align-items: center;
 			padding: 0 1rem;
+			position: relative;
+
+			.logo-section {
+				position: absolute;
+				z-index: 10;
+
+				&.logo-top-left {
+					top: 0;
+					left: 0;
+				}
+
+				&.logo-top-right {
+					top: 0;
+					right: 0;
+				}
+
+				&.logo-center {
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+				}
+
+				.menu-logo {
+					border-radius: 8px;
+					box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+					transition: all 0.3s ease;
+					object-fit: cover;
+
+					&:hover {
+						transform: scale(1.05);
+						box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+					}
+				}
+			}
 
 			.title-section {
 				flex: 1;
@@ -118,6 +152,8 @@
 			height: 100%;
 			overflow-y: auto;
 			min-height: 0;
+			border-radius: 10px;
+			padding: 3px;
 
 			.sub-title {
 				color: #8b4513;
@@ -548,7 +584,7 @@
 	.pasta-types-section,
 	.pasta-sauces-section {
 		&::-webkit-scrollbar {
-			width: 6px;
+			width: 0px;
 		}
 
 		&::-webkit-scrollbar-track {

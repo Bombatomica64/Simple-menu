@@ -94,20 +94,29 @@ router.get('/menu/:menuId', async (req, res) => {
   }
 });
 
-// PUT /api/backgrounds/page/:page - Set/update background configuration for a specific page
-router.put('/page/:page', async (req, res) => {
+// POST /api/backgrounds - Create/update background configuration
+router.post('/', async (req, res) => {
   try {
-    const { page } = req.params;
-    const { background } = req.body;
+    const { page, type, value } = req.body;
 
-    if (!background) {
+    if (!page || !type || !value) {
       return res.status(400).json({ 
-        error: 'Background value is required' 
+        error: 'Page, type, and value are required',
+        required: ['page', 'type', 'value']
       });
     }
 
-    // Validate page parameter (optional - add more pages as needed)
-    const validPages = ['pasta', 'main', 'sections', 'menu'];
+    // Validate type
+    const validTypes = ['color', 'gradient', 'image'];
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({ 
+        error: 'Invalid background type',
+        validTypes 
+      });
+    }
+
+    // Validate page parameter
+    const validPages = ['pasta', 'menu', 'submit'];
     if (!validPages.includes(page)) {
       return res.status(400).json({ 
         error: 'Invalid page specified',
@@ -118,12 +127,63 @@ router.put('/page/:page', async (req, res) => {
     const backgroundConfig = await prisma.backgroundConfig.upsert({
       where: { page },
       update: { 
-        background,
+        type,
+        value,
         updatedAt: new Date()
       },
       create: { 
         page, 
-        background 
+        type,
+        value
+      }
+    });
+
+    res.json(backgroundConfig);
+  } catch (error) {
+    console.error('Error saving background config:', error);
+    res.status(500).json({ 
+      error: 'Failed to save background configuration',
+      details: error.message 
+    });
+  }
+});
+
+// PUT /api/backgrounds/page/:page - Set/update background configuration for a specific page (legacy support)
+router.put('/page/:page', async (req, res) => {
+  try {
+    const { page } = req.params;
+    const { background, type, value } = req.body;
+
+    // Handle legacy format where only 'background' was provided
+    const finalType = type || 'color'; // Default to color for legacy support
+    const finalValue = value || background;
+
+    if (!finalValue) {
+      return res.status(400).json({ 
+        error: 'Background value is required' 
+      });
+    }
+
+    // Validate page parameter
+    const validPages = ['pasta', 'main', 'sections', 'menu', 'submit'];
+    if (!validPages.includes(page)) {
+      return res.status(400).json({ 
+        error: 'Invalid page specified',
+        validPages 
+      });
+    }
+
+    const backgroundConfig = await prisma.backgroundConfig.upsert({
+      where: { page },
+      update: { 
+        type: finalType,
+        value: finalValue,
+        updatedAt: new Date()
+      },
+      create: { 
+        page, 
+        type: finalType,
+        value: finalValue
       }
     });
 
@@ -144,9 +204,13 @@ router.put('/page/:page', async (req, res) => {
 router.put('/menu/:menuId', async (req, res) => {
   try {
     const menuId = parseInt(req.params.menuId);
-    const { background } = req.body;
+    const { background, type, value } = req.body;
 
-    if (!background) {
+    // Handle legacy format where only 'background' was provided
+    const finalType = type || 'color'; // Default to color for legacy support
+    const finalValue = value || background;
+
+    if (!finalValue) {
       return res.status(400).json({ 
         error: 'Background value is required' 
       });
@@ -166,7 +230,10 @@ router.put('/menu/:menuId', async (req, res) => {
 
     // Create or update background config
     const backgroundConfig = await prisma.backgroundConfig.create({
-      data: { background }
+      data: { 
+        type: finalType,
+        value: finalValue
+      }
     });
 
     // Update menu to reference the background config

@@ -38,10 +38,6 @@ import {
 	RemoveSectionMessage,
 	UpdateMenuOrientationMessage,
 	UpdateMenuAvailableImagesMessage,
-	UpdateBackgroundConfigMessage,
-	DeleteBackgroundConfigMessage,
-	GetBackgroundConfigMessage,
-	GetAllBackgroundConfigsMessage,
 	UpdateGlobalPastaDisplaySettingsMessage,
 	GlobalPastaDisplaySettings,
 	GetAvailableLogosMessage,
@@ -49,6 +45,9 @@ import {
 	UpdateLogoSettingsMessage,
 	RemoveLogoMessage,
 	DeleteLogoMessage,
+	UpdateSectionColorsMessage,
+	UpdatePastaTypesGlobalColorMessage,
+	UpdatePastaSaucesGlobalColorMessage,
 } from '../webSocketResource';
 import {
 	Menu,
@@ -81,6 +80,7 @@ import { PastaSauceDisplayDialogComponent } from './pasta-sauce-display-dialog/p
 import { PastaTypeDisplayDialogComponent } from './pasta-type-display-dialog/pasta-type-display-dialog.component'; // Import PastaTypeDisplayDialogComponent
 import { LogoUploadComponent } from '../logo-upload/logo-upload.component'; // Import LogoUploadComponent
 import { ColorPaletteComponent } from '../color-palette/color-palette.component'; // Import ColorPaletteComponent
+import { BackgroundPaletteComponent } from '../background-palette/background-palette.component'; // Import BackgroundPaletteComponent
 import {
 	SectionOperations,
 	LogoOperations,
@@ -117,6 +117,7 @@ export interface PastaSauceEvent {
 		PastaTypeDisplayDialogComponent,
 		LogoUploadComponent,
 		ColorPaletteComponent,
+		BackgroundPaletteComponent,
 	],
 	templateUrl: './submit.component.html',
 	styleUrls: ['./submit.component.scss'],
@@ -286,23 +287,6 @@ export class SubmitComponent implements OnInit {
 		);
 		return option?.label || 'Medie (48px)';
 	});
-	// --- Background Configuration Management ---
-	showBackgroundConfigDialog = signal(false);
-	backgroundConfigs = signal<
-		{ id: number; page: string; background: string }[]
-	>([]);
-	selectedPage = signal('');
-	newBackgroundValue = signal('');
-	newBackgroundPage = signal('');
-	newBackgroundOpacity = signal(0.5);
-	backgroundPages = [
-		{ label: 'Pasta Page', value: 'pasta' },
-		{ label: 'Main Page', value: 'main' },
-		{ label: 'Sections Page', value: 'sections' },
-		{ label: 'Menu Page', value: 'menu' },
-	];
-	uploadingBackground = signal(false);
-
 	// --- Menu Configuration Management ---
 	showMenuConfigDialog = signal(false);
 	selectedOrientation = signal<'vertical' | 'horizontal'>('vertical');
@@ -460,32 +444,12 @@ export class SubmitComponent implements OnInit {
 	ngOnInit() {
 		if (isPlatformBrowser(this.platformId)) {
 			runInInjectionContext(this.injector, () => {
-				this.menuWsConnection = menuConnection(environment.wsUrl); // Set up effect to handle background configuration WebSocket responses
+				this.menuWsConnection = menuConnection(environment.wsUrl);
 				effect(() => {
 					const lastMessage = this.menuWsConnection?.responseMessages();
 					if (!lastMessage) return;
 
-					// Handle background configuration responses
-					if (lastMessage.type === 'allBackgroundConfigs') {
-						this.backgroundConfigs.set(lastMessage.configs);
-					} else if (lastMessage.type === 'backgroundConfig') {
-						// Update existing config or add new one
-						this.backgroundConfigs.update((configs) => {
-							const existingIndex = configs.findIndex(
-								(c) => c.id === lastMessage.config.id
-							);
-							if (existingIndex >= 0) {
-								configs[existingIndex] = lastMessage.config;
-								return [...configs];
-							} else {
-								return [...configs, lastMessage.config];
-							}
-						});
-					} else if (lastMessage.type === 'backgroundConfigDeleted') {
-						this.backgroundConfigs.update((configs) =>
-							configs.filter((c) => c.page !== lastMessage.page)
-						);
-					} else if (lastMessage.type === 'pastaTypeCreated') {
+					if (lastMessage.type === 'pastaTypeCreated') {
 						// Handle successful pasta type creation
 						console.log(
 							'Pasta type created successfully:',
@@ -514,7 +478,6 @@ export class SubmitComponent implements OnInit {
 			});
 			this.loadAllPastaTypes();
 			this.loadAllPastaSauces();
-			this.loadBackgroundConfigs();
 		}
 	}
 
@@ -530,17 +493,6 @@ export class SubmitComponent implements OnInit {
 			next: (sauces) => this.allPastaSauces.set(sauces),
 			error: (err) => console.error('Failed to load pasta sauces', err),
 		});
-	}
-
-	loadBackgroundConfigs() {
-		this.http
-			.get<{ id: number; page: string; background: string }[]>(
-				`${this.apiUrl}/backgrounds`
-			)
-			.subscribe({
-				next: (configs) => this.backgroundConfigs.set(configs),
-				error: (err) => console.error('Failed to load background configs', err),
-			});
 	} // --- Menu Item Actions ---
 	addItem() {
 		// Validation with better error messages
@@ -1170,97 +1122,6 @@ export class SubmitComponent implements OnInit {
 
 		this.closeMenuConfigDialog();
 	}
-	// Background Configuration Methods
-	openBackgroundConfigDialog() {
-		this.showBackgroundConfigDialog.set(true);
-		// Load all background configs when opening dialog
-		this.loadBackgroundConfigsViaWebSocket();
-	}
-
-	loadBackgroundConfigsViaWebSocket() {
-		const message: GetAllBackgroundConfigsMessage = {
-			type: 'getAllBackgroundConfigs',
-		};
-		this.menuWsConnection?.sendUpdate(message);
-	}
-
-	deleteBackgroundConfig(page: string) {
-		// Remove background config for the specified page via WebSocket
-		const message: DeleteBackgroundConfigMessage = {
-			type: 'deleteBackgroundConfig',
-			page: page,
-		};
-		this.menuWsConnection?.sendUpdate(message);
-
-		// Update local state immediately for UI feedback
-		this.backgroundConfigs.update((configs) =>
-			configs.filter((config) => config.page !== page)
-		);
-	}
-	onBackgroundImageUpload(event: any) {
-		const file = event.files[0];
-		if (file) {
-			this.uploadingBackground.set(true);
-			// Handle background image upload via HTTP (file upload still needs HTTP)
-			const formData = new FormData();
-			formData.append('image', file);
-
-			this.http
-				.post<any>(`${this.apiUrl}/images/backgrounds/upload`, formData)
-				.subscribe({
-					next: (response) => {
-						console.log('Background uploaded:', response);
-						// Set the new background value for preview
-						this.newBackgroundValue.set(response.imageUrl);
-						this.uploadingBackground.set(false);
-					},
-					error: (error) => {
-						console.error('Error uploading background:', error);
-						this.uploadingBackground.set(false);
-					},
-				});
-		}
-	}
-
-	saveBackgroundConfig() {
-		// Save background configuration via WebSocket
-		if (!this.selectedPage() || !this.newBackgroundValue()) {
-			alert('Seleziona una pagina e configura uno sfondo.');
-			return;
-		}
-
-		const message: UpdateBackgroundConfigMessage = {
-			type: 'updateBackgroundConfig',
-			page: this.selectedPage(),
-			background: this.newBackgroundValue(),
-		};
-		this.menuWsConnection?.sendUpdate(message);
-
-		// Update local state immediately for UI feedback
-		this.backgroundConfigs.update((configs) => {
-			const existingIndex = configs.findIndex(
-				(c) => c.page === this.selectedPage()
-			);
-			const newConfig = {
-				id: Date.now(),
-				page: this.selectedPage(),
-				background: this.newBackgroundValue(),
-			};
-
-			if (existingIndex >= 0) {
-				const updatedConfigs = [...configs];
-				updatedConfigs[existingIndex] = newConfig;
-				return updatedConfigs;
-			} else {
-				return [...configs, newConfig];
-			}
-		});
-
-		// Reset form and close dialog
-		this.selectedPage.set('');
-		this.newBackgroundValue.set('');
-		this.showBackgroundConfigDialog.set(false);
-	}
 
 	// Handle pasta display settings update from pasta-display-management component
 	onPastaDisplaySettingsUpdate(settings: GlobalPastaDisplaySettings) {
@@ -1444,31 +1305,57 @@ export class SubmitComponent implements OnInit {
 		};
 		this.menuWsConnection?.sendUpdate(message);
 	}
+
 	// Event handlers for child components
 	handleSectionColorUpdate(event: {
 		sectionId: number;
 		backgroundColor: string;
 	}) {
-		this.updateSectionColors(event.sectionId, event.backgroundColor, '#000000');
+
+		if (!this.menuWsConnection || !this.menuWsConnection.connected()) {
+			console.error('WebSocket connection not available');
+			return;
+		}
+
+		const message: UpdateSectionColorsMessage = {
+			type: 'updateSectionColors',
+			sectionId: event.sectionId,
+			backgroundColor: event.backgroundColor,
+			textColor: '#000000', // Default text color
+		};
+
+		this.menuWsConnection.sendUpdate(message);
 	}
 
 	handlePastaTypesColorUpdate(event: { backgroundColor: string }) {
-		// Store pasta types background color globally
-		// You could implement a global settings service or use a different approach
-		console.log(
-			'Updating pasta types background color:',
-			event.backgroundColor
-		);
-		// For now, we'll store it in a signal or service
+
+		if (!this.menuWsConnection || !this.menuWsConnection.connected()) {
+			console.error('WebSocket connection not available');
+			return;
+		}
+
+		const message: UpdatePastaTypesGlobalColorMessage = {
+			type: 'updatePastaTypesColor',
+			backgroundColor: event.backgroundColor,
+		};
+
+		this.menuWsConnection.sendUpdate(message);
 	}
 
 	handlePastaSaucesColorUpdate(event: { backgroundColor: string }) {
-		// Store pasta sauces background color globally
-		console.log(
-			'Updating pasta sauces background color:',
-			event.backgroundColor
-		);
-		// For now, we'll store it in a signal or service
+
+
+		if (!this.menuWsConnection || !this.menuWsConnection.connected()) {
+			console.error('WebSocket connection not available');
+			return;
+		}
+
+		const message: UpdatePastaSaucesGlobalColorMessage = {
+			type: 'updatePastaSaucesColor',
+			backgroundColor: event.backgroundColor,
+		};
+
+		this.menuWsConnection.sendUpdate(message);
 	}
 
 	handleSectionColorReset(event: { itemId: number; itemType: string }) {

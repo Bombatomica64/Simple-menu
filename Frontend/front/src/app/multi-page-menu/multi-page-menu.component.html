@@ -1,68 +1,73 @@
 <!-- Multi-page menu display with responsive orientation layout -->
-<div class="multi-page-menu-container"
-     [class.transitioning]="isTransitioning()"
-     [class.vertical-orientation]="isVerticalOrientation()"
-     [class.horizontal-orientation]="isHorizontalOrientation()"
-     [style.background]="getBackgroundStyle()">  <!-- Big Price Display at Top Left -->
-  @if (menu()?.pastaTypes?.length || menu()?.pastaSauces?.length) {
-    <div class="big-price-display">
-      <div class="price-value">€{{ getMinTotalPrice() }}</div>
-      <div class="price-label">a partire da</div>
-    </div>
-  }
+<div
+	class="multi-page-menu-container"
+	[class.transitioning]="isTransitioning()"
+	[class.vertical-orientation]="isVerticalOrientation()"
+	[class.horizontal-orientation]="isHorizontalOrientation()"
+	[style.background]="getBackgroundStyle()"
+>
+	<!-- Big Price Display at Top Left -->
+	@if (menu()?.pastaTypes?.length || menu()?.pastaSauces?.length) {
+	<div class="big-price-display">
+		<div class="price-value">€{{ getMinTotalPrice() }}</div>
+		<div class="price-label">a partire da</div>
+	</div>
+	}
 
-  <!-- Current page content -->
-  @if (currentPage(); as page) {
-    <div class="menu-page-content">
+	<!-- Current page content -->
+	@if (currentPage(); as page) {
+	<div class="menu-page-content">
+		<!-- Pasta Selection Section (prominent placement) -->
+		@if (page.pastaTypes.length > 0 || page.pastaSauces.length > 0) {
+		<div class="pasta-section-container">
+			<app-pasta [menu]="menu()"></app-pasta>
+		</div>
+		}
 
-      <!-- Pasta Selection Section (prominent placement) -->
-      @if (page.pastaTypes.length > 0 || page.pastaSauces.length > 0) {
-        <div class="pasta-section-container">
-          <app-pasta [menu]="menu()"></app-pasta>
-        </div>
-      }
+		<!-- Menu Sections Grid -->
+		@if (page.sections.length > 0) {
+		<div
+			class="menu-sections-grid"
+			[attr.data-orientation]="menu()?.orientation"
+		>
+			@for (section of page.sections; track section.id) {
+			<div class="menu-section-card">
+				<app-menu-section-viewer
+					[section]="section"
+					[items]="getItemsForSection(section.id)"
+				>
+				</app-menu-section-viewer>
+			</div>
+			}
+		</div>
+		}
+	</div>
+	} @else {
+	<div class="menu-page-content">
+		<div class="card">
+			<div class="no-content">
+				<i class="pi pi-info-circle text-4xl mb-3"></i>
+				<h3>No menu content available</h3>
+				<p>Please check back later for our delicious offerings!</p>
+			</div>
+		</div>
+	</div>
+	}
 
-      <!-- Menu Sections Grid -->
-      @if (page.sections.length > 0) {
-        <div class="menu-sections-grid" [attr.data-orientation]="menu()?.orientation">
-          @for (section of page.sections; track section.id) {            <div class="menu-section-card">
-              <app-menu-section-viewer
-                [section]="section"
-                [items]="getItemsForSection(section.id)">
-              </app-menu-section-viewer>
-            </div>
-          }
-        </div>
-      }
-
-    </div>
-  } @else {
-    <div class="menu-page-content">
-      <div class="card">
-        <div class="no-content">
-          <i class="pi pi-info-circle text-4xl mb-3"></i>
-          <h3>No menu content available</h3>
-          <p>Please check back later for our delicious offerings!</p>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Simple page indicator at bottom -->
-  @if (showPageIndicator()) {
-    <div class="bottom-page-indicator">
-      <div class="page-dots">
-        @for (page of menuPages(); track $index) {
-          <div
-            class="page-dot"
-            [class.active]="currentPageIndex() === $index">
-          </div>
-        }
-      </div>
-      <div class="page-info">
-        Page {{ currentPageIndex() + 1 }} of {{ totalPages() }}
-      </div>
-    </div>
-  }
-
+	<!-- Simple page indicator at bottom -->
+	@if (showPageIndicator()) {
+	<div class="bottom-page-indicator">
+		<div class="page-dots">
+			@for (page of menuPages(); track $index) {
+			<div
+				class="page-dot"
+				[class.active]="currentPageIndex() === $index"
+			></div>
+			}
+		</div>
+		<div class="page-info">
+			Page {{ currentPageIndex() + 1 }} of {{ totalPages() }}
+		</div>
+	</div>
+	}
 </div>

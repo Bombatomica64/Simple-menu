@@ -1,0 +1,215 @@
+<div class="background-palette-container">
+  <div class="header-section">
+    <h3 class="title">Gestione Sfondi</h3>
+    <button
+      pButton
+      type="button"
+      label="Configura Nuovo Sfondo"
+      icon="pi pi-plus"
+      class="p-button-success"
+      (click)="openConfigDialog()"
+    ></button>
+  </div>
+
+  <!-- Current Background Configurations -->
+  @if (backgroundConfigs().length > 0) {
+    <div class="configs-grid">
+      <h4 class="section-title">Configurazioni Attuali</h4>
+      <div class="grid">
+        @for (config of backgroundConfigs(); track config.id) {
+          <div class="col-12 md:col-6 lg:col-4">
+            <div class="config-card">
+              <div class="card-header">
+                <h5 class="page-name">{{ getPageLabel(config.page) }}</h5>
+                <div class="type-badge" [class]="'type-' + config.type">
+                  {{ getTypeLabel(config.type) }}
+                </div>
+                <button
+                  pButton
+                  type="button"
+                  icon="pi pi-trash"
+                  class="p-button-sm p-button-danger p-button-text delete-btn"
+                  (click)="deleteBackgroundConfig(config.page)"
+                  title="Elimina configurazione"
+                ></button>
+              </div>
+
+              <div class="background-preview"
+                   [ngStyle]="getBackgroundPreviewStyle(config)"
+                   title="Anteprima sfondo">
+                <span class="preview-overlay">Anteprima</span>
+              </div>
+
+              <div class="config-details">
+                <span class="config-value">{{ config.value }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else if (!loading()) {
+    <div class="empty-state">
+      <i class="pi pi-image empty-icon"></i>
+      <p>Nessuno sfondo configurato</p>
+      <p class="empty-subtitle">Clicca su "Configura Nuovo Sfondo" per iniziare</p>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading-state">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>Caricamento configurazioni...</p>
+    </div>
+  }
+</div>
+
+<!-- Background Configuration Dialog -->
+<p-dialog
+  [visible]="showConfigDialog()"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="background-config-dialog"
+  header="Configurazione Sfondo"
+  [style]="{ width: '80vw', maxWidth: '800px', minHeight: '600px' }"
+  (onHide)="closeDialog()">
+
+  <div class="dialog-content">
+    <!-- Page Selection -->
+    <div class="p-field p-mb-4">
+      <label for="pageSelect" class="field-label">Pagina *</label>
+      <p-select
+        id="pageSelect"
+        [(ngModel)]="selectedPage"
+        [options]="pageOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Seleziona pagina"
+        class="w-full"
+      ></p-select>
+    </div>
+
+    <!-- Background Type Tabs -->
+    <p-tabView [activeIndex]="activeTabIndex()" (activeIndexChange)="activeTabIndex.set($event)" class="background-tabs">
+      <!-- Color Tab -->
+      <p-tabPanel header="Colore" leftIcon="pi pi-palette">
+        <div class="tab-content">
+          <p class="tab-description">Seleziona un colore solido per lo sfondo</p>
+
+          <div class="color-picker-section">
+            <label for="colorPicker" class="field-label">Colore</label>
+            <div class="color-input-group">
+              <input
+                id="colorPicker"
+                type="color"
+                [value]="selectedColor()"
+                (input)="onColorChange($event); onTypeChange('color')"
+                class="color-input">
+              <input
+                type="text"
+                [value]="selectedColor()"
+                (input)="selectedColor.set($any($event.target).value); onTypeChange('color')"
+                class="hex-input"
+                placeholder="#ffffff">
+            </div>
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <!-- Gradient Tab -->
+      <p-tabPanel header="Gradiente" leftIcon="pi pi-brush">
+        <div class="tab-content">
+          <p class="tab-description">Scegli un gradiente predefinito</p>
+
+          <div class="gradient-presets">
+            @for (preset of gradientPresets; track preset.name) {
+              <div class="gradient-option"
+                   [class.selected]="selectedGradient() === preset.value"
+                   (click)="onGradientChange(preset.value); onTypeChange('gradient')">
+                <div class="gradient-preview" [style.background]="preset.value"></div>
+                <span class="gradient-name">{{ preset.name }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <!-- Image Tab -->
+      <p-tabPanel header="Immagine" leftIcon="pi pi-image">
+        <div class="tab-content">
+          <p class="tab-description">Carica un'immagine di sfondo personalizzata</p>
+
+          <div class="image-upload-section">
+            <p-fileUpload
+              mode="basic"
+              name="backgroundImage"
+              accept="image/*"
+              [maxFileSize]="10000000"
+              [auto]="false"
+              chooseLabel="Scegli Immagine"
+              (onSelect)="onImageUpload($event); onTypeChange('image')"
+              [disabled]="uploading()"
+              class="upload-button">
+            </p-fileUpload>
+
+            @if (uploading()) {
+              <div class="upload-status">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>Caricamento in corso...</span>
+              </div>
+            }
+
+            @if (selectedImageUrl()) {
+              <div class="image-preview">
+                <img [src]="selectedImageUrl()" alt="Anteprima immagine" class="preview-image">
+                <p class="image-info">Immagine caricata con successo</p>
+              </div>
+            }
+          </div>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+
+    <!-- Live Preview -->
+    @if (currentBackgroundValue()) {
+      <div class="preview-section">
+        <h4 class="preview-title">Anteprima</h4>
+        <div class="live-preview"
+             [ngStyle]="previewStyle()"
+             title="Anteprima dello sfondo">
+          <div class="preview-content">
+            <h2>Anteprima Sfondo</h2>
+            <p>Questo è come apparirà lo sfondo sulla pagina selezionata</p>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer">
+      <button
+        pButton
+        type="button"
+        label="Annulla"
+        icon="pi pi-times"
+        class="p-button-text"
+        (click)="closeDialog()">
+      </button>
+
+      <button
+        pButton
+        type="button"
+        label="Salva Configurazione"
+        icon="pi pi-check"
+        class="p-button-success"
+        (click)="saveBackgroundConfig()"
+        [disabled]="!selectedPage() || !currentBackgroundValue() || loading()">
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-toast></p-toast>
