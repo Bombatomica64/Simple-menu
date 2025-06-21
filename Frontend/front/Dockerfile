@@ -44,4 +44,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:4200/ || exit 1
 
 # Use the start script
-CMD ["/app/start.sh"]
+CMD ["bash", "./start.sh"]
