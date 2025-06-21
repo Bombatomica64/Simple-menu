@@ -1,6 +1,9 @@
 # Frontend Dockerfile - Development with ng serve
 FROM node:lts-alpine
 
+# Install bash and wget for scripts and healthcheck
+RUN apk add --no-cache bash wget
+
 WORKDIR /app
 
 # Copy package files
@@ -30,11 +33,15 @@ RUN echo "export const environment = {" > src/environments/environment.docker.ts
 # Update the main.ts to use docker environment
 RUN sed -i 's/environment.dynamic/environment.docker/g' src/main.ts || true
 
+# Make start script executable
+RUN chmod +x start.sh
+
 # Expose port 4200 (Angular dev server default)
 EXPOSE 4200
 
-RUN ng build --configuration=development
-
 # Health check
-# Start Angular development server
-CMD ["ng", "serve", "--host", "0.0.0.0", "--port", "4200"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4200/ || exit 1
+
+# Use the start script
+CMD ["./start.sh"]
