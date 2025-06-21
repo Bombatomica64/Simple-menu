@@ -33,6 +33,8 @@ RUN sed -i 's/environment.dynamic/environment.docker/g' src/main.ts || true
 # Expose port 4200 (Angular dev server default)
 EXPOSE 4200
 
+RUN ng build --configuration=development
+
 # Health check
 # Start Angular development server
 CMD ["ng", "serve", "--host", "0.0.0.0", "--port", "4200"]
