@@ -279,40 +279,16 @@ interface UploadResponse {
 			[closable]="true"
 			[style]="{ width: '400px' }"
 		>
-			<div class="settings-content">
-				<div class="form-group">
-					<label for="settingsPosition">Posizione:</label>
-					<p-select
-						id="settingsPosition"
-						[(ngModel)]="settingsPosition"
-						[options]="positionOptions"
-						class="w-full"
-					>
-					</p-select>
-				</div>
-
-				<div class="form-group">
-					<label for="settingsSize">Dimensione:</label>
-					<p-select
-						id="settingsSize"
-						[(ngModel)]="settingsSize"
-						[options]="sizeOptions"
-						class="w-full"
-					>
-					</p-select>
-				</div>
-
-				<div class="settings-preview">
-					<h5>Anteprima:</h5>
-					@if (currentLogo()) {
-					<img
-						[src]="getFullImageUrl(currentLogo()!.imageUrl)"
-						[alt]="currentLogo()!.name"
-						class="settings-preview-image"
-						[class]="'logo-' + settingsSize()"
-					/>
-					}
-				</div>
+			<div class="settings-preview">
+				<h5>Anteprima:</h5>
+				@if (currentLogo()) {
+				<img
+					[src]="getFullImageUrl(currentLogo()!.imageUrl)"
+					[alt]="currentLogo()!.name"
+					class="settings-preview-image"
+					[class]="'logo-' + settingsSize()"
+				/>
+				}
 			</div>
 
 			<ng-template pTemplate="footer">
@@ -474,13 +450,13 @@ export class LogoUploadComponent {
 					// Add to available logos
 					const currentLogos = this.availableLogos();
 					this.availableLogos.set([response.logo, ...currentLogos]);
-					
+
 					// Automatically activate the uploaded logo via WebSocket
 					const operations = this.logoOperations();
 					if (operations) {
 						operations.activateLogo(response.logo.id);
 					}
-					
+
 					this.showUploadDialog.set(false);
 					this.resetUploadForm();
 					this.messageService.add({

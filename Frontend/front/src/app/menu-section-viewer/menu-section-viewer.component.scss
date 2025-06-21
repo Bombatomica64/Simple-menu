@@ -6,19 +6,18 @@
 // PrimeNG Panel styling with CSS custom properties
 ::ng-deep .menu-section-panel {
 	.p-panel {
-		color: var(--section-text-color, #000000) !important;
 		border: 1px solid rgba(0, 0, 0, 0.1);
 		border-radius: 8px;
 	}
 
 	.p-panel-header {
-		color: var(--section-text-color, #000000) !important;
 		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 		font-weight: 600;
 	}
 
 	.p-panel-content {
-		color: var(--section-text-color, #000000) !important;
+		// Inherit background from parent p-panel
+		background: inherit !important;
 	}
 }
 
@@ -44,7 +43,6 @@
 	display: flex;
 	align-items: center;
 	padding: 1rem;
-	color: var(--section-text-color, #000000) !important;
 	border: 1px solid #f0f0f0;
 	border-radius: 8px;
 	transition: all 0.2s ease;
@@ -64,16 +62,21 @@
 		border-radius: 8px;
 		margin-right: 1rem;
 		border: 1px solid #e0e0e0;
-	}
-
-	.menu-item-content {
+	}	.menu-item-content {
 		flex: 1;
 
 		h4 {
-			margin: 0;
-			color: var(--section-text-color, #333333) !important;
+			margin: 0 0 0.5rem 0;
 			font-size: 1.1rem;
 			font-weight: 500;
+		}
+
+		.menu-item-description {
+			margin: 0;
+			font-size: 0.9rem;
+			font-style: italic;
+			line-height: 1.4;
+			opacity: 0.8;
 		}
 	}
 

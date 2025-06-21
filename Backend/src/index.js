@@ -30,6 +30,7 @@ const userPreferencesRoutes = require("./routes/userPreferences");
 const displaySettingsRoutes = require("./routes/displaySettings");
 const logosRoutes = require("./routes/logos");
 const sectionsRoutes = require("./routes/sections");
+const slideshowRoutes = require("./routes/slideshow");
 
 // Initialize Express app
 const app = express();
@@ -51,6 +52,7 @@ app.use('/api/user', userPreferencesRoutes);
 app.use('/api/menu', displaySettingsRoutes);
 app.use('/api/logos', logosRoutes);
 app.use('/', sectionsRoutes);
+app.use('/api/slideshow', slideshowRoutes);
 
 // Health check endpoint with comprehensive status
 app.get('/health', (req, res) => {

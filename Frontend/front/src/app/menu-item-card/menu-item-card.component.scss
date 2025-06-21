@@ -22,6 +22,16 @@
   word-wrap: break-word;
 }
 
+.menu-item-description {
+  font-size: 0.9rem;
+  font-weight: 400;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-color-secondary);
+  line-height: 1.4;
+  word-wrap: break-word;
+  font-style: italic;
+}
+
 .menu-item-price {
   font-size: 1.1rem;
   font-weight: 700;

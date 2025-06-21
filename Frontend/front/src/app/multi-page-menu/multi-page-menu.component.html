@@ -5,13 +5,12 @@
 	[class.vertical-orientation]="isVerticalOrientation()"
 	[class.horizontal-orientation]="isHorizontalOrientation()"
 	[style.background]="getBackgroundStyle()"
->
-	<!-- Big Price Display at Top Left -->
+>	<!-- Big Price Display at Top Left -->
 	@if (menu()?.pastaTypes?.length || menu()?.pastaSauces?.length) {
-	<div class="big-price-display">
-		<div class="price-value">€{{ getMinTotalPrice() }}</div>
-		<div class="price-label">a partire da</div>
-	</div>
+			<div class="big-price-display">
+					<div class="price-value">+2€</div>
+					<div class="price-label">PORZIONI ABBONDANTI/PASTA FRESCA</div>
+			</div>
 	}
 
 	<!-- Current page content -->
@@ -53,7 +52,6 @@
 		</div>
 	</div>
 	}
-
 	<!-- Simple page indicator at bottom -->
 	@if (showPageIndicator()) {
 	<div class="bottom-page-indicator">
@@ -70,4 +68,5 @@
 		</div>
 	</div>
 	}
+
 </div>

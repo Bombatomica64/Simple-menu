@@ -18,6 +18,37 @@ body.pasta-page {
   width: 100vw;
 }
 
+/* Fix for p-select dropdown appearing behind dialogs */
+::ng-deep .p-select-overlay {
+  z-index: 9999 !important;
+}
+
+::ng-deep .p-select .p-select-overlay {
+  z-index: 9999 !important;
+}
+
+/* Ensure p-select dropdowns in dialogs appear correctly */
+::ng-deep p-dialog .p-select-overlay,
+::ng-deep .p-dialog .p-select-overlay {
+  z-index: 10000 !important;
+}
+
+/* Fix for p-dropdown in dialogs */
+::ng-deep .p-dropdown-panel {
+  z-index: 9999 !important;
+}
+
+/* Ensure p-dropdown panels in dialogs appear correctly */
+::ng-deep p-dialog .p-dropdown-panel,
+::ng-deep .p-dialog .p-dropdown-panel {
+  z-index: 10000 !important;
+}
+
+::ng-deep p-dialog .p-dropdown-panel,
+::ng-deep .p-dialog .p-dropdown-panel {
+  z-index: 10000 !important;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }

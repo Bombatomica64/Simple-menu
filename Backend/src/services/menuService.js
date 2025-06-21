@@ -23,11 +23,13 @@ async function loadInitialMenu() {
         pastaTypes: { include: { pastaType: true } },
         pastaSauces: { include: { pastaSauce: true } },
       },
-    });
-    if (latestMenuFromDB) {
+    });    if (latestMenuFromDB) {
       currentInMemoryMenu = latestMenuFromDB;
       console.log("Initial menu loaded from DB into memory.");
-    } else {      // Seed default data if database is empty
+      
+      // Ensure predefined sections exist
+      await ensurePredefinedSections(latestMenuFromDB.id);
+    } else {// Seed default data if database is empty
       const { seedDefaultData } = require("./seedService");      await seedDefaultData();
       currentInMemoryMenu = {
         createdAt: new Date().toISOString(),
@@ -80,6 +82,7 @@ async function addItemToMenu(item) {
       id: Date.now(), // Temporary in-memory ID
       name: item.name,
       price: item.price,
+      description: item.description || null,
       position: position,
       imageUrl: item.imageUrl || null,
       showImage: item.showImage || false,
@@ -326,6 +329,7 @@ async function saveCurrentMenu(name) {
           data: {
             name: item.name,
             price: item.price,
+            description: item.description || null,
             position: item.position || 0,
             imageUrl: item.imageUrl || '',
             showImage: item.showImage || false,
@@ -929,7 +933,12 @@ async function updateSectionStyle(sectionId, style = {}) {
 
 // Specific section color management functions
 async function updateSectionColors(sectionId, backgroundColor, textColor) {
-  if (!currentInMemoryMenu) return false;
+  console.log("🎨 updateSectionColors called with:", { sectionId, backgroundColor, textColor });
+  
+  if (!currentInMemoryMenu) {
+    console.error("❌ No current in-memory menu available");
+    return false;
+  }
 
   try {
     // Validate colors if provided
@@ -944,6 +953,7 @@ async function updateSectionColors(sectionId, backgroundColor, textColor) {
     }
 
     // Update section colors in database
+    console.log("🎨 Updating section in database...");
     const updatedSection = await prisma.menuSection.update({
       where: { id: sectionId },
       data: {
@@ -951,15 +961,20 @@ async function updateSectionColors(sectionId, backgroundColor, textColor) {
         textColor: textColor || null
       }
     });
+    console.log("🎨 Database update successful:", updatedSection);
 
     // Update in-memory menu
     const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
     if (sectionIndex !== -1) {
+      console.log("🎨 Updating in-memory menu section at index:", sectionIndex);
       currentInMemoryMenu.menuSections[sectionIndex] = {
         ...currentInMemoryMenu.menuSections[sectionIndex],
         backgroundColor: backgroundColor || null,
         textColor: textColor || null
       };
+      console.log("🎨 In-memory section updated:", currentInMemoryMenu.menuSections[sectionIndex]);
+    } else {
+      console.error("❌ Section not found in in-memory menu:", sectionId);
     }
 
     console.log(`✅ Section colors updated: ${sectionId} - bg: ${backgroundColor}, text: ${textColor}`);
@@ -1097,6 +1112,51 @@ async function updatePastaSaucesGlobalColor(backgroundColor) {
   }
 }
 
+// Predefined section types
+const PREDEFINED_SECTIONS = [
+  { name: 'Poke', sectionType: 'poke' },
+  { name: 'Insalatone', sectionType: 'insalatone' }
+];
+
+async function ensurePredefinedSections(menuId) {
+  try {
+    for (const predefinedSection of PREDEFINED_SECTIONS) {
+      // Check if section already exists
+      const existingSection = await prisma.menuSection.findFirst({
+        where: {
+          menuId: menuId,
+          sectionType: predefinedSection.sectionType
+        }
+      });
+
+      if (!existingSection) {
+        // Find the highest position
+        const maxPosition = await prisma.menuSection.findFirst({
+          where: { menuId },
+          orderBy: { position: 'desc' },
+          select: { position: true }
+        });
+
+        const nextPosition = maxPosition ? maxPosition.position + 1 : 0;
+
+        // Create the predefined section
+        await prisma.menuSection.create({
+          data: {
+            name: predefinedSection.name,
+            sectionType: predefinedSection.sectionType,
+            position: nextPosition,
+            menuId: menuId
+          }
+        });
+
+        console.log(`Created predefined section: ${predefinedSection.name}`);
+      }
+    }
+  } catch (error) {
+    console.error('Error ensuring predefined sections:', error);
+  }
+}
+
 module.exports = {
   loadInitialMenu,
   getCurrentMenu,
@@ -1139,4 +1199,5 @@ module.exports = {
   // Global pasta types and sauces color management
   updatePastaTypesGlobalColor,
   updatePastaSaucesGlobalColor,
+  ensurePredefinedSections,
 };

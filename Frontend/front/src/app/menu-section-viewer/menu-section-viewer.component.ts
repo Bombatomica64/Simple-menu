@@ -25,4 +25,32 @@ export class MenuSectionViewerComponent {
 				: undefined,
 		}));
 	});
+	// Get section background color with defaults based on section type
+	getSectionBackgroundColor(): string {
+		const section = this.section();
+
+		// If section has explicit backgroundColor, use it
+		if (section.backgroundColor) {
+			return section.backgroundColor;
+		}
+
+		// Default section colors based on section type
+		const defaultColors: { [key: string]: string } = {
+			pasta: '#FFFACD', // Giallino (yellowish)
+			sauce: '#FFE4E1', // Rossino (reddish)
+			insalatone: '#F0FFF0', // Verdolino (greenish)
+			poke: '#FFE4E1', // Rossino (reddish)
+			general: '#ffffff', // White
+		};
+
+		const defaultColor = defaultColors[section.sectionType || 'general'] || '#f8f9fa';
+		return defaultColor;
+	}
+
+	// Get section text color with default
+	getSectionTextColor(): string {
+		const section = this.section();
+		// Use section-specific text color if set, otherwise default to dark
+		return section.textColor || '#2c3e50';
+	}
 }

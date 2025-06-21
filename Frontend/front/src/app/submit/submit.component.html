@@ -27,8 +27,7 @@
 					aria-label="Modulo per aggiungere nuova voce del menu"
 					(ngSubmit)="addItem()"
 					#menuItemForm="ngForm"
-				>
-					<div class="p-fluid p-formgrid p-grid">
+				>					<div class="p-fluid p-formgrid p-grid">
 						<div class="p-field p-col-12 p-md-4">
 							<label for="itemName"
 								>Nome:
@@ -52,7 +51,23 @@
 								>Inserisci il nome del piatto o della bevanda</small
 							>
 						</div>
-						<div class="p-field p-col-12 p-md-3">
+						<div class="p-field p-col-12 p-md-4">
+							<label for="itemDescription">Descrizione:</label>
+							<textarea
+								id="itemDescription"
+								pTextarea
+								[(ngModel)]="newItemDescription"
+								name="itemDescription"
+								placeholder="Descrizione del piatto (opzionale)"
+								rows="2"
+								aria-describedby="itemDescription-help"
+								autocomplete="off"
+							></textarea>
+							<small id="itemDescription-help" class="form-text"
+								>Aggiungi una descrizione per il piatto (opzionale)</small
+							>
+						</div>
+						<div class="p-field p-col-12 p-md-2">
 							<label for="itemPrice"
 								>Prezzo:
 								<span aria-label="campo obbligatorio" class="required-asterisk"
@@ -76,8 +91,7 @@
 							<small id="itemPrice-help" class="form-text"
 								>Inserisci il prezzo in euro (es. 12.50)</small
 							>
-						</div>
-						<div class="p-field p-col-12 p-md-3">
+						</div>						<div class="p-field p-col-12 p-md-2">
 							<label for="itemSection">Sezione:</label>
 							<p-select
 								id="itemSection"
@@ -901,9 +915,13 @@
 		[menuConnection]="menuWsConnection"
 		(settingsChange)="onPastaTypeDisplaySettingsChange($event)"
 	></app-pasta-type-display-dialog>
-
 	<!-- Confirmation Dialog -->
 	<p-confirmDialog styleClass="confirmation-dialog"></p-confirmDialog>
+
+	<!-- Slideshow Management Section -->
+	<div class="card p-mb-4">
+		<app-slideshow-management></app-slideshow-management>
+	</div>
 
 	<!-- Saved Menus Section - Always visible at bottom -->
 	<div class="saved-menus-section">

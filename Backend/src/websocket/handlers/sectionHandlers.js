@@ -44,6 +44,8 @@ async function handleUpdateSectionStyle(message, ws, { broadcastInMemoryMenu }) 
 }
 
 async function handleUpdateSectionColors(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+  console.log("🎨 Backend received updateSectionColors message:", message);
+  
   const updated = await menuService.updateSectionColors(
     message.sectionId,
     message.backgroundColor,
@@ -60,7 +62,10 @@ async function handleUpdateSectionColors(message, ws, { broadcastInMemoryMenu, s
       textColor: message.textColor,
     });
 
+    console.log("🎨 Broadcasting updated menu after section color change");
     broadcastInMemoryMenu();
+  } else {
+    console.error("❌ Failed to update section colors for section ID:", message.sectionId);
   }
 }
 

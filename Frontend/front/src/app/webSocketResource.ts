@@ -4,7 +4,7 @@ import { Menu } from './Menu/menu';
 
 export interface AddItemMessage {
 	type: 'addItem';
-	item: { name: string; price: number; sectionId?: number | null };
+	item: { name: string; price: number; description?: string; sectionId?: number | null };
 }
 export interface RemoveItemMessage {
 	type: 'removeItem';
@@ -378,15 +378,34 @@ export interface DeleteLogoMessage {
 	logoId: number;
 }
 
-// Logo response message types
-export interface AvailableLogosResponse {
-	type: 'availableLogos';
-	logos: any[]; // You can define a proper Logo interface if needed
+// Slideshow message types
+export interface ActivateSlideshowMessage {
+	type: 'activateSlideshow';
+	slideshowId: number;
 }
 
-export interface LogoDeletedResponse {
-	type: 'logoDeleted';
-	logoId: number;
+export interface DeactivateSlideshowMessage {
+	type: 'deactivateSlideshow';
+}
+
+export interface SlideshowUpdatedMessage {
+	type: 'slideshowUpdated';
+	slideshow: any; // Replace with proper Slideshow type
+}
+
+export interface SlideshowActivatedResponse {
+	type: 'slideshowActivated';
+	slideshow: any; // Replace with proper Slideshow type
+}
+
+export interface SlideshowDeactivatedResponse {
+	type: 'slideshowDeactivated';
+}
+
+export interface SlideshowStatusUpdateResponse {
+	type: 'slideshowStatusUpdate';
+	slideshow: any; // Replace with proper Slideshow type
+	isActive: boolean;
 }
 
 export type MenuUpdateMessage =
@@ -434,8 +453,10 @@ export type MenuUpdateMessage =
 	| GetAvailableLogosMessage
 	| SetMenuLogoMessage
 	| UpdateLogoSettingsMessage
-	| RemoveLogoMessage
-	| DeleteLogoMessage;
+	| RemoveLogoMessage	| DeleteLogoMessage
+	| ActivateSlideshowMessage
+	| DeactivateSlideshowMessage
+	| SlideshowUpdatedMessage;
 
 export type MenuResponseMessage =
 	| MenuSavedResponse
@@ -453,7 +474,21 @@ export type MenuResponseMessage =
 	| SectionColorsUpdatedResponse
 	| AvailableLogosResponse
 	| LogoDeletedResponse
+	| SlideshowActivatedResponse
+	| SlideshowDeactivatedResponse
+	| SlideshowStatusUpdateResponse
 	| ErrorResponse;
+
+// Logo response message types
+export interface AvailableLogosResponse {
+	type: 'availableLogos';
+	logos: any[]; // You can define a proper Logo interface if needed
+}
+
+export interface LogoDeletedResponse {
+	type: 'logoDeleted';
+	logoId: number;
+}
 
 export type SendUpdateFn = (message: MenuUpdateMessage) => void;
 
@@ -504,21 +539,19 @@ export function menuConnection(websocketUrl: string): MenuConnection {
 					}));
 				};				wsConnectionInstance.onmessage = (event) => {
 					try {
-						const data = JSON.parse(event.data);
-
-						// Check if it's a menu update or a response message
+						const data = JSON.parse(event.data);						// Check if it's a menu update or a response message
 						if (data.type && [
 							'menuSaved', 'menuDeleted', 'savedMenusList',
 							'pastaSauceDisplaySettings', 'pastaTypeDisplaySettings',
 							'backgroundConfig', 'allBackgroundConfigs', 'backgroundConfigDeleted',
 							'pastaTypeColorsUpdated', 'pastaSauceColorsUpdated', 'sectionColorsUpdated',
 							'availableLogos', 'logoDeleted',
+							'slideshowActivated', 'slideshowDeactivated', 'slideshowStatusUpdate',
 							'error'
 						].includes(data.type)) {
 							// Handle response messages
 							console.log('[WebSocket response] Response received:', data);
-							responseMessages.set(data as MenuResponseMessage);
-						} else {
+							responseMessages.set(data as MenuResponseMessage);						} else {
 							// Handle menu updates
 							const menuData = data as Menu;
 							console.log('[WebSocket message] Menu update received:', menuData);

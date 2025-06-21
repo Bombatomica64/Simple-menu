@@ -78,27 +78,30 @@ export class PastaComponent implements OnInit, OnDestroy {
 		let fontSize = currentMenu?.globalPastaSauceFontSize ?? 1.5;
 		const fontSizeStr = fontSize + 'rem';
 		return fontSizeStr;
-	}); // Computed properties for template
+	});	// Computed properties for template
 	menuSections = computed(() => {
 		const currentMenu = this.menu();
 		const sections = currentMenu?.menuSections ?? [];
-
 		// Convert MenuSection[] to the format expected by template
+		// Preserve all section properties for proper styling and functionality
 		return sections.map((section, index) => ({
 			id: section.id || index + 1,
 			name: section.name,
 			position: section.position || index,
 			menuId: currentMenu?.id ?? undefined,
 			menuItems: section.menuItems || [],
+			// Preserve styling properties
+			header: section.header || undefined,
+			sectionType: section.sectionType || 'general',
+			backgroundColor: section.backgroundColor || undefined,
+			textColor: section.textColor || undefined,
 		}));
 	});
 
 	totalSectionPages = computed(() => {
 		const sections = this.menuSections();
 		return Math.ceil(sections.length / this.MAX_SECTIONS_PER_PAGE);
-	});
-
-	currentPageSections = computed(() => {
+	});	currentPageSections = computed(() => {
 		const sections = this.menuSections();
 		const startIndex = this.currentSectionPage() * this.MAX_SECTIONS_PER_PAGE;
 		return sections.slice(startIndex, startIndex + this.MAX_SECTIONS_PER_PAGE);

@@ -260,9 +260,9 @@
     [visible]="showMoveItemDialog()"
     (visibleChange)="showMoveItemDialog.set($event)"
     [modal]="true"
-    [style]="{ width: '400px' }"
+    [style]="{ heigth: '100%' }"
     [draggable]="false"
-    [resizable]="false"
+    [resizable]="true"
   >
     @if (selectedItemForMove(); as item) {
       <div class="p-fluid">

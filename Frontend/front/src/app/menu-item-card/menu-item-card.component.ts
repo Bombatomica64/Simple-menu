@@ -35,6 +35,7 @@ export class MenuItemCardComponent {  // Input signals
   imageUrl = computed(() => environment.getFullImageUrl(this.currentItem().imageUrl || ''));
   itemName = computed(() => this.currentItem().name);
   itemPrice = computed(() => this.currentItem().price);
+  itemDescription = computed(() => this.currentItem().description);
 
   // Computed property to get the effective showImage value
   effectiveShowImage = computed(() => this.showImage() ?? this.currentItem().showImage ?? false);

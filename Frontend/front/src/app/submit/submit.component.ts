@@ -81,6 +81,7 @@ import { PastaTypeDisplayDialogComponent } from './pasta-type-display-dialog/pas
 import { LogoUploadComponent } from '../logo-upload/logo-upload.component'; // Import LogoUploadComponent
 import { ColorPaletteComponent } from '../color-palette/color-palette.component'; // Import ColorPaletteComponent
 import { BackgroundPaletteComponent } from '../background-palette/background-palette.component'; // Import BackgroundPaletteComponent
+import { SlideshowManagementComponent } from '../slideshow-management/slideshow-management.component'; // Import SlideshowManagementComponent
 import {
 	SectionOperations,
 	LogoOperations,
@@ -118,6 +119,7 @@ export interface PastaSauceEvent {
 		LogoUploadComponent,
 		ColorPaletteComponent,
 		BackgroundPaletteComponent,
+		SlideshowManagementComponent,
 	],
 	templateUrl: './submit.component.html',
 	styleUrls: ['./submit.component.scss'],
@@ -162,9 +164,9 @@ export class SubmitComponent implements OnInit {
 			opacity: number
 		) => this.updateLogoSettings(logoId, position, size, opacity),
 	};
-
 	// For adding new item
 	newItemName: string = '';
+	newItemDescription: string = '';
 	newItemPrice: number | null = null;
 	newItemSectionId: number | null = null;
 
@@ -536,6 +538,7 @@ export class SubmitComponent implements OnInit {
 			item: {
 				name: this.newItemName.trim(),
 				price: this.newItemPrice!, // Use non-null assertion since we validated above
+				description: this.newItemDescription.trim() || undefined, // Only include if not empty
 				sectionId: finalSectionId,
 			},
 		};
@@ -543,6 +546,7 @@ export class SubmitComponent implements OnInit {
 
 		// Clear the form
 		this.newItemName = '';
+		this.newItemDescription = '';
 		this.newItemPrice = null;
 		this.newItemSectionId = null;
 	}
@@ -1304,16 +1308,15 @@ export class SubmitComponent implements OnInit {
 			type: 'getAvailableLogos',
 		};
 		this.menuWsConnection?.sendUpdate(message);
-	}
-
-	// Event handlers for child components
+	}	// Event handlers for child components
 	handleSectionColorUpdate(event: {
 		sectionId: number;
 		backgroundColor: string;
 	}) {
+		console.log('🎨 Submit component received section color update:', event);
 
 		if (!this.menuWsConnection || !this.menuWsConnection.connected()) {
-			console.error('WebSocket connection not available');
+			console.error('❌ WebSocket connection not available');
 			return;
 		}
 
@@ -1324,11 +1327,12 @@ export class SubmitComponent implements OnInit {
 			textColor: '#000000', // Default text color
 		};
 
+		console.log('🎨 Sending WebSocket message:', message);
 		this.menuWsConnection.sendUpdate(message);
+		console.log('🎨 WebSocket message sent successfully');
 	}
 
 	handlePastaTypesColorUpdate(event: { backgroundColor: string }) {
-
 		if (!this.menuWsConnection || !this.menuWsConnection.connected()) {
 			console.error('WebSocket connection not available');
 			return;
@@ -1343,8 +1347,6 @@ export class SubmitComponent implements OnInit {
 	}
 
 	handlePastaSaucesColorUpdate(event: { backgroundColor: string }) {
-
-
 		if (!this.menuWsConnection || !this.menuWsConnection.connected()) {
 			console.error('WebSocket connection not available');
 			return;

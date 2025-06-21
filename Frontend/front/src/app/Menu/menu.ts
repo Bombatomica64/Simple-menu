@@ -2,6 +2,7 @@ export interface MenuItem {
     id: number; // Can be temporary in-memory ID or DB ID
     name: string;
     price: number;
+    description?: string; // Optional description for the menu item
     position?: number; // Position within section or menu
     menuId?: number;
     sectionId?: number | null; // Reference to menu section

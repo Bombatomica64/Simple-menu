@@ -6,6 +6,7 @@ const logoHandlers = require("./handlers/logoHandlers");
 const backgroundHandlers = require("./handlers/backgroundHandlers");
 const savedMenuHandlers = require("./handlers/savedMenuHandlers");
 const displaySettingsHandlers = require("./handlers/displaySettingsHandlers");
+const slideshowHandlers = require("./handlers/slideshowHandlers");
 
 // Message routing table
 const MESSAGE_HANDLERS = {
@@ -70,7 +71,18 @@ const MESSAGE_HANDLERS = {
   "updatePastaSauceDisplaySettings": displaySettingsHandlers.handleUpdatePastaSauceDisplaySettings,
   "getPastaTypeDisplaySettings": displaySettingsHandlers.handleGetPastaTypeDisplaySettings,
   "updatePastaTypeDisplaySettings": displaySettingsHandlers.handleUpdatePastaTypeDisplaySettings,
-  "updateGlobalPastaDisplaySettings": displaySettingsHandlers.handleUpdateGlobalPastaDisplaySettings
+  "updateGlobalPastaDisplaySettings": displaySettingsHandlers.handleUpdateGlobalPastaDisplaySettings,
+
+  // Slideshow Operations
+  "getActiveSlideshow": slideshowHandlers.handleGetActiveSlideshow,
+  "getAllSlideshows": slideshowHandlers.handleGetAllSlideshows,
+  "createSlideshow": slideshowHandlers.handleCreateSlideshow,
+  "updateSlideshow": slideshowHandlers.handleUpdateSlideshow,
+  "activateSlideshow": slideshowHandlers.handleActivateSlideshow,
+  "deactivateSlideshow": slideshowHandlers.handleDeactivateSlideshow,
+  "addSlideToSlideshow": slideshowHandlers.handleAddSlideToSlideshow,
+  "removeSlideFromSlideshow": slideshowHandlers.handleRemoveSlideFromSlideshow,
+  "updateSlideOrder": slideshowHandlers.handleUpdateSlideOrder
 };
 
 async function handleMessage(parsedMessage, ws, { broadcastInMemoryMenu, sendToClient, broadcastMessage }) {

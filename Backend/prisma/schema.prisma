@@ -71,6 +71,7 @@ model MenuItem {
   id              Int          @id @default(autoincrement())
   name            String
   price           Float
+  description     String?      // Optional description for the menu item
   position        Int          @default(0) // Position within the section
   imageUrl        String?
   showImage       Boolean      @default(false) // Switch to show/hide image in menu
@@ -165,4 +166,32 @@ model BackgroundConfig {
   menus       Menu[]   // One background config can be used by multiple menus
 
   @@unique([page]) // Keep page unique but allow nulls
+}
+
+// Slideshow configuration
+model Slideshow {
+  id          Int             @id @default(autoincrement())
+  name        String          @default("Default Slideshow")
+  isActive    Boolean         @default(false)
+  intervalMs  Int             @default(5000) // 5 seconds default
+  autoStart   Boolean         @default(false)
+  startTime   String?         // Time to auto-start (e.g., "12:30")
+  endTime     String?         // Time to auto-end (e.g., "12:30")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  slides      SlideshowSlide[]
+}
+
+model SlideshowSlide {
+  id          Int       @id @default(autoincrement())
+  imageUrl    String
+  title       String?   // Optional title for the slide
+  description String?   // Optional description
+  position    Int       @default(0) // Order of slides
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  slideshowId Int
+  slideshow   Slideshow @relation(fields: [slideshowId], references: [id], onDelete: Cascade)
+  
+  @@unique([slideshowId, position])
 }

@@ -57,7 +57,9 @@ export class ColorPaletteComponent {
   // Data computed from menu connection
   sections = computed(() => {
     const menu = this.menuConnection()?.resource.value();
-    return menu?.menuSections || [];
+    const sections = menu?.menuSections || [];
+    console.log('🎨 Color palette sections loaded:', sections);
+    return sections;
   });
 
   // Pasta types and sauces global background colors - Default colors per requirements
@@ -116,17 +118,24 @@ export class ColorPaletteComponent {
 
     if (!item) return;
 
+    console.log('🎨 Color palette saving color:', { item, type, color });
+
     if (type === 'section' && item.id) {
+      console.log('🎨 Emitting section color update:', { sectionId: item.id, backgroundColor: color });
+      console.log('🎨 About to emit section color update event...');
       this.sectionColorUpdateRequested.emit({
         sectionId: item.id,
         backgroundColor: color
       });
+      console.log('🎨 Section color update event emitted successfully');
     } else if (type === 'pastaTypes') {
+      console.log('🎨 Emitting pasta types color update:', { backgroundColor: color });
       this.pastaTypesColorUpdateRequested.emit({
         backgroundColor: color
       });
       this.pastaTypesBackgroundColor.set(color);
     } else if (type === 'pastaSauces') {
+      console.log('🎨 Emitting pasta sauces color update:', { backgroundColor: color });
       this.pastaSaucesColorUpdateRequested.emit({
         backgroundColor: color
       });

@@ -30,6 +30,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     const imageUrl = getRelativeImagePath(req.file.filename);
     
     res.json({
+      success: true,
       message: 'Image uploaded successfully',
       imageUrl: imageUrl
     });
@@ -37,6 +38,33 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     console.error('Error uploading image:', error);
     if (req.file) cleanupFile(req.file.path);
     res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+// Multiple images upload endpoint (for slideshow images)
+router.post('/upload-multiple', upload.array('image', 10), async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: 'No image files provided' });
+  }
+  try {
+    const uploadedImages = req.files.map(file => ({
+      imageUrl: getRelativeImagePath(file.filename),
+      filename: file.filename,
+      originalName: file.originalname
+    }));
+    
+    res.json({
+      success: true,
+      message: `${req.files.length} images uploaded successfully`,
+      images: uploadedImages
+    });
+  } catch (error) {
+    console.error('Error uploading multiple images:', error);
+    // Clean up uploaded files on error
+    if (req.files) {
+      req.files.forEach(file => cleanupFile(file.path));
+    }
+    res.status(500).json({ error: 'Failed to upload images' });
   }
 });
 

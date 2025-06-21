@@ -1,71 +1,78 @@
 <div class="menu-item-card">
-  <div class="flex flex-wrap p-3 align-items-center gap-3 w-full">
-    <!-- Image Section -->
-    @if (effectiveShowImage() && imageUrl()) {
-      <img
-        class="w-4rem h-4rem shadow-2 shrink-0 border-round object-fit-cover"
-        [src]="imageUrl()"
-        [alt]="itemName() + ' immagine'"
-        title="Immagine del piatto"
-      />
-    } @else if (effectiveShowImage()) {
-      <div class="w-4rem h-4rem shrink-0 border-round border-2 border-dashed border-300 flex align-items-center justify-content-center">
-        <i class="pi pi-image text-2xl text-400" title="Nessuna immagine disponibile"></i>
-      </div>
-    }
+	<div class="flex flex-wrap p-3 align-items-center gap-3 w-full">
+		<!-- Image Section -->
+		@if (effectiveShowImage() && imageUrl()) {
+		<img
+			class="w-4rem h-4rem shadow-2 shrink-0 border-round object-fit-cover"
+			[src]="imageUrl()"
+			[alt]="itemName() + ' immagine'"
+			title="Immagine del piatto"
+		/>
+		} @else if (effectiveShowImage()) {
+		<div
+			class="w-4rem h-4rem shrink-0 border-round border-2 border-dashed border-300 flex align-items-center justify-content-center"
+		>
+			<i
+				class="pi pi-image text-2xl text-400"
+				title="Nessuna immagine disponibile"
+			></i>
+		</div>
+		}
+		<!-- Content Section -->
+		<div class="flex-1 flex flex-col min-w-0 pr-2">
+			<h5 class="menu-item-name">{{ itemName() }}</h5>
+			@if (itemDescription()) {
+			<p class="menu-item-description">{{ itemDescription() }}</p>
+			}
+			<p class="menu-item-price">€{{ itemPrice() }}</p>
+		</div>
 
-    <!-- Content Section -->
-    <div class="flex-1 flex flex-col min-w-0 pr-2">
-      <h5 class="menu-item-name">{{ itemName() }}</h5>
-      <p class="menu-item-price">€{{ itemPrice() }}</p>
-    </div>
+		<!-- Actions Section -->
+		<div class="flex gap-2 align-items-center">
+			<!-- Move Button -->
+			<button
+				pButton
+				type="button"
+				icon="pi pi-arrows-alt"
+				class="p-button-outlined p-button-rounded p-button-sm"
+				(click)="onMoveItem()"
+				title="Sposta elemento in altra sezione"
+				[attr.aria-label]="'Sposta ' + itemName() + ' in altra sezione'"
+			></button>
 
-    <!-- Actions Section -->
-    <div class="flex gap-2 align-items-center">
-      <!-- Move Button -->
-      <button
-        pButton
-        type="button"
-        icon="pi pi-arrows-alt"
-        class="p-button-outlined p-button-rounded p-button-sm"
-        (click)="onMoveItem()"
-        title="Sposta elemento in altra sezione"
-        [attr.aria-label]="'Sposta ' + itemName() + ' in altra sezione'"
-      ></button>
+			<!-- Image Controls -->
+			<button
+				pButton
+				type="button"
+				icon="pi pi-images"
+				class="p-button-outlined p-button-rounded p-button-sm"
+				(click)="onOpenImageManager()"
+				title="Gestisci immagini"
+				[attr.aria-label]="'Gestisci immagini per ' + itemName()"
+			></button>
 
-      <!-- Image Controls -->
-      <button
-        pButton
-        type="button"
-        icon="pi pi-images"
-        class="p-button-outlined p-button-rounded p-button-sm"
-        (click)="onOpenImageManager()"
-        title="Gestisci immagini"
-        [attr.aria-label]="'Gestisci immagini per ' + itemName()"
-      ></button>
+			<!-- Remove Button -->
+			<button
+				pButton
+				type="button"
+				icon="pi pi-times"
+				class="p-button-rounded p-button-danger p-button-sm"
+				(click)="onRemoveItem()"
+				title="Rimuovi"
+				[attr.aria-label]="'Rimuovi ' + itemName() + ' dal menu'"
+			></button>
+		</div>
+	</div>
 
-      <!-- Remove Button -->
-      <button
-        pButton
-        type="button"
-        icon="pi pi-times"
-        class="p-button-rounded p-button-danger p-button-sm"
-        (click)="onRemoveItem()"
-        title="Rimuovi"
-        [attr.aria-label]="'Rimuovi ' + itemName() + ' dal menu'"
-      ></button>
-    </div>
-  </div>
-
-    <!-- Image Toggle Control -->
-  <div class="image-toggle-section">
-    <div class="flex align-items-center justify-content-center gap-3 flex-wrap">
-      <label class="text-sm font-medium text-center">Mostra immagine:</label>
-      <p-toggleSwitch
-        [ngModel]="effectiveShowImage()"
-        (ngModelChange)="onToggleShowImage($event)"
-        class="flex-shrink-0"
-      ></p-toggleSwitch>
-    </div>
-  </div>
+	<!-- Image Toggle Control -->
+	<div class="image-toggle-section">
+		<div class="flex align-items-center justify-content-center gap-3 flex-wrap">
+			<label class="text-sm font-medium text-center">Mostra immagine:</label>
+			<p-toggleSwitch
+				[ngModel]="effectiveShowImage()"
+				(ngModelChange)="onToggleShowImage($event)"
+				class="flex-shrink-0"
+			></p-toggleSwitch>
+		</div>
+	</div>
 </div>
