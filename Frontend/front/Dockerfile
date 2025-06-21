@@ -1,5 +1,5 @@
-# Frontend Dockerfile - Multi-stage build
-FROM node:lts-alpine AS builder
+# Frontend Dockerfile - Development with ng serve
+FROM node:lts-alpine
 
 WORKDIR /app
 
@@ -8,6 +8,9 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm ci --legacy-peer-deps
+
+# Install Angular CLI globally
+RUN npm install -g @angular/cli
 
 # Copy source code
 COPY . .
@@ -18,39 +21,21 @@ ARG BACKEND_PORT=3000
 
 # Create dynamic environment file for Docker
 RUN echo "export const environment = {" > src/environments/environment.docker.ts && \
-    echo "  production: true," >> src/environments/environment.docker.ts && \
+    echo "  production: false," >> src/environments/environment.docker.ts && \
     echo "  apiUrl: 'http://${BACKEND_HOST}:${BACKEND_PORT}'," >> src/environments/environment.docker.ts && \
-    echo "  wsUrl: 'ws://${BACKEND_HOST}:${BACKEND_PORT}/menu-updates'" >> src/environments/environment.docker.ts && \
+    echo "  wsUrl: 'ws://${BACKEND_HOST}:${BACKEND_PORT}/menu-updates'," >> src/environments/environment.docker.ts && \
+    echo "  getFullImageUrl: (imageUrl: string) => imageUrl.startsWith('http') ? imageUrl : \`http://${BACKEND_HOST}:${BACKEND_PORT}/\${imageUrl}\`" >> src/environments/environment.docker.ts && \
     echo "};" >> src/environments/environment.docker.ts
 
-# Update the main.ts to use docker environment in production
+# Update the main.ts to use docker environment
 RUN sed -i 's/environment.dynamic/environment.docker/g' src/main.ts || true
 
-# Build the application
-RUN npm run build
-
-# Production stage
-FROM nginx:alpine
-
-# Install curl for healthcheck
-RUN apk add --no-cache curl
-
-# Copy built application
-COPY --from=builder /app/dist/front /usr/share/nginx/html
-
-# Copy error pages
-COPY --from=builder /app/src/50x.html /usr/share/nginx/html/
-COPY --from=builder /app/src/404.html /usr/share/nginx/html/
-
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Expose port 80
-EXPOSE 80
+# Expose port 4200 (Angular dev server default)
+EXPOSE 4200
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost/ || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4200/ || exit 1
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start Angular development server
+CMD ["ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--disable-host-check"]
