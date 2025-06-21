@@ -72,9 +72,19 @@ export class HomeComponent implements OnInit, OnDestroy {
 						isActive: true
 					});
 
-					// Navigate to slideshow page
-					console.log('Slideshow activated, navigating to slideshow');
-					this.router.navigate(['/slideshow']);
+					// Only navigate to slideshow if we're on a public page (not admin pages)
+					const currentUrl = this.router.url;
+					const isAdminPage = currentUrl.includes('/submit') ||
+									   currentUrl.includes('/menu-sections') ||
+									   currentUrl.includes('/slideshow-management') ||
+									   currentUrl.includes('/admin');
+
+					if (!isAdminPage) {
+						console.log('Slideshow activated, navigating to slideshow');
+						this.router.navigate(['/slideshow']);
+					} else {
+						console.log('Slideshow activated but staying on admin page:', currentUrl);
+					}
 				}
 				break;
 			case 'slideshowDeactivated':
