@@ -72,12 +72,6 @@ services:
           memory: 256M
         reservations:
           memory: 128M
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
     logging:
       driver: "json-file"
       options:

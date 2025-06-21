@@ -34,8 +34,5 @@ RUN sed -i 's/environment.dynamic/environment.docker/g' src/main.ts || true
 EXPOSE 4200
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:4200/ || exit 1
-
 # Start Angular development server
 CMD ["ng", "serve", "--host", "0.0.0.0", "--port", "4200"]
