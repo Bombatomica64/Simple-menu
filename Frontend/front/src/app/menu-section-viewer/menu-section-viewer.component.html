@@ -1,12 +1,12 @@
-<div class="menu-section-container" [ngStyle]="{ 'background-color': getSectionBackgroundColor() }">
+<div class="menu-section-container">
 	@if (section().header) {
 	<h2 class="section-header">{{ section().header }}</h2>
-	}
-	<p-panel
+	}	<p-panel
 		[header]="section().name"
 		styleClass="menu-section-panel"
 		[ngStyle]="{
-			'background-color': getSectionBackgroundColor()
+			'--p-panel-background': getSectionBackgroundColor(),
+			'--p-panel-background-color': getSectionBackgroundColor()
 		}"
 	>
 		<div class="grid">

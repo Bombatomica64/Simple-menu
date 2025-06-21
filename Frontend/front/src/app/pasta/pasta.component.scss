@@ -239,11 +239,10 @@
 
 			&:last-child {
 				margin-bottom: 0;
-			}
-
-			// Override panel styling for compact display
+			}			// Override panel styling for compact display
 			::ng-deep .p-panel {
-				background: rgba(255, 255, 255, 0.95);
+				// Use CSS custom property for dynamic background or fallback to default
+				background: var(--p-panel-background, var(--p-panel-background-color, rgba(255, 255, 255, 0.95)));
 				border: 1px solid rgba(255, 255, 255, 0.3);
 				border-radius: 8px;
 				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);

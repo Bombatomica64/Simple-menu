@@ -8,11 +8,15 @@
 	.p-panel {
 		border: 1px solid rgba(0, 0, 0, 0.1);
 		border-radius: 8px;
+		// Use CSS custom property for dynamic background
+		background: var(--p-panel-background, var(--p-panel-background-color, var(--surface-ground))) !important;
 	}
 
 	.p-panel-header {
 		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 		font-weight: 600;
+		// Inherit background from parent or use fallback
+		background: inherit;
 	}
 
 	.p-panel-content {

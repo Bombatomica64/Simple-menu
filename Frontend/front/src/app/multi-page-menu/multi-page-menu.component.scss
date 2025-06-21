@@ -147,7 +147,6 @@
 
 		// Enhanced spacing for menu section panels
 		::ng-deep .menu-section-panel {
-			background-color: rgba(255, 255, 255, 0.95);
 			border: 1px solid #e0e0e0;
 			border-radius: 12px;
 			-webkit-backdrop-filter: blur(10px);
@@ -167,7 +166,6 @@
 			}
 
 			.p-panel-content {
-				background-color: rgba(255, 255, 255, 0.98);
 				padding: 1.5rem;
 
 				// More spacing for menu items in vertical orientation
@@ -399,7 +397,6 @@
 
 // Menu section panels styling
 ::ng-deep .menu-section-panel {
-	background-color: rgba(255, 255, 255, 0.95);
 	border: 1px solid #e0e0e0;
 	border-radius: 8px;
 	-webkit-backdrop-filter: blur(10px);
@@ -407,7 +404,6 @@
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
 	.p-panel-header {
-		background-color: rgba(248, 249, 250, 0.95);
 		border-bottom: 1px solid #e0e0e0;
 		color: #333333;
 		font-weight: 600;
@@ -417,7 +413,6 @@
 	}
 
 	.p-panel-content {
-		background-color: rgba(255, 255, 255, 0.9);
 		padding: 1rem;
 	}
 }
