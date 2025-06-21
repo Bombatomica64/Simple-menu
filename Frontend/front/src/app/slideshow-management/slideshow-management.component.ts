@@ -25,6 +25,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { SlideshowService } from '../services/slideshow.service';
 import { Slideshow, SlideshowSlide } from '../shared/models/slideshow.model';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../environments/environment.dynamic';
 
 @Component({
@@ -549,6 +550,7 @@ import { environment } from '../../environments/environment.dynamic';
 export class SlideshowManagementComponent implements OnInit, OnDestroy {
 	private slideshowService = inject(SlideshowService);
 	private http = inject(HttpClient);
+	private router = inject(Router);
 	private confirmationService = inject(ConfirmationService);
 	private messageService = inject(MessageService);
 	private platformId = inject(PLATFORM_ID);
@@ -720,6 +722,9 @@ export class SlideshowManagementComponent implements OnInit, OnDestroy {
 				this.sendWebSocketActivation(activatedSlideshow);
 
 				this.slideshowService.refreshData();
+
+				// Navigate to slideshow page
+				this.router.navigate(['/slideshow']);
 			},
 			error: (error) => {
 				console.error('Error activating slideshow:', error);
@@ -771,12 +776,18 @@ export class SlideshowManagementComponent implements OnInit, OnDestroy {
 					this.sendWebSocketDeactivation();
 
 					this.slideshowService.refreshData();
+
+					// Navigate back to home if currently on slideshow page
+					if (this.router.url === '/slideshow') {
+						this.router.navigate(['/home']);
+					}
 				},
 				error: (error) => {
 					console.error('Error deactivating slideshow:', error);
 				},
 			});
 		} else if (this.activeSlideshow()) {
+			// This will trigger navigation through activateSlideshow method
 			this.activateSlideshow(this.activeSlideshow()!);
 		}
 	}

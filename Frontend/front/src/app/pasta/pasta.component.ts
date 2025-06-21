@@ -65,20 +65,18 @@ export class PastaComponent implements OnInit, OnDestroy {
 
 	// Section navigation
 	currentSectionPage = signal(0);
-	readonly MAX_SECTIONS_PER_PAGE = 4; // Max sections that fit in right column    // Global font sizes from menu - these override individual per-type font sizes
+	readonly MAX_SECTIONS_PER_PAGE = 4; // Max sections that fit in right column	// Global font sizes from menu - these override individual per-type font sizes
 	pastaTypeFontSize = computed(() => {
 		const currentMenu = this.menu();
-		let fontSize = currentMenu?.globalPastaTypeFontSize ?? 1.5;
-		const fontSizeStr = fontSize + 'rem';
-		return fontSizeStr;
+		const fontSize = currentMenu?.globalPastaTypeFontSize ?? 1.5;
+		return fontSize + 'rem';
 	});
 
 	pastaSauceFontSize = computed(() => {
 		const currentMenu = this.menu();
-		let fontSize = currentMenu?.globalPastaSauceFontSize ?? 1.5;
-		const fontSizeStr = fontSize + 'rem';
-		return fontSizeStr;
-	});	// Computed properties for template
+		const fontSize = currentMenu?.globalPastaSauceFontSize ?? 1.5;
+		return fontSize + 'rem';
+	});// Computed properties for template
 	menuSections = computed(() => {
 		const currentMenu = this.menu();
 		const sections = currentMenu?.menuSections ?? [];
@@ -268,19 +266,6 @@ export class PastaComponent implements OnInit, OnDestroy {
 		return section.menuItems;
 	}
 
-	// Get pasta type font size style
-	getPastaTypeFontStyle(pastaType: any): any {
-		return {
-			fontSize: `${this.pastaTypeFontSize()}%`,
-		};
-	}
-
-	// Get pasta sauce font size style
-	getPastaSauceFontStyle(sauce: any): any {
-		return {
-			fontSize: `${this.pastaSauceFontSize()}%`,
-		};
-	}
 
 	// Context menu functionality
 	pastaContextMenuItems: PrimeMenuItem[] = [

@@ -61,9 +61,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
 	ngOnDestroy() {
 		// Cleanup will be handled by the WebSocket connection itself
-	}
-
-	private handleWebSocketResponse(message: any) {
+	}	private handleWebSocketResponse(message: any) {
 		switch (message.type) {
 			case 'slideshowActivated':
 			case 'slideshowStatusUpdate':
@@ -74,9 +72,9 @@ export class HomeComponent implements OnInit, OnDestroy {
 						isActive: true
 					});
 
-					// Navigate to slideshow page or trigger slideshow display
-					console.log('Slideshow activated, switching view');
-					// The slideshow component will automatically show based on the service update
+					// Navigate to slideshow page
+					console.log('Slideshow activated, navigating to slideshow');
+					this.router.navigate(['/slideshow']);
 				}
 				break;
 			case 'slideshowDeactivated':
@@ -84,8 +82,14 @@ export class HomeComponent implements OnInit, OnDestroy {
 					slideshow: null,
 					isActive: false
 				});
-				console.log('Slideshow deactivated');
+				console.log('Slideshow deactivated, staying on current page');
+				// Optionally navigate back to home if currently on slideshow page
+				if (this.router.url === '/slideshow') {
+					this.router.navigate(['/home']);
+				}
 				break;
+			default:
+				console.log('Unhandled WebSocket message type:', message.type);
 		}
 	}
 }

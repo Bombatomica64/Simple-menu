@@ -34,6 +34,12 @@ export class MultiPageMenuComponent implements OnDestroy {
   });
 
   constructor() {
+    // Debug effect to track when menu input changes
+    effect(() => {
+      const menu = this.menu();
+      console.log('MultiPageMenuComponent: menu updated', menu);
+    });
+
     // Auto-advance pages when there are multiple pages
     effect(() => {
       const pages = this.menuPages();

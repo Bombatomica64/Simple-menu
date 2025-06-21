@@ -408,6 +408,106 @@ export interface SlideshowStatusUpdateResponse {
 	isActive: boolean;
 }
 
+// Menu update response message types
+export interface UpdateItemPositionsResponse {
+	type: 'updateItemPositions';
+	itemUpdates: { itemId: number; position: number; sectionId?: number | null }[];
+}
+
+export interface UpdateSectionOrderResponse {
+	type: 'updateSectionOrder';
+	sectionUpdates: { id: number; position: number }[];
+}
+
+export interface AddSectionResponse {
+	type: 'addSection';
+	section: any; // You can define a proper Section interface if needed
+}
+
+export interface RemoveSectionResponse {
+	type: 'removeSection';
+	sectionId: number;
+}
+
+export interface AddItemResponse {
+	type: 'addItem';
+	item: any; // You can define a proper MenuItem interface if needed
+}
+
+export interface RemoveItemResponse {
+	type: 'removeItem';
+	itemId: number;
+}
+
+export interface MoveItemToSectionResponse {
+	type: 'moveItemToSection';
+	itemId: number;
+	sectionId: number | null;
+	position?: number;
+}
+
+// Additional menu update response message types
+export interface MenuUpdatedResponse {
+	type: 'menuUpdated';
+	menu?: any;
+}
+
+export interface SectionUpdatedResponse {
+	type: 'sectionUpdated';
+	section?: any;
+}
+
+export interface ItemAddedResponse {
+	type: 'itemAdded';
+	item?: any;
+}
+
+export interface ItemUpdatedResponse {
+	type: 'itemUpdated';
+	item?: any;
+}
+
+export interface ItemDeletedResponse {
+	type: 'itemDeleted';
+	itemId?: number;
+}
+
+export interface SectionColorUpdatedResponse {
+	type: 'sectionColorUpdated';
+	sectionId?: number;
+	backgroundColor?: string;
+	textColor?: string;
+}
+
+export interface LogoUpdatedResponse {
+	type: 'logoUpdated';
+	logo?: any;
+}
+
+export interface MenuItemImageUpdatedResponse {
+	type: 'menuItemImageUpdated';
+	itemId?: number;
+	imageUrl?: string;
+}
+
+export interface ToggleMenuItemShowImageResponse {
+	type: 'toggleMenuItemShowImage';
+	itemId?: number;
+	showImage?: boolean;
+}
+
+export interface AddImageToMenuItemResponse {
+	type: 'addImageToMenuItem';
+	itemId?: number;
+	imageUrl?: string;
+}
+
+export interface RemoveImageFromMenuItemResponse {
+	type: 'removeImageFromMenuItem';
+	itemId?: number;
+	imageUrl?: string;
+}
+
 export type MenuUpdateMessage =
 	| AddItemMessage
 	| RemoveItemMessage
@@ -477,6 +577,24 @@ export type MenuResponseMessage =
 	| SlideshowActivatedResponse
 	| SlideshowDeactivatedResponse
 	| SlideshowStatusUpdateResponse
+	| UpdateItemPositionsResponse
+	| UpdateSectionOrderResponse
+	| AddSectionResponse
+	| RemoveSectionResponse
+	| AddItemResponse
+	| RemoveItemResponse
+	| MoveItemToSectionResponse
+	| MenuUpdatedResponse
+	| SectionUpdatedResponse
+	| ItemAddedResponse
+	| ItemUpdatedResponse
+	| ItemDeletedResponse
+	| SectionColorUpdatedResponse
+	| LogoUpdatedResponse
+	| MenuItemImageUpdatedResponse
+	| ToggleMenuItemShowImageResponse
+	| AddImageToMenuItemResponse
+	| RemoveImageFromMenuItemResponse
 	| ErrorResponse;
 
 // Logo response message types
@@ -547,6 +665,12 @@ export function menuConnection(websocketUrl: string): MenuConnection {
 							'pastaTypeColorsUpdated', 'pastaSauceColorsUpdated', 'sectionColorsUpdated',
 							'availableLogos', 'logoDeleted',
 							'slideshowActivated', 'slideshowDeactivated', 'slideshowStatusUpdate',
+							'updateItemPositions', 'updateSectionOrder', 'addSection', 'removeSection',
+							'addItem', 'removeItem', 'moveItemToSection',
+							'pastaTypeCreated', 'pastaSauceCreated',
+							'menuUpdated', 'sectionUpdated', 'itemAdded', 'itemUpdated', 'itemDeleted',
+							'sectionColorUpdated', 'logoUpdated', 'menuItemImageUpdated',
+							'toggleMenuItemShowImage', 'addImageToMenuItem', 'removeImageFromMenuItem',
 							'error'
 						].includes(data.type)) {
 							// Handle response messages
@@ -555,12 +679,15 @@ export function menuConnection(websocketUrl: string): MenuConnection {
 							// Handle menu updates
 							const menuData = data as Menu;
 							console.log('[WebSocket message] Menu update received:', menuData);
+							console.log('[WebSocket message] Previous menu:', currentMenu);
 							currentMenu = Menu.fromJson(menuData);
+							console.log('[WebSocket message] New menu after parsing:', currentMenu);
 							resourceResult.update(current => ({
 								...current,
 								value: currentMenu,
 								error: undefined
 							}));
+							console.log('[WebSocket message] Resource updated successfully');
 						}
 					} catch (err) {
 						console.error('[WebSocket parse error]', err);

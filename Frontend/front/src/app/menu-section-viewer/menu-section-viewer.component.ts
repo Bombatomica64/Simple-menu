@@ -1,4 +1,4 @@
-import { Component, input, computed } from '@angular/core';
+import { Component, input, computed, effect } from '@angular/core';
 import { MenuSection, MenuItem } from '../Menu/menu';
 import { CardModule } from 'primeng/card';
 import { PanelModule } from 'primeng/panel';
@@ -15,6 +15,20 @@ import { environment } from '../../environments/environment.dynamic';
 export class MenuSectionViewerComponent {
 	section = input.required<MenuSection>();
 	items = input.required<MenuItem[]>();
+
+	constructor() {
+		// Debug effect to track when section input changes
+		effect(() => {
+			const section = this.section();
+			console.log('MenuSectionViewerComponent: section updated', section);
+		});
+
+		// Debug effect to track when items input changes
+		effect(() => {
+			const items = this.items();
+			console.log('MenuSectionViewerComponent: items updated', items.length, 'items');
+		});
+	}
 
 	// Convert relative image URLs to full URLs for display
 	itemsWithFullImageUrls = computed(() => {
@@ -43,7 +57,8 @@ export class MenuSectionViewerComponent {
 			general: '#ffffff', // White
 		};
 
-		const defaultColor = defaultColors[section.sectionType || 'general'] || '#f8f9fa';
+		const defaultColor =
+			defaultColors[section.sectionType || 'general'] || '#f8f9fa';
 		return defaultColor;
 	}
 

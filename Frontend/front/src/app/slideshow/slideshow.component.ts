@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed, PLATFORM_ID, Injector, runInInjectionContext, effect } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { CarouselModule } from 'primeng/carousel';
 import { ButtonModule } from 'primeng/button';
 import { SlideshowService } from '../services/slideshow.service';
@@ -238,6 +239,7 @@ import { environment } from '../../environments/environment.dynamic';
 })
 export class SlideshowComponent implements OnInit, OnDestroy {
   private slideshowService = inject(SlideshowService);
+  private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private injector = inject(Injector);
 
@@ -299,6 +301,7 @@ export class SlideshowComponent implements OnInit, OnDestroy {
     // Check time every minute to auto-exit slideshow
     this.timeCheckInterval = setInterval(() => {
       if (this.isActive() && !this.slideshowService.shouldShowSlideshow()) {
+        console.log('Auto-exiting slideshow due to time limit');
         this.exitSlideshow();
       }
     }, 60000); // Check every minute
@@ -322,7 +325,8 @@ export class SlideshowComponent implements OnInit, OnDestroy {
     this.slideshowService.deactivateSlideshow().subscribe({
       next: () => {
         this.isActive.set(false);
-        console.log('Slideshow deactivated');
+        console.log('Slideshow deactivated, navigating to home');
+        this.router.navigate(['/home']);
       },
       error: (error) => {
         console.error('Error deactivating slideshow:', error);
