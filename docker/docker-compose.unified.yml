@@ -65,7 +65,6 @@ services:
     networks:
       - simple-menu-network
       - monitoring
-    restart: always
     deploy:
       resources:
         limits:
