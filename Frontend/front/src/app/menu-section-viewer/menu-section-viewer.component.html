@@ -1,22 +1,18 @@
-<div class="menu-section-container">
+<div class="menu-section-container" [ngStyle]="{ 'background-color': getSectionBackgroundColor() }">
 	@if (section().header) {
 	<h2 class="section-header">{{ section().header }}</h2>
-	}	<p-panel
+	}
+	<p-panel
 		[header]="section().name"
 		styleClass="menu-section-panel"
 		[ngStyle]="{
-			'background-color': getSectionBackgroundColor(),
-			'color': getSectionTextColor()
-		}">
+			'background-color': getSectionBackgroundColor()
+		}"
+	>
 		<div class="grid">
 			@for (item of itemsWithFullImageUrls(); track item.id) {
 			<div class="col-12 mb-3">
-				<div
-					class="menu-item-row"
-					[ngStyle]="{
-						'background-color': getSectionBackgroundColor(),
-						'color': getSectionTextColor()
-					}">
+				<div class="menu-item-row">
 					@if (item.imageUrl && item.showImage) {
 					<img
 						[src]="item.imageUrl"
@@ -28,9 +24,16 @@
 					/>
 					}
 					<div class="menu-item-content">
-						<h4 [ngStyle]="{ 'color': getSectionTextColor() }">{{ item.name }}</h4>
+						<h4 [ngStyle]="{ color: getSectionTextColor() }">
+							{{ item.name }}
+						</h4>
 						@if (item.description) {
-							<p class="menu-item-description" [ngStyle]="{ 'color': getSectionTextColor() }">{{ item.description }}</p>
+						<p
+							class="menu-item-description"
+							[ngStyle]="{ color: getSectionTextColor() }"
+						>
+							{{ item.description }}
+						</p>
 						}
 					</div>
 					<div class="menu-item-price">
