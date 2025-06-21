@@ -54,23 +54,16 @@ services:
         - BACKEND_HOST=backend
         - BACKEND_PORT=3000
     ports:
-      - "4200:80"
+      - "4200:4200"
     environment:
       - NODE_ENV=production
-      - NGINX_WORKER_PROCESSES=auto
-      - NGINX_WORKER_CONNECTIONS=1024
     depends_on:
       backend:
         condition: service_healthy
     networks:
       - simple-menu-network
       - monitoring
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
+    restart: always
     logging:
       driver: "json-file"
       options:
