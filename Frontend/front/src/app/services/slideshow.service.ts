@@ -43,9 +43,12 @@ export class SlideshowService {
     if (!isPlatformBrowser(this.platformId)) return;
 
     try {
+      console.log('SlideshowService: loading active slideshow...');
       const status = await this.getActiveSlideshow().toPromise();
+      console.log('SlideshowService: active slideshow loaded:', status);
       if (status) {
         this.activeSlideshowSubject.next(status);
+        console.log('SlideshowService: activeSlideshowSubject updated');
       }
     } catch (error) {
       console.error('Error loading active slideshow:', error);
@@ -131,10 +134,12 @@ export class SlideshowService {
   async refreshData() {
     if (!isPlatformBrowser(this.platformId)) return;
 
+    console.log('SlideshowService: refreshData called');
     await Promise.all([
       this.loadActiveSlideshow(),
       this.loadAllSlideshows()
     ]);
+    console.log('SlideshowService: refreshData completed');
   }
 
   // Get current active slideshow status

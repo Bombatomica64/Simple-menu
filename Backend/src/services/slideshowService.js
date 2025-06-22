@@ -195,20 +195,25 @@ async function updateSlideOrder(slideshowId, slideOrders) {
 
 // Check if slideshow should be active based on time
 function shouldSlideshowBeActive(slideshow) {
-  if (!slideshow || !slideshow.autoStart) return false;
+  if (!slideshow || !slideshow.isActive) return false;
+  
+  // If slideshow is not set to auto-start, time constraints don't apply
+  if (!slideshow.autoStart) return true;
   
   const now = new Date();
   const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
   
-  // If no time constraints, slideshow can be active
-  if (!slideshow.startTime && !slideshow.endTime) return slideshow.isActive;
+  // Check start time constraint
+  if (slideshow.startTime && currentTime < slideshow.startTime) {
+    return false;
+  }
   
-  // Check if current time is before end time (e.g., before 12:30)
+  // Check end time constraint  
   if (slideshow.endTime && currentTime >= slideshow.endTime) {
     return false;
   }
   
-  return slideshow.isActive;
+  return true;
 }
 
 module.exports = {

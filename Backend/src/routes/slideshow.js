@@ -101,7 +101,9 @@ router.post('/deactivate', async (req, res) => {
 router.post('/:id/slides', async (req, res) => {
   try {
     const slideshowId = parseInt(req.params.id);
+    console.log(`Adding slide to slideshow ${slideshowId}:`, req.body);
     const slide = await slideshowService.addSlideToSlideshow(slideshowId, req.body);
+    console.log(`Slide added successfully:`, slide);
     res.status(201).json(slide);
   } catch (error) {
     console.error('Error adding slide:', error);

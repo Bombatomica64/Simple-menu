@@ -5,18 +5,20 @@
 	[class.vertical-orientation]="isVerticalOrientation()"
 	[class.horizontal-orientation]="isHorizontalOrientation()"
 	[style.background]="getBackgroundStyle()"
->	<!-- Big Price Display at Top Left -->
+>
+	<!-- Big Price Display at Top Left -->
 	@if (menu()?.pastaTypes?.length || menu()?.pastaSauces?.length) {
-			<div class="big-price-display">
-					<div class="price-value">+2€</div>
-					<div class="price-label">PORZIONI ABBONDANTI/PASTA FRESCA</div>
-			</div>
+	<div class="big-price-display">
+		<div class="price-value">+2€</div>
+		<div class="price-label">PORZIONI ABBONDANTI/PASTA FRESCA</div>
+	</div>
 	}
 	<!-- Current page content -->
 	@if (currentPage(); as page) {
 	<div class="menu-page-content">
 		<!-- Main layout: pasta on left, menu sections on right -->
-		@if (page.pastaTypes.length > 0 || page.pastaSauces.length > 0 || page.sections.length > 0) {
+		@if (page.pastaTypes.length > 0 || page.pastaSauces.length > 0 ||
+		page.sections.length > 0) {
 		<div class="main-content-layout">
 			<!-- Left side: Pasta Section -->
 			@if (page.pastaTypes.length > 0 || page.pastaSauces.length > 0) {
@@ -80,5 +82,4 @@
 		</div>
 	</div>
 	}
-
 </div>

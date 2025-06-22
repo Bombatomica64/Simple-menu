@@ -709,8 +709,10 @@ export class SlideshowManagementComponent implements OnInit, OnDestroy {
 	}
 
 	activateSlideshow(slideshow: Slideshow) {
+		console.log('Activating slideshow:', slideshow);
 		this.slideshowService.activateSlideshow(slideshow.id).subscribe({
 			next: (activatedSlideshow) => {
+				console.log('Slideshow activation response:', activatedSlideshow);
 				this.messageService.add({
 					severity: 'success',
 					summary: 'Successo',
@@ -720,10 +722,11 @@ export class SlideshowManagementComponent implements OnInit, OnDestroy {
 				// Send WebSocket message for real-time activation
 				this.sendWebSocketActivation(activatedSlideshow);
 
+				console.log('Refreshing slideshow data after activation...');
 				this.slideshowService.refreshData();
 
-				// Navigate to slideshow page
-				this.router.navigate(['/slideshow']);
+				// Don't navigate - the slideshow will overlay on the current page
+				console.log('Slideshow activated and will overlay on current page');
 			},
 			error: (error) => {
 				console.error('Error activating slideshow:', error);
