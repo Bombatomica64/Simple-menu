@@ -24,8 +24,8 @@ RUN npx prisma migrate deploy || echo "Migration will run at startup"
 # Create assets directory if it doesn't exist
 RUN mkdir -p assets
 
-# Make startup script executable
-RUN chmod +x start.sh
+# Make startup script executable and fix line endings
+RUN sed -i 's/\r$//' start.sh && chmod +x start.sh
 
 # Expose port
 EXPOSE 3000
