@@ -1,84 +1,136 @@
-# 🚀 Quick Start Guide - Unified Startup
+# 🚀 Quick Start Guide
 
-## Overview
-The unified startup scripts provide a single entry point for all Simple Menu deployment options with an interactive menu and command-line support.
+> **Note**: This is the legacy quick start guide. For current setup instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-## Usage
+## Current Recommended Setup
 
-### Windows (PowerShell)
+### Docker Deployment (Recommended)
+```bash
+# Clone repository
+git clone <repository-url> simple-menu
+cd simple-menu
+
+# Basic deployment
+docker compose -f docker/docker-compose.unified.yml up -d backend frontend
+
+# With monitoring (recommended for production)
+docker compose -f docker/docker-compose.unified.yml up -d backend frontend prometheus grafana node-exporter
+
+# Full monitoring stack (high-resource environments)
+docker compose -f docker/docker-compose.unified.yml up -d
+```
+
+### Local Development
+```bash
+# Backend (from Backend/ directory)
+npm install && npm start
+
+# Frontend (from Frontend/front/ directory) 
+npm install && npm start
+```
+
+**Access:**
+- **Application**: http://localhost:3000
+- **Admin Panel**: http://localhost:3000/submit
+- **Grafana** (if enabled): http://localhost:3001 (admin/admin123)
+
+---
+
+## Legacy Options (Deprecated)
+
+> **Warning**: The following startup scripts are deprecated. Use the Docker Compose commands above instead.
+
+### Windows (PowerShell) - Legacy
 ```powershell
-# Interactive menu (recommended)
+# Interactive menu (deprecated)
 .\start.ps1
 
-# Direct commands
+# Direct commands (deprecated)  
 .\start.ps1 -Mode basic          # Basic setup only
 .\start.ps1 -Mode prometheus     # With Prometheus + Grafana
 .\start.ps1 -Mode elk           # With ELK Stack
 ```
 
-### Linux/macOS (Bash)
+### Linux/macOS (Bash) - Legacy
 ```bash
-# Interactive menu (recommended)
+# Interactive menu (deprecated)
 ./start.sh
 
-# Direct commands
+# Direct commands (deprecated)
 ./start.sh basic          # Basic setup only
 ./start.sh prometheus     # With Prometheus + Grafana
 ./start.sh elk           # With ELK Stack
 ```
 
-## Options Available
+## Deployment Modes
 
-### 1. Basic Setup
+### 1. Basic Deployment
 - **What:** Just the Simple Menu application
 - **Resources:** ~200MB RAM
+- **Command:** `docker compose -f docker/docker-compose.unified.yml up -d backend frontend`
 - **Access:** http://localhost:3000
-- **Best for:** Simple deployments, testing
+- **Best for:** Minimal deployments, testing
 
-### 2. Prometheus + Grafana (Recommended for Pi)
-- **What:** System metrics, performance monitoring, beautiful dashboards
-- **Resources:** ~512MB RAM
+### 2. Basic Monitoring (Recommended for Production)
+- **What:** Application + Prometheus + Grafana monitoring
+- **Resources:** ~512MB RAM additional
+- **Command:** `docker compose -f docker/docker-compose.unified.yml up -d backend frontend prometheus grafana node-exporter`
 - **Access:** 
   - Simple Menu: http://localhost:3000
   - Grafana: http://localhost:3001 (admin/admin123)
   - Prometheus: http://localhost:9090
-- **Best for:** Production monitoring, performance tracking
+- **Best for:** Production monitoring, Raspberry Pi
 
-### 3. ELK Stack
-- **What:** Log analysis, debugging, full-text search
-- **Resources:** ~2GB RAM
+### 3. Full Monitoring Stack
+- **What:** Application + Prometheus + Grafana + ELK Stack
+- **Resources:** ~2GB RAM additional
+- **Command:** `docker compose -f docker/docker-compose.unified.yml up -d`
 - **Access:**
   - Simple Menu: http://localhost:3000
+  - Grafana: http://localhost:3001 (admin/admin123)
+  - Prometheus: http://localhost:9090
   - Kibana: http://localhost:5601
   - Elasticsearch: http://localhost:9200
-- **Best for:** Development, debugging, log analysis
+- **Best for:** Development, debugging, high-resource environments
 
-### 4. Stop All Services
-- Stops all running containers
-- Cleans up unused resources
-- Safe shutdown of all services
+## Management Commands
 
-### 5. View Service Status
-- Shows running containers
-- Displays resource usage
-- System health check
+```bash
+# Check status
+docker compose -f docker/docker-compose.unified.yml ps
 
-## Features
+# View logs
+docker compose -f docker/docker-compose.unified.yml logs -f
 
-### 🎯 **Smart System Detection**
-- Automatic memory and CPU detection
-- OS-specific optimizations
-- Resource requirement warnings
+# Stop services
+docker compose -f docker/docker-compose.unified.yml down
 
-### 🛡️ **Error Handling**
-- Docker availability checks
-- Service startup validation
-- Graceful error recovery
+# Update and restart
+git pull && docker compose -f docker/docker-compose.unified.yml up --build -d
+```
 
-### 📊 **Real-time Feedback**
-- Color-coded status messages
-- Progress indicators
-- Clear access point information
+---
+
+## Related Documentation
+
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete setup and deployment guide
+- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Advanced production deployment
+- **[MONITORING_SIMPLE.md](MONITORING_SIMPLE.md)** - Simple monitoring setup
+- **[LAN-SETUP.md](LAN-SETUP.md)** - Network configuration for multiple devices
+- **[API_REFERENCE.md](API_REFERENCE.md)** - API and WebSocket documentation
+- **[COMPONENTS.md](COMPONENTS.md)** - Technical component details
+
+---
+
+## Migration Notice
+
+**This legacy quick start guide is preserved for reference. New deployments should use:**
+
+1. **[DEPLOYMENT.md](DEPLOYMENT.md)** for current setup instructions
+2. **Docker Compose** commands shown above for container deployment
+3. **npm start** commands for local development
+
+The legacy startup scripts (`start.ps1`, `start.sh`, etc.) may be deprecated in future versions.
 
 ### 🔄 **Cross-Platform**
 - Windows PowerShell support
