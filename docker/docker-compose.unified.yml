@@ -269,6 +269,12 @@ services:
       resources:
         limits:
           memory: 128M
+    entrypoint: >
+      bash -c "
+        cp /usr/share/filebeat/filebeat.yml /tmp/filebeat.yml &&
+        chmod 600 /tmp/filebeat.yml &&
+        filebeat -e -c /tmp/filebeat.yml
+      "
 
 volumes:
   backend_data:

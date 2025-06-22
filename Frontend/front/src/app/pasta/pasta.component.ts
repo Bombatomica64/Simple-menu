@@ -48,10 +48,36 @@ export class PastaComponent implements OnInit, OnDestroy {
 	private http = inject(HttpClient);
 
 	// Background configuration
-	backgroundConfig = signal<any>(null);
-	backgroundStyle = computed(() => {
+	backgroundConfig = signal<any>(null);	backgroundStyle = computed(() => {
 		const config = this.backgroundConfig();
 		if (!config) return {};
+
+		// Handle new BackgroundConfig format (from background-palette component)
+		if (config.type && config.value) {
+			switch (config.type) {
+				case 'color':
+					return {
+						backgroundColor: config.value,
+						backgroundImage: 'none'
+					};
+				case 'gradient':
+					return {
+						background: config.value,
+						backgroundImage: 'none'
+					};
+				case 'image':
+					return {
+						backgroundImage: config.value,
+						backgroundSize: 'cover',
+						backgroundPosition: 'center',
+						backgroundRepeat: 'no-repeat'
+					};
+				default:
+					return {};
+			}
+		}
+
+		// Handle legacy format for backward compatibility
 		return {
 			backgroundImage: config.backgroundImage
 				? `url(${config.backgroundImage})`
@@ -193,7 +219,6 @@ export class PastaComponent implements OnInit, OnDestroy {
 		// Remove pasta-page class when component is destroyed
 		document.body.classList.remove('pasta-page');
 	}
-
 	private loadBackgroundConfig() {
 		this.http
 			.get<any>(`${environment.apiUrl}/api/backgrounds/pasta`)
@@ -206,16 +231,13 @@ export class PastaComponent implements OnInit, OnDestroy {
 					console.log('⚠️ No background config found, using default cream background');
 					// Set default cream background config
 					const defaultConfig = {
-						backgroundColor: '#FDF5E6', // Cream color
-						backgroundImage: null,
-						backgroundSize: 'cover',
-						backgroundPosition: 'center',
-						backgroundRepeat: 'no-repeat',
+						type: 'color',
+						value: '#FDF5E6' // Cream color
 					};
 					this.backgroundConfig.set(defaultConfig);
 				},
 			});
-	} // Section navigation methods
+	}// Section navigation methods
 	get visibleSections() {
 		const currentMenu = this.menu();
 		if (!currentMenu?.menuSections) return [];
