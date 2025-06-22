@@ -1,39 +1,44 @@
-# Frontend Dockerfile - Development with ng serve
-FROM node:lts-alpine
-
-# Install bash and wget for scripts and healthcheck
-RUN apk add --no-cache bash wget
+# Frontend Dockerfile - Angular SSR with Node.js (like the Medium article)
+FROM node:lts-alpine AS build
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files first for better caching
 COPY package*.json ./
 
 # Install dependencies
 RUN npm ci --legacy-peer-deps
 
-# Install Angular CLI globally
-RUN npm install -g @angular/cli
-
 # Copy source code
 COPY . .
 
-# Build arguments for dynamic backend configuration (not used, keeping dynamic env)
-ARG BACKEND_HOST=localhost
-ARG BACKEND_PORT=3000
+# Build the application for production with SSR
+RUN npm run build
+RUN find dist -type f | sort
 
-# Note: We keep using environment.dynamic for LAN network compatibility
-# The dynamic environment automatically detects the host from window.location
+# Production stage with Node.js (not nginx - we're using SSR)
+FROM node:lts-alpine AS final
 
-# Make start script executable
-RUN chmod +x start.sh
+# Create user for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Expose port 4200 (Angular dev server default)
-EXPOSE 4200
+# Install wget for healthcheck
+RUN apk add --no-cache wget
+
+# Switch to app user
+USER appuser
+WORKDIR /usr/app
+
+# Copy built application from build stage
+COPY --from=build /app/dist/front/ ./
+RUN ls -la ./
+
+# Expose port 4000 (Angular SSR default)
+EXPOSE 4000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:4200/ || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4000/ || exit 1
 
-# Use the start script
-CMD ["bash", "./start.sh"]
+# Start the SSR server
+CMD ["node", "server/server.mjs"]
