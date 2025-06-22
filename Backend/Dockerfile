@@ -36,4 +36,4 @@ EXPOSE 3000
 COPY healthcheck.js ./
 
 # Use startup script
-CMD ["./start.sh"]
+CMD ["bash", "start.sh"]

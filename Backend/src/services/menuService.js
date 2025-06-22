@@ -29,27 +29,66 @@ async function loadInitialMenu() {
       
       // Ensure predefined sections exist
       await ensurePredefinedSections(latestMenuFromDB.id);
-    } else {// Seed default data if database is empty
+      
+      // Reload the menu to include any newly created predefined sections
+      const reloadedMenu = await prisma.menu.findFirst({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          menuItems: {
+            orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+          },
+          menuSections: {
+            orderBy: { position: 'asc' },
+            include: {
+              menuItems: {
+                orderBy: { position: 'asc' }
+              }
+            }
+          },
+          pastaTypes: { include: { pastaType: true } },
+          pastaSauces: { include: { pastaSauce: true } },
+        }
+      });
+      
+      if (reloadedMenu) {
+        currentInMemoryMenu = reloadedMenu;
+        console.log("Menu reloaded with predefined sections.");
+      }
+    } else {      // Seed default data if database is empty
       const { seedDefaultData } = require("./seedService");      await seedDefaultData();
+      
+      // Create initial menu with predefined sections
+      const predefinedSections = [
+        { id: `temp-${Date.now()}-1`, name: 'Poke', sectionType: 'poke', position: 0, menuItems: [] },
+        { id: `temp-${Date.now()}-2`, name: 'Insalatone', sectionType: 'insalatone', position: 1, menuItems: [] }
+      ];
+      
       currentInMemoryMenu = {
         createdAt: new Date().toISOString(),
         orientation: 'vertical',
         availableImages: null,
         background: null, // No background configuration
         menuItems: [],
-        menuSections: [],
+        menuSections: predefinedSections,
         pastaTypes: [],
         pastaSauces: [],
       };
       console.log("No menu in DB, seeded default data and initialized empty in-memory menu.");
     }  } catch (error) {    console.error("Error loading initial menu:", error);
+    
+    // Create initial menu with predefined sections even in error case
+    const predefinedSections = [
+      { id: `temp-${Date.now()}-1`, name: 'Poke', sectionType: 'poke', position: 0, menuItems: [] },
+      { id: `temp-${Date.now()}-2`, name: 'Insalatone', sectionType: 'insalatone', position: 1, menuItems: [] }
+    ];
+    
     currentInMemoryMenu = {
       createdAt: new Date().toISOString(),
       orientation: 'vertical',
       availableImages: null,
       background: null, // No background configuration
       menuItems: [],
-      menuSections: [],
+      menuSections: predefinedSections,
       pastaTypes: [],
       pastaSauces: [],
     };
@@ -381,8 +420,10 @@ async function saveCurrentMenu(name) {
           pastaTypes: { include: { pastaType: true } },
           pastaSauces: { include: { pastaSauce: true } },
         }
-      });
-    });
+      });    });
+
+    // Ensure predefined sections exist for the newly saved menu
+    await ensurePredefinedSections(result.id);
 
     // Create the SavedMenu entry that references this menu
     const savedMenuEntry = await prisma.savedMenu.create({
@@ -486,9 +527,12 @@ async function loadSavedMenu(savedMenuId) {
         availableImages: savedMenu.menu.availableImages,
         menuItems: savedMenu.menu.menuItems,
         menuSections: savedMenu.menu.menuSections || [],
-        pastaTypes: savedMenu.menu.pastaTypes,
-        pastaSauces: savedMenu.menu.pastaSauces,
+        pastaTypes: savedMenu.menu.pastaTypes,        pastaSauces: savedMenu.menu.pastaSauces,
       };
+
+      // Ensure predefined sections exist for the loaded menu
+      await ensurePredefinedSections(savedMenu.menu.id);
+
       return currentInMemoryMenu;
     }
     return null;

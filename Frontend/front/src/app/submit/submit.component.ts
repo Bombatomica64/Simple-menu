@@ -36,8 +36,6 @@ import {
 	UpdateItemPositionsMessage,
 	AddSectionMessage,
 	RemoveSectionMessage,
-	UpdateMenuOrientationMessage,
-	UpdateMenuAvailableImagesMessage,
 	UpdateGlobalPastaDisplaySettingsMessage,
 	GlobalPastaDisplaySettings,
 	GetAvailableLogosMessage,
@@ -289,26 +287,6 @@ export class SubmitComponent implements OnInit {
 		);
 		return option?.label || 'Medie (48px)';
 	});
-	// --- Menu Configuration Management ---
-	showMenuConfigDialog = signal(false);
-	selectedOrientation = signal<'vertical' | 'horizontal'>('vertical');
-	availableImagesText = signal<string>('');
-
-	// Computed properties for current menu configuration
-	currentMenuOrientation = computed(() => {
-		const menu = this.menuWsConnection?.resource?.value();
-		return menu?.orientation || 'vertical';
-	});
-
-	currentMenuAvailableImages = computed(() => {
-		const menu = this.menuWsConnection?.resource?.value();
-		return menu?.availableImages;
-	});
-
-	orientationOptions = [
-		{ label: 'Verticale', value: 'vertical' },
-		{ label: 'Orizzontale', value: 'horizontal' },
-	];
 	// Helper method to check if menu item has available images
 	hasAvailableImages(item: MenuItem): boolean {
 		const menu = this.menuWsConnection?.resource?.value();
@@ -1099,34 +1077,6 @@ export class SubmitComponent implements OnInit {
 		// For now, return default font size. You can add pasta type display settings later
 		return { 'font-size': '1rem' };
 	}
-
-	// Menu Configuration Dialog Methods
-	openMenuConfigDialog() {
-		this.showMenuConfigDialog.set(true);
-	}
-
-	closeMenuConfigDialog() {
-		this.showMenuConfigDialog.set(false);
-	}
-
-	saveMenuConfiguration() {
-		// Save orientation
-		const orientationMessage: UpdateMenuOrientationMessage = {
-			type: 'updateMenuOrientation',
-			orientation: this.selectedOrientation(),
-		};
-		this.menuWsConnection?.sendUpdate(orientationMessage);
-
-		// Save available images
-		const imagesMessage: UpdateMenuAvailableImagesMessage = {
-			type: 'updateMenuAvailableImages',
-			availableImages: this.availableImagesText(),
-		};
-		this.menuWsConnection?.sendUpdate(imagesMessage);
-
-		this.closeMenuConfigDialog();
-	}
-
 	// Handle pasta display settings update from pasta-display-management component
 	onPastaDisplaySettingsUpdate(settings: GlobalPastaDisplaySettings) {
 		console.log('📡 Received pasta display settings update:', settings);
@@ -1308,7 +1258,7 @@ export class SubmitComponent implements OnInit {
 			type: 'getAvailableLogos',
 		};
 		this.menuWsConnection?.sendUpdate(message);
-	}	// Event handlers for child components
+	} // Event handlers for child components
 	handleSectionColorUpdate(event: {
 		sectionId: number;
 		backgroundColor: string;

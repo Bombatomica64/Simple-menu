@@ -362,62 +362,6 @@
 			</div>
 		</div>
 
-		<!-- Menu Configuration Section -->
-		<div class="card p-mb-4">
-			<h3>Configurazione Menu</h3>
-			<p class="text-sm text-color-secondary p-mb-3">
-				Configura l'orientamento del menu e le immagini disponibili per tutti
-				gli elementi.
-			</p>
-
-			<button
-				pButton
-				type="button"
-				label="Configura Menu"
-				icon="pi pi-cog"
-				(click)="openMenuConfigDialog()"
-				class="p-mb-3 config-menu-button"
-				title="Apri configurazione menu"
-			></button>
-
-			<!-- Current Menu Configuration -->
-			<div class="menu-config-display">
-				<h4>Configurazione Attuale</h4>
-				<div class="grid">
-					<div class="col-12 md:col-6">
-						<div class="p-card p-3">
-							<h5 class="m-0 p-mb-2">Orientamento</h5>
-							<p class="text-sm m-0">
-								<i
-									class="pi pi-{{
-										currentMenuOrientation() === 'vertical'
-											? 'arrows-v'
-											: 'arrows-h'
-									}} p-mr-2"
-								></i>
-								{{
-									currentMenuOrientation() === "vertical"
-										? "Verticale"
-										: "Orizzontale"
-								}}
-							</p>
-						</div>
-					</div>
-					<div class="col-12 md:col-6">
-						<div class="p-card p-3">
-							<h5 class="m-0 p-mb-2">Immagini Disponibili</h5>
-							<p class="text-sm m-0">
-								@if (currentMenuAvailableImages()) {
-								<i class="pi pi-check-circle text-green-500 p-mr-2"></i>
-								Configurate } @else {
-								<i class="pi pi-times-circle text-red-500 p-mr-2"></i>
-								Non configurate }
-							</p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
 		<!-- Logo Management Section -->
 		<div class="card p-mb-4">
 			<h3>Gestione Logo</h3>
@@ -852,51 +796,6 @@
 				icon="pi pi-times"
 				(click)="showImageManagerDialog.set(false)"
 				title="Chiudi gestione immagini"
-			></button>
-		</ng-template>
-	</p-dialog>
-	<!-- Menu Configuration Dialog -->
-	<p-dialog
-		[header]="'Configurazione Menu'"
-		[(visible)]="showMenuConfigDialog"
-		[modal]="true"
-		[closable]="true"
-		[resizable]="false"
-		[draggable]="false"
-		styleClass="menu-config-dialog"
-		[style]="{ width: '60vw', 'min-height': '50vh' }"
-	>
-		<div class="menu-config-content">
-			<!-- Current Configuration Display -->
-			<div class="current-config-section">
-				<h4>Configurazione Attuale</h4>
-				<div class="config-item">
-					<span class="config-label">Orientamento:</span>
-					<span class="config-value">{{
-						currentMenuOrientation() === "vertical"
-							? "Verticale"
-							: "Orizzontale"
-					}}</span>
-				</div>
-			</div>
-		</div>
-		<ng-template pTemplate="footer">
-			<button
-				pButton
-				type="button"
-				label="Annulla"
-				icon="pi pi-times"
-				(click)="closeMenuConfigDialog()"
-				class="p-button-text"
-				title="Annulla modifiche"
-			></button>
-			<button
-				pButton
-				type="button"
-				label="Salva"
-				icon="pi pi-check"
-				(click)="saveMenuConfiguration()"
-				title="Salva configurazione menu"
 			></button>
 		</ng-template>
 	</p-dialog>
