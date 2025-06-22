@@ -4,11 +4,12 @@ import { CardModule } from 'primeng/card';
 import { PanelModule } from 'primeng/panel';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../environments/environment.dynamic';
+import { AppImageComponent } from '../shared/components/app-image/app-image.component';
 
 @Component({
 	selector: 'app-menu-section-viewer',
 	standalone: true,
-	imports: [CardModule, PanelModule, CommonModule],
+	imports: [CardModule, PanelModule, CommonModule, AppImageComponent],
 	templateUrl: './menu-section-viewer.component.html',
 	styleUrls: ['./menu-section-viewer.component.scss'],
 })

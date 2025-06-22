@@ -5,15 +5,16 @@ import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { MenuItem } from '../Menu/menu';
 import { environment } from '../../environments/environment.dynamic';
+import { AppImageComponent } from '../shared/components/app-image/app-image.component';
 
 @Component({
   selector: 'app-menu-item-card',
-  standalone: true,
-  imports: [
+  standalone: true,  imports: [
     CommonModule,
     FormsModule,
     ButtonModule,
-    ToggleSwitchModule
+    ToggleSwitchModule,
+    AppImageComponent
   ],
   templateUrl: './menu-item-card.component.html',
   styleUrls: ['./menu-item-card.component.scss']

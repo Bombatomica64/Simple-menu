@@ -11,16 +11,13 @@
 	>
 		<div class="grid">
 			@for (item of itemsWithFullImageUrls(); track item.id) {
-			<div class="col-12 mb-3">
-				<div class="menu-item-row">
+			<div class="col-12 mb-3">				<div class="menu-item-row">
 					@if (item.imageUrl && item.showImage) {
-					<img
+					<app-image
 						[src]="item.imageUrl"
 						[alt]="'Immagine di ' + item.name"
 						[title]="item.name"
-						title="Item name"
-						class="menu-item-image"
-						role="img"
+						cssClass="menu-item-image"
 					/>
 					}
 					<div class="menu-item-content">

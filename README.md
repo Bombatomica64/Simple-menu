@@ -1,10 +1,11 @@
 # 🍝 Simple Menu - Digital Restaurant Menu Management System
 
-A modern, real-time digital menu management system built with Angular and Node.js, featuring dynamic content updates, section-based organization, and comprehensive pasta menu management.
+A modern, real-time digital menu management system built with Angular and Node.js, featuring dynamic content updates, comprehensive pasta management, slideshow capabilities, and live background customization.
 
 ## 📋 Table of Contents
 
 - [Features](#-features)
+- [New in Latest Version](#-new-in-latest-version)
 - [Tech Stack](#-tech-stack)
 - [Architecture](#-architecture)
 - [Quick Start](#-quick-start)
@@ -26,106 +27,139 @@ A modern, real-time digital menu management system built with Angular and Node.j
 - **Connection Management**: Automatic reconnection and robust error handling
 - **Display Settings Sync**: Real-time synchronization of pasta display preferences
 - **CRUD Operations**: Live create, read, update, delete operations via WebSocket
-- **Background Configuration**: Real-time background settings management
+- **Background Configuration**: Real-time background settings management with live preview
 - **Multi-client Support**: Synchronized updates across multiple browser sessions
 
-### 📱 Multi-Page Menu Display
-- **Automatic Page Transitions**: Configurable auto-rotation between menu pages
-- **Responsive Grid Layout**: 2-column responsive design for optimal viewing
-- **Section-based Organization**: Organized menu sections with drag-and-drop reordering
-- **Visual Indicators**: Page indicators and transition status
+### 🎬 Interactive Slideshow System
+- **Full-Screen Display**: Immersive slideshow experience with full viewport coverage
+- **Image Management**: Upload, organize, and manage slideshow images with drag-and-drop
+- **Auto-Play Controls**: Configurable slideshow intervals with view-only mode
+- **Real-time Activation**: Start/stop slideshows instantly via WebSocket
+- **Time-based Scheduling**: Auto-start and auto-end based on configurable time windows
+- **Seamless Navigation**: Automatic return to home page when slideshow ends
+- **Multi-Image Upload**: Bulk image upload with instant preview and organization
 
-### 🍝 Comprehensive Pasta Management
-- **Pasta Types**: Full CRUD operations for pasta varieties with image support
+### 🍝 Advanced Pasta Management
+- **Pasta Types**: Full CRUD operations for pasta varieties with rich image support
 - **Pasta Sauces**: Complete sauce management with visual presentation
-- **Combo Selection**: Interactive pasta and sauce pairing interface
+- **Interactive Display**: Side-by-side pasta and sauce selection interface
 - **Image Galleries**: Multiple image support per item with selection interface
-- **Display Settings**: Customizable display options for pasta types and sauces
+- **Display Customization**: Font sizes, image visibility, and description toggles
+- **Color Themes**: Custom background and text colors for pasta sections
 - **Real-time Updates**: WebSocket-based live updates for all pasta operations
 
-### 📑 Menu Item Management
+### 🎨 Dynamic Background System
+- **Live Background Changes**: Real-time background updates with instant preview
+- **Multiple Background Types**: Support for solid colors, gradients, and custom images
+- **Simplified Configuration**: Easy background management with type and value system
+- **WebSocket Integration**: Background changes broadcast to all connected clients
+- **Visual Preview**: Instant background preview in configuration interface
+
+### 📱 Enhanced Multi-Page Menu Display
+- **Responsive Layout**: Optimized 3-column layout (pasta + menu sections)
+- **Section Organization**: Drag-and-drop section management with visual indicators
+- **Menu Integration**: Seamless integration between pasta display and traditional menu sections
+- **Page Transitions**: Smooth transitions between different menu views
+- **Visual Consistency**: Unified theming across all menu components
+
+### 📑 Advanced Menu Item Management
 - **Section-based Organization**: Items automatically organized by customizable sections
 - **Drag & Drop**: Intuitive reordering within and between sections
-- **Image Management**: Upload, manage, and toggle image visibility
+- **Enhanced Image Management**: Upload, manage, and toggle image visibility with consistent image component
 - **Price Management**: Easy pricing updates with validation
 - **Smart Validation**: Automatic section assignment and validation rules
 
-### 💾 Menu Persistence
+### �️ Unified Image Handling
+- **Reusable Image Component**: Consistent image display across all components
+- **Automatic URL Resolution**: Smart image URL construction for server-hosted images
+- **Error Handling**: Graceful fallback for missing images
+- **Loading States**: Smooth loading animations and error states
+- **Format Support**: Support for common image formats (JPG, PNG, WebP, GIF)
+
+### �💾 Enhanced Menu Persistence
 - **Save & Load**: Complete menu state persistence with named saves
 - **Menu History**: Access to previously saved menu configurations
 - **Export/Import**: Full menu data backup and restoration
-- **Database Integration**: Robust PostgreSQL integration with Prisma ORM
+- **Database Integration**: Robust SQLite integration with Prisma ORM
+- **Data Consistency**: Automatic data validation and integrity checks
 
-### 🖼️ Advanced Image Handling
-- **File Upload**: Direct image upload with preview
-- **Multiple Images**: Support for multiple images per item
-- **Image Gallery**: Built-in image management interface
-- **Format Support**: Support for common image formats (JPG, PNG, WebP)
-- **Size Optimization**: Automatic image handling and optimization
-
-### 🎨 Modern UI/UX
+### 🎨 Modern UI/UX Improvements
+- **Component Separation**: Clean separation of HTML, CSS, and TypeScript files
+- **Angular 20 Features**: Latest Angular features including HttpResource and signals
+- **SSR Compatibility**: Server-side rendering support for better performance
 - **PrimeNG Components**: Professional UI components with consistent theming
-- **Dark/Light Mode**: Automatic theme switching support
 - **Responsive Design**: Mobile-first design with tablet and desktop optimization
-- **Accessibility**: ARIA labels and keyboard navigation support
-- **Loading States**: Comprehensive loading and error state management
+- **Accessibility**: Enhanced ARIA labels and keyboard navigation support
 
-### 📊 Production Monitoring & Observability
-- **Unified Monitoring Stack**: Combined metrics and logging in single deployment
-- **Real-time Metrics**: Application, system, and container performance monitoring
-- **Centralized Logging**: Structured log collection, processing, and analysis
-- **Visual Dashboards**: Pre-configured Grafana dashboards with business metrics
-- **Log Search & Analysis**: Kibana-powered log exploration and filtering
-- **Health Monitoring**: Automated health checks and service status tracking
-- **Resource Monitoring**: CPU, memory, disk, and network utilization tracking
-- **Container Insights**: Docker container lifecycle and performance metrics
-- **Cross-Stack Correlation**: Link metrics to logs for enhanced debugging
-- **Performance Alerting**: Configurable alerts for critical system events
+## 🆕 New in Latest Version
 
-### 🚀 Easy Deployment Options
-- **One-Click Setup**: Interactive PowerShell script with multiple deployment modes
-- **Raspberry Pi Optimized**: Resource-tuned configurations for edge deployment
-- **LAN Auto-Configuration**: Automatic network setup for multi-device access
-- **Health Validation**: Automated service health checking and validation
-- **Resource Management**: Intelligent resource allocation and monitoring
+### 🎬 Slideshow Management
+- **Complete Slideshow System**: Full slideshow creation, management, and display
+- **Image Upload & Organization**: Bulk image upload with drag-and-drop organization
+- **Auto-Play Configuration**: Configurable intervals with minimum 15-second view-only mode
+- **Time-based Controls**: Start and end time configuration for automated slideshow scheduling
+- **Real-time Activation**: Instant slideshow start/stop via WebSocket communication
+- **Navigation Integration**: Seamless navigation back to home when slideshow ends
+
+### 🎨 Background Configuration Overhaul
+- **Simplified Protocol**: Streamlined background change system (removed page concept)
+- **Live Preview**: Real-time background preview during configuration
+- **Type-based System**: Clean separation of colors, gradients, and images
+- **WebSocket Broadcasting**: Background changes instantly visible on all connected devices
+- **Enhanced UI**: Improved background selection interface with visual previews
+
+### 🍝 Pasta Display Improvements
+- **3-Column Layout**: Optimized layout with pasta types, sauces, and menu sections
+- **Background Isolation**: Pasta component no longer handles backgrounds (delegated to parent)
+- **Section Integration**: Clean separation between pasta display and menu sections
+- **Enhanced Colors**: Improved color management for pasta types and sauces
+
+### 🖼️ Image System Overhaul
+- **Unified Image Component**: Single reusable component for all image displays
+- **Automatic URL Handling**: Smart construction of full image URLs from relative paths
+- **Consistent Error Handling**: Unified error states and loading animations across all components
+- **Performance Optimization**: Efficient image loading with proper caching
+
+### 🏗️ Architecture Improvements
+- **Component Refactoring**: Separated large components into clean HTML/CSS/TS files
+- **HttpResource Integration**: Modern Angular resource management for better performance
+- **SSR Compatibility**: Full server-side rendering support for production deployments
+- **Signal-based State**: Modern Angular signals for reactive state management
+- **WebSocket Optimization**: Improved real-time communication with better error handling
+
+### 🐳 Deployment Simplification
+- **Single Docker Compose**: Simplified deployment with unified docker-compose.yml
+- **Streamlined Setup**: Reduced complexity while maintaining all functionality
+- **Health Monitoring**: Comprehensive health checks for all services
+- **Resource Optimization**: Better resource allocation and container management
 
 ## 🛠 Tech Stack
 
 ### Frontend
-- **Angular 20**: Latest Angular framework with standalone components
-- **PrimeNG 19**: Comprehensive UI component library
-- **TailwindCSS**: Utility-first CSS framework
-- **TypeScript**: Type-safe development
-- **RxJS**: Reactive programming with WebSocket integration
-- **Angular SSR**: Server-side rendering support
+- **Angular 20**: Latest Angular framework with standalone components and signals
+- **Angular SSR**: Server-side rendering support for production deployments
+- **Angular HttpResource**: Modern resource management for reactive data fetching
+- **PrimeNG 19**: Comprehensive UI component library with carousel and file upload
+- **TailwindCSS**: Utility-first CSS framework for responsive design
+- **TypeScript**: Type-safe development with latest language features
+- **RxJS**: Reactive programming with WebSocket integration and effect management
 
 ### Backend
-- **Node.js**: Runtime environment
-- **Express.js**: Web application framework
-- **WebSocket (ws)**: Real-time communication
-- **Prisma ORM**: Database toolkit and query builder
-- **SQLite**: Development database (easily configurable for PostgreSQL/MySQL)
-- **Multer**: File upload handling
-- **CORS**: Cross-origin resource sharing support
+- **Node.js**: Runtime environment with ES modules support
+- **Express.js**: Web application framework with RESTful API design
+- **WebSocket (ws)**: Real-time communication for live updates
+- **Prisma ORM**: Database toolkit and query builder with migration support
+- **SQLite**: Production-ready database (easily configurable for PostgreSQL/MySQL)
+- **Multer**: File upload handling with multiple file support
+- **CORS**: Cross-origin resource sharing support for LAN access
 
-### DevOps & Deployment
-- **Docker**: Containerization with multi-stage builds
-- **Docker Compose**: Multi-container orchestration with 6 deployment options
-- **Nginx**: Production web server (frontend)
-- **Health Checks**: Container health monitoring
+### Infrastructure & Deployment
+- **Docker**: Containerization with optimized multi-stage builds
+- **Docker Compose**: Simplified single-file orchestration
+- **Nginx**: Production web server for frontend serving
+- **Health Checks**: Comprehensive container health monitoring
 - **Volume Persistence**: Data persistence across container restarts
-- **PowerShell Automation**: Interactive deployment and management scripts
-
-### Monitoring & Observability
-- **Prometheus**: Metrics collection and storage
-- **Grafana**: Metrics visualization and alerting
-- **Elasticsearch**: Log storage and search engine
-- **Logstash**: Log processing and enrichment
-- **Kibana**: Log visualization and analysis
-- **Filebeat**: Log collection and shipping
-- **Node Exporter**: System metrics collection
-- **cAdvisor**: Container metrics collection
-- **Unified Dashboards**: Cross-stack monitoring and correlation
+- **Environment Configuration**: Flexible configuration for different deployment scenarios
 
 ## 🏗 Architecture
 
@@ -208,21 +242,12 @@ A modern, real-time digital menu management system built with Angular and Node.j
 
 ### Manual Docker Deployment
 
-Choose your deployment option:
-
 ```bash
-# Basic application only
-docker-compose up -d
-
-# With Prometheus + Grafana monitoring  
-docker-compose -f docker\docker-compose.monitoring-simple.yml up -d
-
-# With ELK logging stack
-docker-compose -f docker\docker-compose.elk-simple.yml up -d
-
 # Complete monitoring stack (Recommended)
 docker-compose -f docker\docker-compose.unified.yml up -d
 ```
+
+> **Note**: The project has been streamlined to use a single unified Docker Compose file that includes the application with full monitoring capabilities. This provides the best experience with comprehensive observability.
 
 ### Access Points
 
@@ -638,6 +663,74 @@ Content-Type: multipart/form-data
 {
   "success": true,
   "imageUrl": "/assets/image-timestamp-random.ext"
+}
+```
+
+### Slideshow Management
+```http
+# Get active slideshow
+GET /slideshow/active
+
+# Response:
+{
+  "slideshow": {
+    "id": 1,
+    "name": "Restaurant Slideshow",
+    "interval": 15000,
+    "isActive": true,
+    "startTime": "09:00",
+    "endTime": "22:00",
+    "slides": [...]
+  },
+  "isActive": true
+}
+
+# Get all slideshows
+GET /slideshow
+
+# Create new slideshow
+POST /slideshow
+Content-Type: application/json
+{
+  "name": "Restaurant Slideshow",
+  "interval": 15000,
+  "startTime": "09:00",
+  "endTime": "22:00"
+}
+
+# Update slideshow
+PUT /slideshow/:id
+Content-Type: application/json
+{
+  "name": "Updated Slideshow",
+  "interval": 20000
+}
+
+# Activate slideshow
+POST /slideshow/:id/activate
+
+# Deactivate all slideshows
+POST /slideshow/deactivate
+
+# Add slide to slideshow
+POST /slideshow/:id/slides
+Content-Type: application/json
+{
+  "imageUrl": "/assets/slide-image.jpg",
+  "order": 1
+}
+
+# Remove slide from slideshow
+DELETE /slideshow/slides/:slideId
+
+# Update slide order
+PUT /slideshow/:id/slides/order
+Content-Type: application/json
+{
+  "slideOrders": [
+    { "slideId": 1, "order": 0 },
+    { "slideId": 2, "order": 1 }
+  ]
 }
 ```
 

@@ -1,0 +1,166 @@
+.slideshow-container {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	z-index: 9999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.slideshow-content {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+:host ::ng-deep .p-carousel {
+	height: 100%;
+	width: 100%;
+}
+
+:host ::ng-deep .p-carousel-content {
+	height: 100%;
+}
+
+:host ::ng-deep .p-carousel-container {
+	height: 100%;
+}
+
+:host ::ng-deep .p-carousel-items-content {
+	height: 100%;
+}
+
+:host ::ng-deep .p-carousel-item {
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+}
+
+.slide-content {
+	text-align: center;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+}
+
+:host ::ng-deep .slide-image {
+	width: 100vw;
+	height: 100vh;
+	object-fit: cover; /* Cover the entire screen */
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.slide-title {
+	position: absolute;
+	bottom: 120px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: 3rem;
+	font-weight: bold;
+	color: white;
+	text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+	z-index: 10;
+	background: rgba(0, 0, 0, 0.5);
+	padding: 20px 40px;
+	border-radius: 12px;
+}
+
+.slide-description {
+	position: absolute;
+	bottom: 40px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: 1.4rem;
+	color: rgba(255, 255, 255, 0.95);
+	max-width: 800px;
+	line-height: 1.6;
+	text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+	z-index: 10;
+	background: rgba(0, 0, 0, 0.4);
+	padding: 15px 30px;
+	border-radius: 8px;
+}
+
+.no-slides {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	color: white;
+	text-align: center;
+}
+
+.no-slides h2 {
+	margin: 0 0 10px 0;
+	font-size: 2rem;
+}
+
+.no-slides p {
+	font-size: 1.1rem;
+	opacity: 0.9;
+}
+
+.time-indicator {
+	position: absolute;
+	bottom: 20px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: rgba(0, 0, 0, 0.7);
+	color: white;
+	padding: 8px 16px;
+	border-radius: 20px;
+	font-size: 0.9rem;
+	display: flex;
+	align-items: center;
+}
+
+:host ::ng-deep .p-carousel-indicators {
+	bottom: 60px;
+}
+
+:host ::ng-deep .p-carousel-indicator button {
+	background: rgba(255, 255, 255, 0.5);
+}
+
+:host ::ng-deep .p-carousel-indicator.p-highlight button {
+	background: white;
+}
+
+@media (max-width: 768px) {
+	.slideshow-content {
+		width: 95%;
+		height: 95%;
+	}
+
+	.slide-title {
+		font-size: 1.8rem;
+	}
+
+	.slide-description {
+		font-size: 1rem;
+	}
+
+	.exit-button {
+		top: 10px;
+		right: 10px;
+	}
+
+	.debug-info {
+		top: 10px;
+		left: 10px;
+		font-size: 10px;
+		padding: 5px;
+	}
+}

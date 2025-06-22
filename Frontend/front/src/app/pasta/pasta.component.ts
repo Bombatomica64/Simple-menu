@@ -20,6 +20,7 @@ import { ContextMenuModule } from 'primeng/contextmenu';
 import { MenuItem as PrimeMenuItem } from 'primeng/api';
 import { ContextMenu } from 'primeng/contextmenu';
 import { MenuItem, MenuSection, Menu } from '../Menu/menu';
+import { AppImageComponent } from '../shared/components/app-image/app-image.component';
 
 @Component({
 	selector: 'app-pasta',
@@ -34,6 +35,7 @@ import { MenuItem, MenuSection, Menu } from '../Menu/menu';
 		ToggleButtonModule,
 		SelectButtonModule,
 		ContextMenuModule,
+		AppImageComponent,
 	],
 	templateUrl: './pasta.component.html',
 	styleUrls: ['./pasta.component.scss'],

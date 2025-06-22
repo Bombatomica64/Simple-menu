@@ -213,7 +213,7 @@
 						>
 							@if (shouldShowPastaTypeImages() && type.imageUrl) {
 							<img
-								[class]="'pasta-sauce-image ' + getPastaTypeImageSizeClass()"
+								[class]="'pasta-sauce-image'"
 								[src]="type.imageUrl"
 								[alt]="type.name + ' pasta type'"
 								title="Pasta type image"
@@ -309,7 +309,7 @@
 						>
 							@if (shouldShowPastaSauceImages() && sauce.imageUrl) {
 							<img
-								[class]="'pasta-sauce-image ' + getPastaSauceImageSizeClass()"
+								[class]="'pasta-sauce-image'"
 								[src]="sauce.imageUrl"
 								[alt]="sauce.name + ' pasta sauce'"
 								title="Pasta sauce image"

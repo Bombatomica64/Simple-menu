@@ -1,16 +1,13 @@
 <div class="pasta-container">	<!-- Header Section -->
-	<div class="pasta-header">
-		<!-- Logo Section - Top Right -->
+	<div class="pasta-header">		<!-- Logo Section - Top Right -->
 		@if (menu()?.logo && menu()?.logo?.isActive) {
 		<div class="logo-section logo-top-right">
-			<img
+			<app-image
 				[src]="menu()!.logo!.imageUrl"
 				[alt]="menu()!.logo!.name"
 				[title]="menu()!.logo!.name"
-				title="menu logo"
-				class="menu-logo"
-				[style.width]="getLogoSize()"
-				[style.height]="getLogoSize()"
+				cssClass="menu-logo"
+				[style]="'width: ' + getLogoSize() + '; height: ' + getLogoSize() + ';'"
 			/>
 		</div>
 		}
@@ -51,15 +48,13 @@
 							(touchstart)="onItemTouchStart($event, pasta, 'pasta')"
 							(touchend)="onItemTouchEnd()"
 							(touchmove)="onItemTouchMove()"
-						>
-							@if (showImages() && pasta.imageUrl && pasta.imageUrl !==
+						>							@if (showImages() && pasta.imageUrl && pasta.imageUrl !==
 							'assets/placeholder.png') {
-							<img
+							<app-image
 								[src]="pasta.imageUrl"
 								[alt]="pasta.name + ' - pasta tradizionale italiana'"
 								[title]="pasta.name + ' - Pasta tradizionale italiana'"
-								title="Pasta tradizionale italiana"
-								class="item-image"
+								cssClass="item-image"
 							/>
 							}
 							<div class="item-content">
@@ -91,15 +86,13 @@
 							(touchstart)="onItemTouchStart($event, sauce, 'sauce')"
 							(touchend)="onItemTouchEnd()"
 							(touchmove)="onItemTouchMove()"
-						>
-							@if (showImages() && sauce.imageUrl && sauce.imageUrl !==
+						>							@if (showImages() && sauce.imageUrl && sauce.imageUrl !==
 							'assets/placeholder.png') {
-							<img
+							<app-image
 								[src]="sauce.imageUrl"
 								[alt]="sauce.name + ' - sugo italiano autentico'"
 								[title]="sauce.name + ' - Sugo italiano autentico'"
-								title="Sugo italiano autentico"
-								class="item-image"
+								cssClass="item-image"
 							/>
 							}
 							<div class="item-content">

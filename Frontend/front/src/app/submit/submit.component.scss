@@ -76,10 +76,10 @@
 	flex-shrink: 0;
 	display: block;
 	overflow: hidden;
-	
+
 	// Ensure images are constrained within their containers
-	max-width: 100%;
-	max-height: 100%;
+	max-width: 60px;
+	max-height: 60px;
 
 	&.size-small {
 		width: 2rem;
@@ -1282,7 +1282,7 @@ form[role="form"] {
 		justify-content: center;
 		overflow: hidden;
 		border-radius: 8px;
-		
+
 		&.size-small {
 			width: 2rem;
 			height: 2rem;
@@ -1302,7 +1302,7 @@ form[role="form"] {
 	.content-container {
 		flex: 1;
 		min-width: 0; // Prevents text overflow
-		
+
 		.item-name {
 			font-weight: 600;
 			white-space: nowrap;

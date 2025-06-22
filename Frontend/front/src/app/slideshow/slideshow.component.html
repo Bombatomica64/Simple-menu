@@ -1,0 +1,52 @@
+@if (isActive()) {
+<div class="slideshow-container" [style.background]="backgroundStyle()">
+	<div class="slideshow-content">
+		<!-- Slideshow carousel -->
+		@if (activeSlideshowData()?.slides?.length) {
+		<!-- Debug info -->
+		<p-carousel
+			[value]="activeSlideshowData()!.slides"
+			[autoplayInterval]="slideshowInterval()"
+			[circular]="true"
+			[showIndicators]="false"
+			[showNavigators]="false"
+			[responsiveOptions]="responsiveOptions"
+			[page]="currentSlideIndex()"
+			(onPage)="onSlideChange($event)"
+		>
+			<ng-template pTemplate="item" let-slide>
+				<div class="slide-content">
+					<app-image
+						[src]="slide.imageUrl"
+						[alt]="slide.title || 'Slide'"
+						[title]="slide.title || 'Slideshow image'"
+						cssClass="slide-image"
+					/>
+
+					@if (slide.title) {
+					<div class="slide-title">{{ slide.title }}</div>
+					} @if (slide.description) {
+					<div class="slide-description">{{ slide.description }}</div>
+					}
+				</div>
+			</ng-template>
+		</p-carousel>
+		} @else {
+		<div class="no-slides">
+			<i class="pi pi-images text-6xl mb-4"></i>
+			<h2>Nessuna slide disponibile</h2>
+			<p>Lo slideshow è attivo ma non contiene immagini.</p>
+		</div>
+		}
+
+		<!-- Time remaining indicator -->
+		@if (shouldAutoExit()) {
+		<div class="time-indicator">
+			<i class="pi pi-clock mr-2"></i>
+			Lo slideshow terminerà automaticamente alle
+			{{ activeSlideshowData()?.endTime }}
+		</div>
+		}
+	</div>
+</div>
+}

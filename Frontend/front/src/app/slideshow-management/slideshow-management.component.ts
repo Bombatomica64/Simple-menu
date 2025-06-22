@@ -27,6 +27,7 @@ import { Slideshow, SlideshowSlide } from '../shared/models/slideshow.model';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment.dynamic';
+import { AppImageComponent } from '../shared/components/app-image/app-image.component';
 
 @Component({
 	selector: 'app-slideshow-management',
@@ -46,6 +47,7 @@ import { environment } from '../../environments/environment.dynamic';
 		DatePickerModule,
 		DragDropModule,
 		ProgressBarModule,
+		AppImageComponent,
 	],
 	providers: [ConfirmationService, MessageService],
 	template: `
@@ -311,9 +313,10 @@ import { environment } from '../../environments/environment.dynamic';
 						@for (slide of selectedSlideshow()!.slides; track slide.id) {
 						<div class="slide-item">
 							<div class="slide-preview">
-								<img
+								<app-image
 									[src]="slide.imageUrl"
 									[alt]="slide.title || 'Slide'"
+									[title]="slide.title || 'Slide image'"
 									style="width: 200px; height: 150px; object-fit: cover;"
 								/>
 								<div class="slide-overlay">
