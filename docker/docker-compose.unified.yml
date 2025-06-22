@@ -11,7 +11,7 @@ services:
 
   backend:
     build:
-      context: ./Backend
+      context: ../Backend
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
@@ -20,8 +20,8 @@ services:
       - PM2_PUBLIC_KEY=${PM2_PUBLIC_KEY:-}
       - PM2_SECRET_KEY=${PM2_SECRET_KEY:-}
     volumes:
-      - ./Backend/prisma:/app/prisma
-      - ./Backend/assets:/app/assets
+      - ../Backend/prisma:/app/prisma
+      - ../Backend/assets:/app/assets
       - backend_data:/app/data
       - backend_logs:/app/logs
     networks:
@@ -42,7 +42,7 @@ services:
 
   frontend:
     build:
-      context: ./Frontend/front
+      context: ../Frontend/front
       dockerfile: Dockerfile
       args:
         - BACKEND_HOST=backend
@@ -80,7 +80,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./monitoring/unified/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../monitoring/unified/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -107,9 +107,9 @@ services:
       - "3001:3000"
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/unified/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
-      - ./monitoring/unified/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
-      - ./monitoring/unified/dashboards:/var/lib/grafana/dashboards:ro
+      - ../monitoring/unified/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ../monitoring/unified/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ../monitoring/unified/dashboards:/var/lib/grafana/dashboards:ro
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
       - GF_USERS_ALLOW_SIGN_UP=false
@@ -210,7 +210,7 @@ services:
     image: docker.elastic.co/logstash/logstash:8.11.0
     container_name: logstash
     volumes:
-      - ./monitoring/unified/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ../monitoring/unified/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
     ports:
       - "5044:5044"
       - "5000:5000/tcp"
@@ -256,7 +256,7 @@ services:
     container_name: filebeat
     user: root
     volumes:
-      - ./monitoring/unified/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ../monitoring/unified/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
