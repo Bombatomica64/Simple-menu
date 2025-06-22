@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "🚀 Starting Simple Menu Backend..."
+echo "🚀 Starting simple Menu Backend..."
 
 # Run database migrations
 echo "🔧 Running database migrations..."

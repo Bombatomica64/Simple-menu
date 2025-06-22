@@ -30,6 +30,8 @@ RUN chmod +x start.sh
 # Expose port
 EXPOSE 3000
 
+
+
 # Add health check endpoint
 COPY healthcheck.js ./
 
