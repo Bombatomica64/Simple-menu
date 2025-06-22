@@ -27,7 +27,8 @@
 					aria-label="Modulo per aggiungere nuova voce del menu"
 					(ngSubmit)="addItem()"
 					#menuItemForm="ngForm"
-				>					<div class="p-fluid p-formgrid p-grid">
+				>
+					<div class="p-fluid p-formgrid p-grid">
 						<div class="p-field p-col-12 p-md-4">
 							<label for="itemName"
 								>Nome:
@@ -91,7 +92,8 @@
 							<small id="itemPrice-help" class="form-text"
 								>Inserisci il prezzo in euro (es. 12.50)</small
 							>
-						</div>						<div class="p-field p-col-12 p-md-2">
+						</div>
+						<div class="p-field p-col-12 p-md-2">
 							<label for="itemSection">Sezione:</label>
 							<p-select
 								id="itemSection"
@@ -418,6 +420,8 @@
 			<app-background-palette
 				[menuConnection]="menuWsConnection"
 				#backgroundPalette
+				(backgroundConfigUpdated)="handleBackgroundConfigUpdate($event)"
+				(backgroundConfigDeleted)="handleBackgroundConfigDelete()"
 			>
 			</app-background-palette>
 		</div>

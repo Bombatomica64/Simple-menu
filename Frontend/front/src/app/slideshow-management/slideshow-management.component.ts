@@ -18,7 +18,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { FileUploadModule } from 'primeng/fileupload';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePickerModule } from 'primeng/datepicker';
 import { DragDropModule } from 'primeng/dragdrop';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -43,7 +43,7 @@ import { environment } from '../../environments/environment.dynamic';
 		FileUploadModule,
 		ConfirmDialogModule,
 		ToastModule,
-		CalendarModule,
+		DatePickerModule,
 		DragDropModule,
 		ProgressBarModule,
 	],
@@ -195,16 +195,15 @@ import { environment } from '../../environments/environment.dynamic';
 
 					<div class="field">
 						<label for="endTime">Ora di termine (opzionale)</label>
-						<p-calendar
+						<p-datePicker
 							id="endTime"
 							[(ngModel)]="endTimeDate"
-							[timeOnly]="true"
-							[showTime]="true"
+							timeOnly
 							hourFormat="24"
 							placeholder="Seleziona ora (es. 12:30)"
 							(onSelect)="onTimeChange($event)"
 						>
-						</p-calendar>
+						</p-datePicker>
 					</div>
 
 					<div class="field-checkbox">

@@ -1201,6 +1201,30 @@ async function ensurePredefinedSections(menuId) {
   }
 }
 
+// Background management functions
+async function refreshMenuBackground() {
+  try {
+    if (!currentInMemoryMenu) {
+      console.log("No current menu to refresh background for");
+      return;
+    }
+
+    // Get the latest background configuration from the database
+    const backgroundConfig = await prisma.backgroundConfig.findFirst({
+      where: { page: 'pasta' } // Use fixed page since we only have one
+    });
+
+    // Update the in-memory menu's background
+    currentInMemoryMenu.background = backgroundConfig;
+    
+    console.log("✅ Menu background refreshed in memory:", backgroundConfig ? backgroundConfig.id : 'null');
+    return backgroundConfig;
+  } catch (error) {
+    console.error('Error refreshing menu background:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   loadInitialMenu,
   getCurrentMenu,
@@ -1244,4 +1268,5 @@ module.exports = {
   updatePastaTypesGlobalColor,
   updatePastaSaucesGlobalColor,
   ensurePredefinedSections,
+  refreshMenuBackground,
 };

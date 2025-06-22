@@ -94,15 +94,15 @@ router.get('/menu/:menuId', async (req, res) => {
   }
 });
 
-// POST /api/backgrounds - Create/update background configuration
+// POST /api/backgrounds - Create/update background configuration (simplified - only one background config)
 router.post('/', async (req, res) => {
   try {
-    const { page, type, value } = req.body;
+    const { type, value } = req.body;
 
-    if (!page || !type || !value) {
+    if (!type || !value) {
       return res.status(400).json({ 
-        error: 'Page, type, and value are required',
-        required: ['page', 'type', 'value']
+        error: 'Type and value are required',
+        required: ['type', 'value']
       });
     }
 
@@ -115,24 +115,18 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Validate page parameter
-    const validPages = ['pasta', 'menu', 'submit'];
-    if (!validPages.includes(page)) {
-      return res.status(400).json({ 
-        error: 'Invalid page specified',
-        validPages 
-      });
-    }
+    // Since we only have one background configuration, use a fixed page value
+    const FIXED_PAGE = 'pasta';
 
     const backgroundConfig = await prisma.backgroundConfig.upsert({
-      where: { page },
+      where: { page: FIXED_PAGE },
       update: { 
         type,
         value,
         updatedAt: new Date()
       },
       create: { 
-        page, 
+        page: FIXED_PAGE, 
         type,
         value
       }
@@ -256,23 +250,56 @@ router.put('/menu/:menuId', async (req, res) => {
   }
 });
 
-// GET /api/backgrounds - Get all background configurations
+// GET /api/backgrounds - Get the single background configuration
 router.get('/', async (req, res) => {
   try {
-    const backgroundConfigs = await prisma.backgroundConfig.findMany({
-      orderBy: { page: 'asc' },
-      include: { 
-        menus: {
-          select: { id: true, createdAt: true }
-        }
-      }
+    // Since we only have one background configuration, get the pasta page config
+    const FIXED_PAGE = 'pasta';
+    
+    const backgroundConfig = await prisma.backgroundConfig.findUnique({
+      where: { page: FIXED_PAGE }
     });
 
-    res.json(backgroundConfigs);
+    if (!backgroundConfig) {
+      // Return empty array if no config exists yet
+      return res.json([]);
+    }
+
+    // Return as array for compatibility with frontend
+    res.json([backgroundConfig]);
   } catch (error) {
-    console.error('Error fetching all background configs:', error);
+    console.error('Error fetching background config:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch background configurations',
+      error: 'Failed to fetch background configuration',
+      details: error.message 
+    });
+  }
+});
+
+// DELETE /api/backgrounds - Delete the single background configuration
+router.delete('/', async (req, res) => {
+  try {
+    // Since we only have one background configuration, delete the pasta page config
+    const FIXED_PAGE = 'pasta';
+
+    const deletedConfig = await prisma.backgroundConfig.delete({
+      where: { page: FIXED_PAGE }
+    });
+
+    res.json({
+      message: 'Background configuration deleted successfully',
+      deletedConfig
+    });
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ 
+        error: 'Background configuration not found' 
+      });
+    }
+    
+    console.error('Error deleting background config:', error);
+    res.status(500).json({ 
+      error: 'Failed to delete background configuration',
       details: error.message 
     });
   }

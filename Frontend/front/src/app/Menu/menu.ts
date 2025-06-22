@@ -63,10 +63,12 @@ export interface MenuPastaSauceEntry {
 // Background configuration interface
 export interface BackgroundConfig {
     id: number;
-    page: string | null;
-    background: string; // CSS background value (gradient, color, image url, etc.)
-    createdAt: string;
-    updatedAt: string;
+    page?: string | null; // Optional since menus can have their own backgrounds
+    type: string; // "color", "gradient", "image"
+    value: string; // CSS background value (gradient, color, image url, etc.)
+    background?: string; // Legacy field for backwards compatibility
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 // Logo interface

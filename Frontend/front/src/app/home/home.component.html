@@ -6,7 +6,9 @@
       <div class="connection-status disconnected">Connecting to menu updates...</div>
     }
     @if (menuConnection.resource.value(); as menuResource) {
-      <app-multi-page-menu [menu]="menuResource"></app-multi-page-menu>
+      <div class="background-wrapper" [ngStyle]="getBackgroundStyle(menuResource)">
+        <app-multi-page-menu [menu]="menuResource"></app-multi-page-menu>
+      </div>
     } @else {
       <div class="loading">Loading menu...</div>
     }

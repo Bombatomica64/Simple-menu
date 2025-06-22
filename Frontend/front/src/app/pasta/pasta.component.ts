@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
 import { PanelModule } from 'primeng/panel';
@@ -20,14 +19,11 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { ContextMenuModule } from 'primeng/contextmenu';
 import { MenuItem as PrimeMenuItem } from 'primeng/api';
 import { ContextMenu } from 'primeng/contextmenu';
-import { MenuSectionViewerComponent } from '../menu-section-viewer/menu-section-viewer.component';
 import { MenuItem, MenuSection, Menu } from '../Menu/menu';
-import { environment } from '../../environments/environment.dynamic';
 
 @Component({
 	selector: 'app-pasta',
-	standalone: true,
-	imports: [
+	standalone: true,	imports: [
 		CommonModule,
 		FormsModule,
 		CardModule,
@@ -38,106 +34,26 @@ import { environment } from '../../environments/environment.dynamic';
 		ToggleButtonModule,
 		SelectButtonModule,
 		ContextMenuModule,
-		MenuSectionViewerComponent,
 	],
 	templateUrl: './pasta.component.html',
 	styleUrls: ['./pasta.component.scss'],
 })
 export class PastaComponent implements OnInit, OnDestroy {
 	menu = input<Menu | null | undefined>();
-	private http = inject(HttpClient);
 
-	// Background configuration
-	backgroundConfig = signal<any>(null);	backgroundStyle = computed(() => {
-		const config = this.backgroundConfig();
-		if (!config) return {};
-
-		// Handle new BackgroundConfig format (from background-palette component)
-		if (config.type && config.value) {
-			switch (config.type) {
-				case 'color':
-					return {
-						backgroundColor: config.value,
-						backgroundImage: 'none'
-					};
-				case 'gradient':
-					return {
-						background: config.value,
-						backgroundImage: 'none'
-					};
-				case 'image':
-					return {
-						backgroundImage: config.value,
-						backgroundSize: 'cover',
-						backgroundPosition: 'center',
-						backgroundRepeat: 'no-repeat'
-					};
-				default:
-					return {};
-			}
-		}
-
-		// Handle legacy format for backward compatibility
-		return {
-			backgroundImage: config.backgroundImage
-				? `url(${config.backgroundImage})`
-				: 'none',
-			backgroundColor: config.backgroundColor || '#ffffff',
-			backgroundSize: config.backgroundSize || 'cover',
-			backgroundPosition: config.backgroundPosition || 'center',
-			backgroundRepeat: config.backgroundRepeat || 'no-repeat',
-		};
-	});
-
-	// Section navigation
-	currentSectionPage = signal(0);
-	readonly MAX_SECTIONS_PER_PAGE = 4; // Max sections that fit in right column	// Global font sizes from menu - these override individual per-type font sizes
+	// Global font sizes from menu - these override individual per-type font sizes
 	pastaTypeFontSize = computed(() => {
 		const currentMenu = this.menu();
 		const fontSize = currentMenu?.globalPastaTypeFontSize ?? 1.5;
 		return fontSize + 'rem';
 	});
-
 	pastaSauceFontSize = computed(() => {
 		const currentMenu = this.menu();
 		const fontSize = currentMenu?.globalPastaSauceFontSize ?? 1.5;
 		return fontSize + 'rem';
-	});// Computed properties for template
-	menuSections = computed(() => {
-		const currentMenu = this.menu();
-		const sections = currentMenu?.menuSections ?? [];
-		// Convert MenuSection[] to the format expected by template
-		// Preserve all section properties for proper styling and functionality
-		return sections.map((section, index) => ({
-			id: section.id || index + 1,
-			name: section.name,
-			position: section.position || index,
-			menuId: currentMenu?.id ?? undefined,
-			menuItems: section.menuItems || [],
-			// Preserve styling properties
-			header: section.header || undefined,
-			sectionType: section.sectionType || 'general',
-			backgroundColor: section.backgroundColor || undefined,
-			textColor: section.textColor || undefined,
-		}));
 	});
 
-	totalSectionPages = computed(() => {
-		const sections = this.menuSections();
-		return Math.ceil(sections.length / this.MAX_SECTIONS_PER_PAGE);
-	});	currentPageSections = computed(() => {
-		const sections = this.menuSections();
-		const startIndex = this.currentSectionPage() * this.MAX_SECTIONS_PER_PAGE;
-		return sections.slice(startIndex, startIndex + this.MAX_SECTIONS_PER_PAGE);
-	});
-
-	hasPrevPage = computed(() => {
-		return this.currentSectionPage() > 0;
-	});
-
-	hasNextPage = computed(() => {
-		return this.currentSectionPage() < this.totalSectionPages() - 1;
-	}); // Computed properties for pasta data
+	// Computed properties for pasta data
 	pastaTypes = computed(() => {
 		const currentMenu = this.menu();
 		if (!currentMenu?.pastaTypes) return [];
@@ -207,87 +123,13 @@ export class PastaComponent implements OnInit, OnDestroy {
 		// Use section-specific text color if set, otherwise default to dark
 		return section.textColor || '#2c3e50';
 	}
-
 	ngOnInit() {
 		// Add pasta-page class to body for fixed viewport
 		document.body.classList.add('pasta-page');
-		// Load background configuration
-		this.loadBackgroundConfig();
-	}
-
-	ngOnDestroy() {
+	}	ngOnDestroy() {
 		// Remove pasta-page class when component is destroyed
 		document.body.classList.remove('pasta-page');
 	}
-	private loadBackgroundConfig() {
-		this.http
-			.get<any>(`${environment.apiUrl}/api/backgrounds/pasta`)
-			.subscribe({
-				next: (config) => {
-					this.backgroundConfig.set(config);
-					console.log('✅ Background config loaded:', config);
-				},
-				error: (error) => {
-					console.log('⚠️ No background config found, using default cream background');
-					// Set default cream background config
-					const defaultConfig = {
-						type: 'color',
-						value: '#FDF5E6' // Cream color
-					};
-					this.backgroundConfig.set(defaultConfig);
-				},
-			});
-	}// Section navigation methods
-	get visibleSections() {
-		const currentMenu = this.menu();
-		if (!currentMenu?.menuSections) return [];
-
-		const sections = currentMenu.menuSections;
-		const startIndex = this.currentSectionPage() * this.MAX_SECTIONS_PER_PAGE;
-		return sections.slice(startIndex, startIndex + this.MAX_SECTIONS_PER_PAGE);
-	}
-
-	get hasNextSectionPage(): boolean {
-		const currentMenu = this.menu();
-		if (!currentMenu?.menuSections) return false;
-
-		const sections = currentMenu.menuSections;
-		return (
-			(this.currentSectionPage() + 1) * this.MAX_SECTIONS_PER_PAGE <
-			sections.length
-		);
-	}
-
-	get hasPreviousSectionPage(): boolean {
-		return this.currentSectionPage() > 0;
-	}
-
-	nextSectionPage() {
-		if (this.hasNextSectionPage) {
-			this.currentSectionPage.update((page: number) => page + 1);
-		}
-	}
-
-	previousSectionPage() {
-		if (this.hasPrevPage()) {
-			this.currentSectionPage.update((page: number) => page - 1);
-		}
-	}
-
-	// Add alias method for template compatibility
-	prevSectionPage() {
-		this.previousSectionPage();
-	} // Get items for a specific section (for MenuSectionViewerComponent)
-	getItemsForSection(sectionId: number | undefined): MenuItem[] {
-		const currentMenu = this.menu();
-		if (!currentMenu?.menuSections || !sectionId) return [];
-
-		const section = currentMenu.menuSections.find((s) => s.id === sectionId);
-		if (!section?.menuItems) return [];
-
-		return section.menuItems;
-	}
-
 
 	// Context menu functionality
 	pastaContextMenuItems: PrimeMenuItem[] = [
@@ -330,10 +172,8 @@ export class PastaComponent implements OnInit, OnDestroy {
 		event.preventDefault();
 		console.log('Item long press:', item, type);
 	}
-
 	// Logo display methods
-	getLogoSize(): string {
-		const currentMenu = this.menu();
+	getLogoSize(): string {		const currentMenu = this.menu();
 		if (!currentMenu?.logo) return '60px';
 
 		const size = currentMenu.logo.size;

@@ -1,4 +1,4 @@
-<div class="pasta-container" [ngStyle]="backgroundStyle()">	<!-- Header Section -->
+<div class="pasta-container">	<!-- Header Section -->
 	<div class="pasta-header">
 		<!-- Logo Section - Top Right -->
 		@if (menu()?.logo && menu()?.logo?.isActive) {
@@ -25,10 +25,9 @@
 			</div>
 		</div>
 	</div>
-
-	<!-- Main Two Column Layout -->
+	<!-- Main Layout - Single Column for Pasta Only -->
 	<div class="main-layout">
-		<!-- Left Column - Pasta Section (Bigger) -->
+		<!-- Pasta Section (Full Width) -->
 		<div class="pasta-main-column">
 			<h2 class="section-title">
 				<i class="pi pi-star-fill mr-2" title="Stelle di qualità"></i>
@@ -117,58 +116,7 @@
 				</div>
 			</div>
 		</div>
-
-		<!-- Right Column - Menu Sections (Smaller) -->
-		<div class="menu-sections-column">
-			@if (menuSections().length > 0) {
-			<div class="sections-header">
-				<h2 class="section-title">
-					<i class="pi pi-list mr-2"></i>
-					Altre Specialità
-				</h2>
-
-				<!-- Pagination Controls -->
-				@if (totalSectionPages() > 1) {
-				<div class="pagination-controls">
-					<button
-						pButton
-						type="button"
-						icon="pi pi-chevron-left"
-						class="p-button-rounded p-button-outlined p-button-sm"
-						(click)="prevSectionPage()"
-						[disabled]="!hasPrevPage()"
-						title="Pagina precedente"
-					></button>
-					<span class="page-indicator"
-						>{{ currentSectionPage() + 1 }} / {{ totalSectionPages() }}</span
-					>
-					<button
-						pButton
-						type="button"
-						icon="pi pi-chevron-right"
-						class="p-button-rounded p-button-outlined p-button-sm"
-						(click)="nextSectionPage()"
-						[disabled]="!hasNextPage()"
-						title="Pagina successiva"
-					></button>
-				</div>
-				}
-			</div>
-
-			<!-- Current Page Sections -->
-			<div class="sections-container">
-				@for (section of currentPageSections(); track section.id) {
-				<app-menu-section-viewer
-					[section]="section"
-					[items]="getItemsForSection(section.id)"
-				>
-				</app-menu-section-viewer>
-				}
-			</div>
-			}
-		</div>
-	</div>
-	<!-- Footer message -->
+	</div><!-- Footer message -->
 	<div class="footer-message">
 		TUTTI I PRODOTTI UTILIZZATI SONO FRESCHI
 		<span class="powered-by">Powered by Centro Audio Video</span>

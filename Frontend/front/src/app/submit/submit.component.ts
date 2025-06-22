@@ -46,6 +46,8 @@ import {
 	UpdateSectionColorsMessage,
 	UpdatePastaTypesGlobalColorMessage,
 	UpdatePastaSaucesGlobalColorMessage,
+	UpdateBackgroundConfigMessage,
+	DeleteBackgroundConfigMessage,
 } from '../webSocketResource';
 import {
 	Menu,
@@ -1340,7 +1342,6 @@ export class SubmitComponent implements OnInit {
 	handleLogoDeletion(event: { logoId: number }) {
 		this.deleteLogo(event.logoId);
 	}
-
 	handleLogoSettingsUpdate(event: {
 		logoId: number;
 		position: string;
@@ -1353,5 +1354,42 @@ export class SubmitComponent implements OnInit {
 			event.size,
 			event.opacity
 		);
+	} // Background configuration handlers
+	handleBackgroundConfigUpdate(config: any) {
+		console.log('Background config updated:', config);
+		console.log('Config properties:', Object.keys(config || {}));
+
+		// Validate the config object
+		if (!config) {
+			console.error('Background config is null or undefined');
+			return;
+		}
+
+		if (!config.value && !config.background) {
+			console.error('Background config missing value/background property');
+			return;
+		}
+
+		// Send the simplified background update through WebSocket to update the live menu
+		if (this.menuWsConnection) {
+			const message = {
+				type: 'updateBackgroundConfig' as const,
+				backgroundType: config.type || 'color',
+				value: config.value || config.background,
+			};
+			console.log('Sending simplified background update message:', message);
+			this.menuWsConnection.sendUpdate(message);
+		}
+	}
+	handleBackgroundConfigDelete() {
+		console.log('Background config deleted');
+
+		// Send the simplified background deletion through WebSocket to update the live menu
+		if (this.menuWsConnection) {
+			const message = {
+				type: 'deleteBackgroundConfig' as const,
+			};
+			this.menuWsConnection.sendUpdate(message);
+		}
 	}
 }

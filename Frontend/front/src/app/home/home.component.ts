@@ -9,6 +9,7 @@ import {
 	signal,
 	effect,
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MultiPageMenuComponent } from '../multi-page-menu/multi-page-menu.component';
 import { Menu } from '../Menu/menu';
 import { isPlatformBrowser } from '@angular/common';
@@ -20,7 +21,7 @@ import { environment } from '../../environments/environment.dynamic';
 @Component({
 	selector: 'app-home',
 	standalone: true,
-	imports: [MultiPageMenuComponent],
+	imports: [CommonModule, MultiPageMenuComponent],
 	templateUrl: './home.component.html',
 	styleUrl: './home.component.scss',
 })
@@ -53,6 +54,15 @@ export class HomeComponent implements OnInit, OnDestroy {
 					const responseMessage = this.menuConnection?.responseMessages();
 					if (responseMessage) {
 						this.handleWebSocketResponse(responseMessage);
+					}
+				});
+
+				// Listen for menu data changes
+				effect(() => {
+					const menuData = this.menuConnection?.resource.value();
+					if (menuData) {
+						console.log('[Home] Menu data updated:', menuData);
+						console.log('[Home] Background in menu:', menuData.background);
 					}
 				});
 			});
@@ -96,10 +106,68 @@ export class HomeComponent implements OnInit, OnDestroy {
 				// Optionally navigate back to home if currently on slideshow page
 				if (this.router.url === '/slideshow') {
 					this.router.navigate(['/home']);
-				}
-				break;
+				}				break;
 			default:
 				console.log('Unhandled WebSocket message type:', message.type);
+		}
+	}
+
+	// Background style method for the menu
+	getBackgroundStyle(menu: Menu) {
+		const background = menu?.background;
+
+		// Add debugging
+		console.log('[Home] getBackgroundStyle called with menu:', menu);
+		console.log('[Home] Background data:', background);
+
+		// Default cream background if no background is set
+		if (!background?.type || !background?.value) {
+			console.log('[Home] Using default cream background - no background set');
+			return {
+				backgroundColor: '#FDF5E6', // Cream color
+				backgroundImage: 'none',
+				minHeight: '100vh'
+			};
+		}
+
+		// Apply the background from menu based on type
+		switch (background.type) {
+			case 'color':
+				return {
+					backgroundColor: background.value,
+					backgroundImage: 'none',
+					minHeight: '100vh'
+				};
+			case 'gradient':
+				return {
+					background: background.value,
+					backgroundImage: 'none',
+					minHeight: '100vh'
+				};
+			case 'image':
+				return {
+					backgroundImage: `url('${background.value}')`,
+					backgroundSize: 'cover',
+					backgroundPosition: 'center',
+					backgroundRepeat: 'no-repeat',
+					minHeight: '100vh'
+				};
+			default:
+				// Fallback to legacy format if exists
+				if (background.background) {
+					return {
+						background: background.background,
+						backgroundSize: 'cover',
+						backgroundPosition: 'center',
+						backgroundRepeat: 'no-repeat',
+						minHeight: '100vh'
+					};
+				}
+				return {
+					backgroundColor: '#FDF5E6', // Cream color
+					backgroundImage: 'none',
+					minHeight: '100vh'
+				};
 		}
 	}
 }
