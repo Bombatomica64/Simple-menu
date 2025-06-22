@@ -18,20 +18,12 @@ RUN npm install -g @angular/cli
 # Copy source code
 COPY . .
 
-# Build arguments for dynamic backend configuration
+# Build arguments for dynamic backend configuration (not used, keeping dynamic env)
 ARG BACKEND_HOST=localhost
 ARG BACKEND_PORT=3000
 
-# Create dynamic environment file for Docker
-RUN echo "export const environment = {" > src/environments/environment.docker.ts && \
-    echo "  production: false," >> src/environments/environment.docker.ts && \
-    echo "  apiUrl: 'http://${BACKEND_HOST}:${BACKEND_PORT}'," >> src/environments/environment.docker.ts && \
-    echo "  wsUrl: 'ws://${BACKEND_HOST}:${BACKEND_PORT}/menu-updates'," >> src/environments/environment.docker.ts && \
-    echo "  getFullImageUrl: (imageUrl: string) => imageUrl.startsWith('http') ? imageUrl : \`http://${BACKEND_HOST}:${BACKEND_PORT}/\${imageUrl}\`" >> src/environments/environment.docker.ts && \
-    echo "};" >> src/environments/environment.docker.ts
-
-# Update the main.ts to use docker environment
-RUN sed -i 's/environment.dynamic/environment.docker/g' src/main.ts || true
+# Note: We keep using environment.dynamic for LAN network compatibility
+# The dynamic environment automatically detects the host from window.location
 
 # Make start script executable
 RUN chmod +x start.sh

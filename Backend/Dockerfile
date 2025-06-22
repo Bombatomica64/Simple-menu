@@ -1,9 +1,8 @@
 # Backend Dockerfile
 FROM node:lts-alpine
 
-
-# Install curl for healthcheck
-RUN apk add --no-cache curl
+# Install curl and bash for healthcheck and startup script
+RUN apk add --no-cache curl bash
 
 WORKDIR /app
 
@@ -19,8 +18,14 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
+# Run database migrations on startup
+RUN npx prisma migrate deploy || echo "Migration will run at startup"
+
 # Create assets directory if it doesn't exist
 RUN mkdir -p assets
+
+# Make startup script executable
+RUN chmod +x start.sh
 
 # Expose port
 EXPOSE 3000
@@ -28,5 +33,5 @@ EXPOSE 3000
 # Add health check endpoint
 COPY healthcheck.js ./
 
-# Start the application
-CMD ["npm", "start"]
+# Use startup script
+CMD ["./start.sh"]

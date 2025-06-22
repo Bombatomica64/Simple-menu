@@ -51,6 +51,7 @@ services:
       - "4200:4200"
     environment:
       - NODE_ENV=production
+      - NODE_OPTIONS=--max_old_space_size=4096
     depends_on:
       backend:
         condition: service_healthy
@@ -58,6 +59,12 @@ services:
       - simple-menu-network
       - monitoring
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 1G
     logging:
       driver: "json-file"
       options:
