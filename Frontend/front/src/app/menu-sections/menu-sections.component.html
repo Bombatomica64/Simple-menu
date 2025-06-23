@@ -1,306 +1,316 @@
 <div class="menu-sections-container">
-  <!-- Header with section controls -->
-  <div class="sections-header">
-    <h3>Sezioni Menu</h3>
-    <div class="section-controls">
-      <button
-        pButton
-        type="button"
-        label="Aggiungi Sezione"
-        icon="pi pi-plus"
-        class="add-section-btn"
-        (click)="openAddSectionDialog()"
-        title="Aggiungi una nuova sezione"
-      ></button>
-      <button
-        pButton
-        type="button"
-        label="Gestisci Sezioni"
-        icon="pi pi-cog"
-        class="p-button-outlined manage-sections-btn"
-        (click)="openManageSectionsDialog()"
-        title="Gestisci ordine sezioni"
-      ></button>
-    </div>
-  </div>
+	<!-- Header with section controls -->
+	<div class="sections-header">
+		<h3>Sezioni Menu</h3>
+		<div class="section-controls">
+			<button
+				pButton
+				type="button"
+				label="Aggiungi Sezione"
+				icon="pi pi-plus"
+				class="add-section-btn"
+				(click)="openAddSectionDialog()"
+				title="Aggiungi una nuova sezione"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Gestisci Sezioni"
+				icon="pi pi-cog"
+				class="p-button-outlined manage-sections-btn"
+				(click)="openManageSectionsDialog()"
+				title="Gestisci ordine sezioni"
+			></button>
+		</div>
+	</div>
 
-  <!-- Sections with Items (Drag & Drop enabled) -->
-  <div
-    cdkDropList
-    [cdkDropListData]="sectionsWithItems()"
-    (cdkDropListDropped)="onSectionDrop($event)"
-    class="sections-list"
-  >
-    @for (section of sectionsWithItems(); track section.id) {
-      <div
-        cdkDrag
-        class="menu-section"
-        [attr.data-section-id]="section.id"
-      >
-        <!-- Drag handle for sections -->
-        <div cdkDragHandle class="section-drag-handle" title="Trascina per riordinare sezioni">
-          <i class="pi pi-bars"></i>
-        </div>
+	<!-- Sections with Items (Drag & Drop enabled) -->
+	<div
+		cdkDropList
+		[cdkDropListData]="sectionsWithItems()"
+		(cdkDropListDropped)="onSectionDrop($event)"
+		class="sections-list"
+	>
+		@for (section of sectionsWithItems(); track section.id) {
+		<div cdkDrag class="menu-section" [attr.data-section-id]="section.id">
+			<!-- Drag handle for sections -->
+			<div
+				cdkDragHandle
+				class="section-drag-handle"
+				title="Trascina per riordinare sezioni"
+			>
+				<i class="pi pi-bars"></i>
+			</div>
 
-        <div class="section-header">
-          <div class="section-info">
-            @if (section.header) {
-              <h3 class="section-header-text">{{ section.header }}</h3>
-            }
-            <h4 class="section-name">{{ section.name }}</h4>
-            <span class="item-count">({{ section.menuItems.length || 0 }} elementi)</span>
-          </div>
-          <div class="section-actions">
-            <button
-              pButton
-              type="button"
-              icon="pi pi-arrow-up"
-              class="p-button-rounded p-button-outlined"
-              (click)="moveSectionUp(section.id)"
-              title="Sposta sezione su"
-              [disabled]="section.position === 1"
-            ></button>
-            <button
-              pButton
-              type="button"
-              icon="pi pi-arrow-down"
-              class="p-button-rounded p-button-outlined"
-              (click)="moveSectionDown(section.id)"
-              title="Sposta sezione giù"
-              [disabled]="section.position === sectionsWithItems().length"
-            ></button>
-            <button
-              pButton
-              type="button"
-              icon="pi pi-trash"
-              class="p-button-rounded p-button-danger"
-              (click)="removeSection(section.id)"
-              title="Rimuovi sezione"
-              [disabled]="sectionsWithItems().length <= 1"
-            ></button>
-          </div>
-        </div>
+			<div class="section-header">
+				<div class="section-info">
+					@if (section.header) {
+					<h3 class="section-header-text">{{ section.header }}</h3>
+					}
+					<h4 class="section-name">{{ section.name }}</h4>
+					<span class="item-count"
+						>({{ section.menuItems.length || 0 }} elementi)</span
+					>
+				</div>
+				<div class="section-actions">
+					<button
+						pButton
+						type="button"
+						icon="pi pi-arrow-up"
+						class="p-button-rounded p-button-outlined"
+						(click)="moveSectionUp(section.id)"
+						title="Sposta sezione su"
+						[disabled]="section.position === 1"
+					></button>
+					<button
+						pButton
+						type="button"
+						icon="pi pi-arrow-down"
+						class="p-button-rounded p-button-outlined"
+						(click)="moveSectionDown(section.id)"
+						title="Sposta sezione giù"
+						[disabled]="section.position === sectionsWithItems().length"
+					></button>
+					<button
+						pButton
+						type="button"
+						icon="pi pi-trash"
+						class="p-button-rounded p-button-danger"
+						(click)="removeSection(section.id)"
+						title="Rimuovi sezione"
+						[disabled]="sectionsWithItems().length <= 1"
+					></button>
+				</div>
+			</div>
 
-        <!-- Items in this section (Drag & Drop enabled) -->
-        @if (section.menuItems && section.menuItems.length > 0) {
-          <div class="section-items">
-            <div
-              cdkDropList
-              [id]="'section-' + section.id"
-              [cdkDropListData]="section.menuItems"
-              [cdkDropListConnectedTo]="getSectionConnectedTo()"
-              (cdkDropListDropped)="onItemDrop($event, section.id)"
-              class="menu-items-grid"
-            >
-              @for (item of section.menuItems; track item.id) {
-                <div
-                  cdkDrag
-                  [attr.data-item-id]="item.id"
-                  class="menu-item-wrapper"
-                >
-                  <!-- Drag handle for items -->
-                  <div cdkDragHandle class="item-drag-handle" title="Trascina per spostare elemento">
-                    <i class="pi pi-grip-vertical"></i>
-                  </div>
+			<!-- Items in this section (Drag & Drop enabled) -->
+			@if (section.menuItems && section.menuItems.length > 0) {
+			<div class="section-items">
+				<div
+					cdkDropList
+					[id]="'section-' + section.id"
+					[cdkDropListData]="section.menuItems"
+					[cdkDropListConnectedTo]="getSectionConnectedTo()"
+					(cdkDropListDropped)="onItemDrop($event, section.id)"
+					class="menu-items-grid"
+				>
+					@for (item of section.menuItems; track item.id) {
+					<div cdkDrag [attr.data-item-id]="item.id" class="menu-item-wrapper">
+						<!-- Drag handle for items -->
+						<div
+							cdkDragHandle
+							class="item-drag-handle"
+							title="Trascina per spostare elemento"
+						>
+							<i class="pi pi-grip-vertical"></i>
+						</div>
 
-                  <app-menu-item-card
-                    [item]="item"
-                    [sectionId]="section.id"
-                    [hasAvailableImages]="hasAvailableImages()"
-                    (removeItem)="onRemoveItem($event)"
-                    (toggleShowImage)="onToggleShowImage($event)"
-                    (openImageManager)="onOpenImageManager($event)"
-                    (moveItem)="openMoveItemDialog($event)"
-                  ></app-menu-item-card>
-                </div>
-              }
-            </div>
-          </div>
-        } @else {
-          <div
-            cdkDropList
-            [id]="'section-' + section.id"
-            [cdkDropListData]="[]"
-            [cdkDropListConnectedTo]="getSectionConnectedTo()"
-            (cdkDropListDropped)="onItemDrop($event, section.id)"
-            class="empty-section"
-          >
-            <p>Nessun elemento in questa sezione</p>
-            <p class="drop-hint">Trascina qui gli elementi per aggiungerli</p>
-          </div>
-        }
-      </div>
-    }
-  </div>
+						<app-menu-item-card
+							[item]="item"
+							[sectionId]="section.id"
+							[hasAvailableImages]="hasAvailableImages()"
+							(removeItem)="onRemoveItem($event)"
+							(toggleShowImage)="onToggleShowImage($event)"
+							(openImageManager)="onOpenImageManager($event)"
+							(moveItem)="openMoveItemDialog($event)"
+						></app-menu-item-card>
+					</div>
+					}
+				</div>
+			</div>
+			} @else {
+			<div
+				cdkDropList
+				[id]="'section-' + section.id"
+				[cdkDropListData]="[]"
+				[cdkDropListConnectedTo]="getSectionConnectedTo()"
+				(cdkDropListDropped)="onItemDrop($event, section.id)"
+				class="empty-section"
+			>
+				<p>Nessun elemento in questa sezione</p>
+				<p class="drop-hint">Trascina qui gli elementi per aggiungerli</p>
+			</div>
+			}
+		</div>
+		}
+	</div>
 
-  <!-- Add Section Dialog -->
-  <p-dialog
-    header="Aggiungi Nuova Sezione"
-    [visible]="showAddSectionDialog()"
-    (visibleChange)="showAddSectionDialog.set($event)"
-    [modal]="true"
-    [style]="{ width: '400px' }"
-    [draggable]="false"
-    [resizable]="false"
-  >
-    <div class="p-fluid">
-      <div class="p-field">
-        <label for="sectionName">Nome Sezione:</label>
-        <input
-          id="sectionName"
-          type="text"
-          pInputText
-          [value]="newSectionName()"
-          (input)="onSectionNameInput($event)"
-          placeholder="Inserisci nome sezione"
-        />
-      </div>
-      <div class="p-field">
-        <label for="sectionHeader">Header Sezione (opzionale):</label>
-        <input
-          id="sectionHeader"
-          type="text"
-          pInputText
-          [value]="newSectionHeader()"
-          (input)="onSectionHeaderInput($event)"
-          placeholder="Inserisci header sezione (opzionale)"
-        />
-      </div>
-    </div>
-    <ng-template pTemplate="footer">
-      <button
-        pButton
-        type="button"
-        label="Annulla"
+	<!-- Add Section Dialog -->
+	<p-dialog
+		header="Aggiungi Nuova Sezione"
+		[visible]="showAddSectionDialog()"
+		(visibleChange)="showAddSectionDialog.set($event)"
+		[modal]="true"
+		[style]="{ height: '40vh' }"
+		[draggable]="false"
+		[resizable]="false"
+		styleClass="menu-sections-dialog"
+	>
+		<div class="p-fluid">
+			<div class="p-field">
+				<label for="sectionName">Nome Sezione:</label>
+				<input
+					id="sectionName"
+					type="text"
+					pInputText
+					[value]="newSectionName()"
+					(input)="onSectionNameInput($event)"
+					placeholder="Inserisci nome sezione"
+				/>
+			</div>
+			<div class="p-field">
+				<label for="sectionHeader">Header Sezione (opzionale):</label>
+				<input
+					id="sectionHeader"
+					type="text"
+					pInputText
+					[value]="newSectionHeader()"
+					(input)="onSectionHeaderInput($event)"
+					placeholder="Inserisci header sezione (opzionale)"
+				/>
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Annulla"
 				title="Annulla"
-        icon="pi pi-times"
-        (click)="showAddSectionDialog.set(false)"
-        class="p-button-text"
-      ></button>
-      <button
-        pButton
-        type="button"
-        label="Aggiungi"
+				icon="pi pi-times"
+				(click)="showAddSectionDialog.set(false)"
+				class="p-button-text"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Aggiungi"
 				title="Aggiungi"
-        icon="pi pi-check"
-        (click)="addSection()"
-        [disabled]="!newSectionName().trim()"
-      ></button>
-    </ng-template>
-  </p-dialog>
+				icon="pi pi-check"
+				(click)="addSection()"
+				[disabled]="!newSectionName().trim()"
+			></button>
+		</ng-template>
+	</p-dialog>
 
-  <!-- Manage Sections Dialog -->
-  <p-dialog
-    header="Gestisci Sezioni"
-    [visible]="showManageSectionsDialog()"
-    (visibleChange)="showManageSectionsDialog.set($event)"
-    [modal]="true"
-    [style]="{ width: '600px' }"
-    [draggable]="false"
-    [resizable]="false"
-  >
-    <div class="manage-sections-content">
-      <p>Usa i pulsanti su/giù per riordinare le sezioni, o il pulsante elimina per rimuovere una sezione.</p>
-      @for (section of sectionsWithItems(); track section.id) {
-        <div class="section-manage-item">
-          <div class="section-info">
-            @if (section.header) {
-              <span class="section-header-text">{{ section.header }}</span>
-            }
-            <span class="section-name">{{ section.name }}</span>
-            <span class="item-count">({{ section.menuItems.length || 0 }} elementi)</span>
-          </div>
-          <div class="section-actions">
-            <button
-              pButton
-              type="button"
-              icon="pi pi-arrow-up"
-              class="p-button-outlined p-button-rounded"
-              (click)="moveSectionUp(section.id)"
-              [disabled]="section.position === 1"
-							title="Sposta sù"
-            ></button>
-            <button
-              pButton
-              type="button"
-              icon="pi pi-arrow-down"
-              class="p-button-outlined p-button-rounded"
-              (click)="moveSectionDown(section.id)"
-              [disabled]="section.position === sectionsWithItems().length"
-							title="Sposta giù"
-            ></button>
-            <button
-              pButton
-              type="button"
-              icon="pi pi-trash"
-              class="p-button-danger p-button-rounded"
-              (click)="removeSection(section.id)"
-              [disabled]="sectionsWithItems().length <= 1"
-							title="Cancella"
-            ></button>
-          </div>
-        </div>
-      }
-    </div>
-    <ng-template pTemplate="footer">
-      <button
-        pButton
-        type="button"
-        label="Chiudi"
+	<!-- Manage Sections Dialog -->
+	<p-dialog
+		header="Gestisci Sezioni"
+		[visible]="showManageSectionsDialog()"
+		(visibleChange)="showManageSectionsDialog.set($event)"
+		[modal]="true"
+		[style]="{ width: '600px' }"
+		[draggable]="false"
+		[resizable]="false"
+		styleClass="menu-sections-dialog"
+	>
+		<div class="manage-sections-content">
+			<p>
+				Usa i pulsanti su/giù per riordinare le sezioni, o il pulsante elimina
+				per rimuovere una sezione.
+			</p>
+			@for (section of sectionsWithItems(); track section.id) {
+			<div class="section-manage-item">
+				<div class="section-info">
+					@if (section.header) {
+					<span class="section-header-text">{{ section.header }}</span>
+					}
+					<span class="section-name">{{ section.name }}</span>
+					<span class="item-count"
+						>({{ section.menuItems.length || 0 }} elementi)</span
+					>
+				</div>
+				<div class="section-actions">
+					<button
+						pButton
+						type="button"
+						icon="pi pi-arrow-up"
+						class="p-button-outlined p-button-rounded"
+						(click)="moveSectionUp(section.id)"
+						[disabled]="section.position === 1"
+						title="Sposta sù"
+					></button>
+					<button
+						pButton
+						type="button"
+						icon="pi pi-arrow-down"
+						class="p-button-outlined p-button-rounded"
+						(click)="moveSectionDown(section.id)"
+						[disabled]="section.position === sectionsWithItems().length"
+						title="Sposta giù"
+					></button>
+					<button
+						pButton
+						type="button"
+						icon="pi pi-trash"
+						class="p-button-danger p-button-rounded"
+						(click)="removeSection(section.id)"
+						[disabled]="sectionsWithItems().length <= 1"
+						title="Cancella"
+					></button>
+				</div>
+			</div>
+			}
+		</div>
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Chiudi"
 				title="Chiudi"
-        icon="pi pi-check"
-        (click)="showManageSectionsDialog.set(false)"
-      ></button>
-    </ng-template>
-  </p-dialog>
+				icon="pi pi-check"
+				(click)="showManageSectionsDialog.set(false)"
+			></button>
+		</ng-template>
+	</p-dialog>
 
-  <!-- Move Item Dialog -->
-  <p-dialog
-    header="Sposta Elemento"
-    [visible]="showMoveItemDialog()"
-    (visibleChange)="showMoveItemDialog.set($event)"
-    [modal]="true"
-    [style]="{ heigth: '100%' }"
-    [draggable]="false"
-    [resizable]="true"
-  >
-    @if (selectedItemForMove(); as item) {
-      <div class="p-fluid">
-        <div class="move-item-info">
-          <h5>{{ item.name }}</h5>
-          <p>Scegli la sezione di destinazione:</p>
-        </div>
-        <div class="p-field">
-          <label for="targetSection">Sezione:</label>
-          <p-dropdown
-            id="targetSection"
-            [options]="availableSectionsForMove()"
-            placeholder="Seleziona sezione"
-            styleClass="w-full"
-            #targetSectionDropdown
-          ></p-dropdown>
-        </div>
-      </div>
-      <ng-template pTemplate="footer">
-        <button
-          pButton
-          type="button"
-          label="Annulla"
-          icon="pi pi-times"
-          (click)="showMoveItemDialog.set(false); selectedItemForMove.set(null)"
-          class="p-button-text"
-          title="Annulla"
-        ></button>
-        <button
-          pButton
-          type="button"
-          label="Sposta"
-          icon="pi pi-arrow-right"
-          (click)="moveItemManually(targetSectionDropdown.value)"
-          [disabled]="!targetSectionDropdown.value"
-          title="Sposta"
-        ></button>
-      </ng-template>
-    }
-  </p-dialog>
+	<!-- Move Item Dialog -->
+	<p-dialog
+		header="Sposta Elemento"
+		[visible]="showMoveItemDialog()"
+		(visibleChange)="showMoveItemDialog.set($event)"
+		[modal]="true"
+		[style]="{ height: '100%' }"
+		[draggable]="false"
+		[resizable]="true"
+		styleClass="menu-sections-dialog"
+	>
+		@if (selectedItemForMove(); as item) {
+		<div class="p-fluid">
+			<div class="move-item-info">
+				<h5>{{ item.name }}</h5>
+				<p>Scegli la sezione di destinazione:</p>
+			</div>
+			<div class="p-field">
+				<label for="targetSection">Sezione:</label>
+				<p-dropdown
+					id="targetSection"
+					[options]="availableSectionsForMove()"
+					placeholder="Seleziona sezione"
+					styleClass="w-full"
+					#targetSectionDropdown
+				></p-dropdown>
+			</div>
+		</div>
+		<ng-template pTemplate="footer">
+			<button
+				pButton
+				type="button"
+				label="Annulla"
+				icon="pi pi-times"
+				(click)="showMoveItemDialog.set(false); selectedItemForMove.set(null)"
+				class="p-button-text"
+				title="Annulla"
+			></button>
+			<button
+				pButton
+				type="button"
+				label="Sposta"
+				icon="pi pi-arrow-right"
+				(click)="moveItemManually(targetSectionDropdown.value)"
+				[disabled]="!targetSectionDropdown.value"
+				title="Sposta"
+			></button>
+		</ng-template>
+		}
+	</p-dialog>
 </div>

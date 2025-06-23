@@ -410,6 +410,260 @@
   margin-top: 1.5rem;
 }
 
+// Dialog Styles - Fix spacing issues caused by global overrides
+:host ::ng-deep {
+  // Target our specific dialog class to fix spacing
+  .menu-sections-dialog {
+    .p-dialog {
+      background: var(--surface-0) !important;
+      border: 1px solid var(--surface-border) !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .p-dialog-header {
+      padding: 1.25rem 1.5rem !important;
+      border-bottom: 1px solid var(--surface-border) !important;
+      background: var(--surface-0) !important;
+
+      .p-dialog-title {
+        font-weight: 600 !important;
+        font-size: 1.1rem !important;
+        color: var(--text-color) !important;
+      }
+
+      .p-dialog-header-icon {
+        width: 2rem !important;
+        height: 2rem !important;
+        color: var(--text-color-secondary) !important;
+        border-radius: 50% !important;
+        transition: all 0.2s ease !important;
+
+        &:hover {
+          background: var(--surface-hover) !important;
+          color: var(--text-color) !important;
+        }
+      }
+    }
+
+    .p-dialog-content {
+      padding: 1.5rem !important;
+      background: var(--surface-0) !important;
+      color: var(--text-color) !important;
+
+      .p-fluid {
+        .p-field {
+          margin-bottom: 1rem !important;
+
+          &:last-child {
+            margin-bottom: 0 !important;
+          }
+
+          label {
+            display: block !important;
+            font-weight: 500 !important;
+            margin-bottom: 0.5rem !important;
+            color: var(--text-color) !important;
+            font-size: 0.9rem !important;
+          }
+
+          .p-inputtext {
+            width: 100% !important;
+            padding: 0.75rem !important;
+            border: 1px solid var(--surface-border) !important;
+            border-radius: 6px !important;
+            background: var(--surface-0) !important;
+            color: var(--text-color) !important;
+            font-size: 0.9rem !important;
+            transition: all 0.2s ease !important;
+
+            &:focus {
+              border-color: var(--primary-color) !important;
+              box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.2) !important;
+              outline: none !important;
+            }
+
+            &::placeholder {
+              color: var(--text-color-secondary) !important;
+              opacity: 0.7 !important;
+            }
+          }
+
+          .p-dropdown {
+            width: 100% !important;
+            
+            .p-dropdown-label {
+              padding: 0.75rem !important;
+              font-size: 0.9rem !important;
+              color: var(--text-color) !important;
+            }
+
+            .p-dropdown-trigger {
+              padding: 0.75rem !important;
+            }
+          }
+        }
+      }
+
+      // Fix specific dialog sections
+      .move-item-info {
+        margin-bottom: 1.5rem !important;
+        text-align: center !important;
+
+        h5 {
+          margin: 0 0 0.75rem 0 !important;
+          color: var(--primary-color) !important;
+          font-weight: 600 !important;
+          font-size: 1.1rem !important;
+        }
+
+        p {
+          margin: 0 !important;
+          color: var(--text-color-secondary) !important;
+          font-size: 0.9rem !important;
+        }
+      }
+
+      // Fix manage sections content
+      .manage-sections-content {
+        p {
+          margin-bottom: 1.5rem !important;
+          color: var(--text-color-secondary) !important;
+          font-size: 0.9rem !important;
+          line-height: 1.5 !important;
+        }
+      }
+
+      // Section manage item fixes
+      .section-manage-item {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 1rem !important;
+        margin-bottom: 0.75rem !important;
+        background: var(--surface-section) !important;
+        border-radius: 6px !important;
+        border: 1px solid var(--surface-border) !important;
+        transition: all 0.2s ease !important;
+
+        &:last-child {
+          margin-bottom: 0 !important;
+        }
+
+        &:hover {
+          background: var(--surface-hover) !important;
+          border-color: var(--primary-color) !important;
+        }
+
+        .section-info {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: flex-start !important;
+          gap: 0.25rem !important;
+          flex: 1 !important;
+
+          .section-header-text {
+            font-size: 0.85rem !important;
+            font-weight: 500 !important;
+            color: var(--primary-color) !important;
+            font-style: italic !important;
+            margin: 0 !important;
+          }
+
+          .section-name {
+            font-weight: 600 !important;
+            color: var(--text-color) !important;
+            margin: 0 !important;
+            font-size: 1rem !important;
+          }
+
+          .item-count {
+            font-size: 0.8rem !important;
+            color: var(--text-color-secondary) !important;
+            background: var(--surface-200) !important;
+            padding: 0.25rem 0.5rem !important;
+            border-radius: 12px !important;
+          }
+        }
+
+        .section-actions {
+          display: flex !important;
+          gap: 0.5rem !important;
+          align-items: center !important;
+
+          .p-button {
+            min-width: 2.5rem !important;
+            min-height: 2.5rem !important;
+            padding: 0.5rem !important;
+            border-radius: 50% !important;
+
+            .p-button-icon {
+              font-size: 1rem !important;
+            }
+
+            &.p-button-outlined {
+              border-width: 1px !important;
+            }
+
+            &.p-button-danger {
+              background-color: #dc3545 !important;
+              border-color: #dc3545 !important;
+              color: white !important;
+
+              &:hover:not(:disabled) {
+                background-color: #c82333 !important;
+                border-color: #bd2130 !important;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .p-dialog-footer {
+      padding: 1rem 1.5rem !important;
+      gap: 0.75rem !important;
+      background: var(--surface-0) !important;
+      border-top: 1px solid var(--surface-border) !important;
+
+      .p-button {
+        min-height: 2.5rem !important;
+        padding: 0.75rem 1.5rem !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+        border-radius: 6px !important;
+
+        &.p-button-text {
+          background: transparent !important;
+          border: 1px solid var(--surface-border) !important;
+          color: var(--text-color-secondary) !important;
+
+          &:hover {
+            background: var(--surface-hover) !important;
+            color: var(--text-color) !important;
+          }
+        }
+
+        &:not(.p-button-text) {
+          background: var(--primary-color) !important;
+          border-color: var(--primary-color) !important;
+          color: white !important;
+
+          &:hover:not(:disabled) {
+            background: var(--primary-color-dark) !important;
+            border-color: var(--primary-color-dark) !important;
+          }
+
+          &:disabled {
+            opacity: 0.6 !important;
+            cursor: not-allowed !important;
+          }
+        }
+      }
+    }
+  }
+}
+
 // Responsive Design
 @media (max-width: 768px) {
   .menu-sections-container {
@@ -536,6 +790,51 @@
 
     i {
       font-size: 1.5rem;
+    }
+  }
+
+  // Responsive fixes for menu-sections dialogs
+  :host ::ng-deep {
+    .menu-sections-dialog {
+      .p-dialog {
+        width: 95vw !important;
+        margin: 1rem !important;
+      }
+
+      .p-dialog-content {
+        padding: 1rem !important;
+      }
+
+      .p-dialog-footer {
+        padding: 1rem !important;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+
+        .p-button {
+          width: 100% !important;
+        }
+      }
+
+      .section-manage-item {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 1rem !important;
+        padding: 1rem !important;
+
+        .section-info {
+          text-align: center !important;
+        }
+
+        .section-actions {
+          justify-content: center !important;
+          gap: 1rem !important;
+
+          .p-button {
+            min-width: 3rem !important;
+            min-height: 3rem !important;
+          }
+        }
+      }
     }
   }
 }

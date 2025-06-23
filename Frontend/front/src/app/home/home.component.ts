@@ -71,7 +71,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
 	ngOnDestroy() {
 		// Cleanup will be handled by the WebSocket connection itself
-	}	private handleWebSocketResponse(message: any) {
+	}
+	private handleWebSocketResponse(message: any) {
 		switch (message.type) {
 			case 'slideshowActivated':
 			case 'slideshowStatusUpdate':
@@ -79,34 +80,39 @@ export class HomeComponent implements OnInit, OnDestroy {
 					// Update slideshow service with new status
 					this.slideshowService.updateSlideshowStatus({
 						slideshow: message.slideshow,
-						isActive: true
+						isActive: true,
 					});
 
 					// Only navigate to slideshow if we're on a public page (not admin pages)
 					const currentUrl = this.router.url;
-					const isAdminPage = currentUrl.includes('/submit') ||
-									   currentUrl.includes('/menu-sections') ||
-									   currentUrl.includes('/slideshow-management') ||
-									   currentUrl.includes('/admin');
+					const isAdminPage =
+						currentUrl.includes('/submit') ||
+						currentUrl.includes('/menu-sections') ||
+						currentUrl.includes('/slideshow-management') ||
+						currentUrl.includes('/admin');
 
 					if (!isAdminPage) {
 						console.log('Slideshow activated, navigating to slideshow');
 						this.router.navigate(['/slideshow']);
 					} else {
-						console.log('Slideshow activated but staying on admin page:', currentUrl);
+						console.log(
+							'Slideshow activated but staying on admin page:',
+							currentUrl
+						);
 					}
 				}
 				break;
 			case 'slideshowDeactivated':
 				this.slideshowService.updateSlideshowStatus({
 					slideshow: null,
-					isActive: false
+					isActive: false,
 				});
 				console.log('Slideshow deactivated, staying on current page');
 				// Optionally navigate back to home if currently on slideshow page
 				if (this.router.url === '/slideshow') {
 					this.router.navigate(['/home']);
-				}				break;
+				}
+				break;
 			default:
 				console.log('Unhandled WebSocket message type:', message.type);
 		}
@@ -126,7 +132,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 			return {
 				backgroundColor: '#FDF5E6', // Cream color
 				backgroundImage: 'none',
-				minHeight: '100vh'
+				minHeight: '100vh',
 			};
 		}
 
@@ -136,13 +142,13 @@ export class HomeComponent implements OnInit, OnDestroy {
 				return {
 					backgroundColor: background.value,
 					backgroundImage: 'none',
-					minHeight: '100vh'
+					minHeight: '100vh',
 				};
 			case 'gradient':
 				return {
 					background: background.value,
 					backgroundImage: 'none',
-					minHeight: '100vh'
+					minHeight: '100vh',
 				};
 			case 'image':
 				return {
@@ -150,7 +156,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 					backgroundSize: 'cover',
 					backgroundPosition: 'center',
 					backgroundRepeat: 'no-repeat',
-					minHeight: '100vh'
+					minHeight: '100vh',
 				};
 			default:
 				// Fallback to legacy format if exists
@@ -160,13 +166,13 @@ export class HomeComponent implements OnInit, OnDestroy {
 						backgroundSize: 'cover',
 						backgroundPosition: 'center',
 						backgroundRepeat: 'no-repeat',
-						minHeight: '100vh'
+						minHeight: '100vh',
 					};
 				}
 				return {
 					backgroundColor: '#FDF5E6', // Cream color
 					backgroundImage: 'none',
-					minHeight: '100vh'
+					minHeight: '100vh',
 				};
 		}
 	}

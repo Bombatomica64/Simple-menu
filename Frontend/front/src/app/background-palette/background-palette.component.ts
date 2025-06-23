@@ -72,9 +72,7 @@ const GRADIENT_PRESETS = [
 export class BackgroundPaletteComponent {
 	// Angular 19+ input signals
 	menuConnection = input<MenuConnection | null>(null);
-	// Output signals for events
-	backgroundConfigUpdated = output<BackgroundConfig>();
-	backgroundConfigDeleted = output<void>(); // No longer need page name since there's only one
+	// Output signals removed - backend now handles automatic WebSocket updates
 
 	private http = inject(HttpClient);
 	private messageService = inject(MessageService);
@@ -247,18 +245,9 @@ export class BackgroundPaletteComponent {
 				.post<BackgroundConfig>(`${this.apiUrl}/api/backgrounds`, config)
 				.toPromise();
 
-			// Create the complete config object for emission
-			const completeConfig: BackgroundConfig = {
-				...response!,
-				type: this.selectedType(),
-				value: value,
-			};
-
 			// Update local state (since there's only one config, replace the entire array)
-			this.backgroundConfigs.set([completeConfig]);
+			this.backgroundConfigs.set([response!]);
 
-			console.log('Emitting simplified background config:', completeConfig);
-			this.backgroundConfigUpdated.emit(completeConfig);
 			this.closeDialog();
 			this.messageService.add({
 				severity: 'success',
@@ -289,8 +278,6 @@ export class BackgroundPaletteComponent {
 
 			// Update local state (clear all configs since there's only one)
 			this.backgroundConfigs.set([]);
-
-			this.backgroundConfigDeleted.emit();
 
 			this.messageService.add({
 				severity: 'success',

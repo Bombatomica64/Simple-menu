@@ -52,6 +52,7 @@
 	transition: all 0.2s ease;
 	-webkit-backdrop-filter: blur(5px);
 	backdrop-filter: blur(5px);
+	background: rgba(255, 255, 255, 0.8);
 
 	&:hover {
 		border-color: #e0e0e0;

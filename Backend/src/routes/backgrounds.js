@@ -1,6 +1,8 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const upload = require('../config/multer');
+const { broadcastMessage, broadcastInMemoryMenu } = require('../websocket/manager');
+const menuService = require('../services/menuService');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -20,16 +22,16 @@ router.post('/upload', upload.single('backgroundImage'), async (req, res) => {
 
   try {
     const imageUrl = getFullImageUrl(req, req.file.filename);
-    
+
     res.json({
       message: 'Background image uploaded successfully',
       imageUrl: imageUrl
     });
   } catch (error) {
     console.error('Error uploading background image:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to upload background image',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -38,24 +40,24 @@ router.post('/upload', upload.single('backgroundImage'), async (req, res) => {
 router.get('/:page', async (req, res) => {
   try {
     const { page } = req.params;
-    
+
     const backgroundConfig = await prisma.backgroundConfig.findUnique({
       where: { page }
     });
 
     if (!backgroundConfig) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Background configuration not found for this page',
-        page 
+        page
       });
     }
 
     res.json(backgroundConfig);
   } catch (error) {
     console.error('Error fetching background config:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch background configuration',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -64,32 +66,32 @@ router.get('/:page', async (req, res) => {
 router.get('/menu/:menuId', async (req, res) => {
   try {
     const menuId = parseInt(req.params.menuId);
-    
+
     const menu = await prisma.menu.findUnique({
       where: { id: menuId },
       include: { background: true }
     });
 
     if (!menu) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Menu not found',
-        menuId 
+        menuId
       });
     }
 
     if (!menu.background) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'No background configuration found for this menu',
-        menuId 
+        menuId
       });
     }
 
     res.json(menu.background);
   } catch (error) {
     console.error('Error fetching menu background config:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch menu background configuration',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -100,7 +102,7 @@ router.post('/', async (req, res) => {
     const { type, value } = req.body;
 
     if (!type || !value) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Type and value are required',
         required: ['type', 'value']
       });
@@ -109,9 +111,9 @@ router.post('/', async (req, res) => {
     // Validate type
     const validTypes = ['color', 'gradient', 'image'];
     if (!validTypes.includes(type)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Invalid background type',
-        validTypes 
+        validTypes
       });
     }
 
@@ -120,24 +122,37 @@ router.post('/', async (req, res) => {
 
     const backgroundConfig = await prisma.backgroundConfig.upsert({
       where: { page: FIXED_PAGE },
-      update: { 
+      update: {
         type,
         value,
         updatedAt: new Date()
       },
-      create: { 
-        page: FIXED_PAGE, 
+      create: {
+        page: FIXED_PAGE,
         type,
         value
       }
     });
 
+    // Broadcast background config update via WebSocket
+    broadcastMessage({
+      type: 'backgroundConfig',
+      page: FIXED_PAGE,
+      config: backgroundConfig
+    });
+
+    // Refresh the background in the current in-memory menu
+    await menuService.refreshMenuBackground();
+
+    // Also broadcast menu update to refresh background in menu display
+    broadcastInMemoryMenu();
+
     res.json(backgroundConfig);
   } catch (error) {
     console.error('Error saving background config:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to save background configuration',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -153,29 +168,29 @@ router.put('/page/:page', async (req, res) => {
     const finalValue = value || background;
 
     if (!finalValue) {
-      return res.status(400).json({ 
-        error: 'Background value is required' 
+      return res.status(400).json({
+        error: 'Background value is required'
       });
     }
 
     // Validate page parameter
     const validPages = ['pasta', 'main', 'sections', 'menu', 'submit'];
     if (!validPages.includes(page)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Invalid page specified',
-        validPages 
+        validPages
       });
     }
 
     const backgroundConfig = await prisma.backgroundConfig.upsert({
       where: { page },
-      update: { 
+      update: {
         type: finalType,
         value: finalValue,
         updatedAt: new Date()
       },
-      create: { 
-        page, 
+      create: {
+        page,
         type: finalType,
         value: finalValue
       }
@@ -187,9 +202,9 @@ router.put('/page/:page', async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating page background config:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to update page background configuration',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -205,8 +220,8 @@ router.put('/menu/:menuId', async (req, res) => {
     const finalValue = value || background;
 
     if (!finalValue) {
-      return res.status(400).json({ 
-        error: 'Background value is required' 
+      return res.status(400).json({
+        error: 'Background value is required'
       });
     }
 
@@ -216,15 +231,15 @@ router.put('/menu/:menuId', async (req, res) => {
     });
 
     if (!menu) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Menu not found',
-        menuId 
+        menuId
       });
     }
 
     // Create or update background config
     const backgroundConfig = await prisma.backgroundConfig.create({
-      data: { 
+      data: {
         type: finalType,
         value: finalValue
       }
@@ -243,9 +258,9 @@ router.put('/menu/:menuId', async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating menu background config:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to update menu background configuration',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -255,7 +270,7 @@ router.get('/', async (req, res) => {
   try {
     // Since we only have one background configuration, get the pasta page config
     const FIXED_PAGE = 'pasta';
-    
+
     const backgroundConfig = await prisma.backgroundConfig.findUnique({
       where: { page: FIXED_PAGE }
     });
@@ -269,9 +284,9 @@ router.get('/', async (req, res) => {
     res.json([backgroundConfig]);
   } catch (error) {
     console.error('Error fetching background config:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to fetch background configuration',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -286,21 +301,33 @@ router.delete('/', async (req, res) => {
       where: { page: FIXED_PAGE }
     });
 
+    // Broadcast background config deletion via WebSocket
+    broadcastMessage({
+      type: 'backgroundConfigDeleted',
+      page: FIXED_PAGE
+    });
+
+    // Refresh the background in the current in-memory menu (will set to null)
+    await menuService.refreshMenuBackground();
+
+    // Also broadcast menu update to refresh background in menu display
+    broadcastInMemoryMenu();
+
     res.json({
       message: 'Background configuration deleted successfully',
       deletedConfig
     });
   } catch (error) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ 
-        error: 'Background configuration not found' 
+      return res.status(404).json({
+        error: 'Background configuration not found'
       });
     }
-    
+
     console.error('Error deleting background config:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to delete background configuration',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -320,15 +347,15 @@ router.delete('/page/:page', async (req, res) => {
     });
   } catch (error) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ 
-        error: 'Background configuration not found for this page' 
+      return res.status(404).json({
+        error: 'Background configuration not found for this page'
       });
     }
-    
+
     console.error('Error deleting page background config:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to delete page background configuration',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -350,15 +377,15 @@ router.delete('/menu/:menuId', async (req, res) => {
     });
   } catch (error) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ 
-        error: 'Menu not found' 
+      return res.status(404).json({
+        error: 'Menu not found'
       });
     }
-    
+
     console.error('Error removing menu background config:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to remove menu background configuration',
-      details: error.message 
+      details: error.message
     });
   }
 });

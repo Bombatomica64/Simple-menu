@@ -1,7 +1,8 @@
 <div class="menu-section-container">
 	@if (section().header) {
 	<h2 class="section-header">{{ section().header }}</h2>
-	}	<p-panel
+	}
+	<p-panel
 		[header]="section().name"
 		styleClass="menu-section-panel"
 		[ngStyle]="{
@@ -11,7 +12,8 @@
 	>
 		<div class="grid">
 			@for (item of itemsWithFullImageUrls(); track item.id) {
-			<div class="col-12 mb-3">				<div class="menu-item-row">
+			<div class="col-12 mb-3">
+				<div class="menu-item-row">
 					@if (item.imageUrl && item.showImage) {
 					<app-image
 						[src]="item.imageUrl"

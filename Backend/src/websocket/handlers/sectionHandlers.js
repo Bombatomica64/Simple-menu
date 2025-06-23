@@ -17,6 +17,7 @@ async function handleRemoveSection(message, ws, { broadcastInMemoryMenu }) {
 
 async function handleUpdateSectionOrder(message, ws, { broadcastInMemoryMenu }) {
   const updated = await menuService.updateSectionOrder(message.sectionUpdates);
+  console.log("Updated section order:", updated);
   if (updated) {
     broadcastInMemoryMenu();
   }

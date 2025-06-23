@@ -84,7 +84,9 @@ export class MultiPageMenuComponent implements OnDestroy {
 
   menuSections = computed<MenuSection[]>(() => {
     const currentMenu = this.menu();
-    return currentMenu?.menuSections || [];
+    const sections = currentMenu?.menuSections || [];
+    // Sort sections by position to ensure proper ordering in the multi-page menu
+    return [...sections].sort((a, b) => (a.position || 0) - (b.position || 0));
   });  // Create pages with pasta always first and dynamic sections based on orientation
   menuPages = computed<MenuPage[]>(() => {
     const pastaTypes = this.pastaTypes();

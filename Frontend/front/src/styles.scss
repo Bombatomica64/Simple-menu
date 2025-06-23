@@ -1,56 +1,59 @@
-@import 'primeicons/primeicons.css';
+@import "primeicons/primeicons.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Global viewport fixes for fixed layout pages */
-html, body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+html,
+body {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
 }
 
 /* Fixed viewport for pasta component */
 body.pasta-page {
-  overflow: hidden;
-  height: 100vh;
-  width: 100vw;
+	overflow: hidden;
+	height: 100vh;
+	width: 100vw;
 }
 
 /* Fix for p-select dropdown appearing behind dialogs */
 ::ng-deep .p-select-overlay {
-  z-index: 9999 !important;
+	z-index: 9999 !important;
 }
 
 ::ng-deep .p-select .p-select-overlay {
-  z-index: 9999 !important;
+	z-index: 9999 !important;
 }
 
 /* Ensure p-select dropdowns in dialogs appear correctly */
 ::ng-deep p-dialog .p-select-overlay,
 ::ng-deep .p-dialog .p-select-overlay {
-  z-index: 10000 !important;
+	z-index: 10000 !important;
 }
 
 /* Fix for p-dropdown in dialogs */
 ::ng-deep .p-dropdown-panel {
-  z-index: 9999 !important;
+	z-index: 9999 !important;
 }
 
 /* Ensure p-dropdown panels in dialogs appear correctly */
 ::ng-deep p-dialog .p-dropdown-panel,
 ::ng-deep .p-dialog .p-dropdown-panel {
-  z-index: 10000 !important;
+	z-index: 10000 !important;
 }
 
 ::ng-deep p-dialog .p-dropdown-panel,
 ::ng-deep .p-dialog .p-dropdown-panel {
-  z-index: 10000 !important;
+	z-index: 10000 !important;
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
 }
 
 /*
@@ -167,16 +170,17 @@ body {
 
 /* Global viewport fixes for pasta component */
 body.pasta-page {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  height: 100vh;
-  width: 100vw;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	height: 100vh;
+	width: 100vw;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
+html,
+body {
+	margin: 0;
+	padding: 0;
 }
 
 /* PrimeNG global dark theme overrides */
@@ -706,22 +710,23 @@ html, body {
 }
 
 /* Dialog Form Content Styling - Critical for proper spacing and layout */
+/* Note: Reduced use of !important to prevent conflicts with component-specific styles */
 ::ng-deep .p-dialog .p-dialog-content {
 	.p-fluid {
 		.p-field,
 		.p-field-group {
-			margin-bottom: 1.25rem !important;
+			margin-bottom: 1.25rem;
 
 			&:last-child {
-				margin-bottom: 0 !important;
+				margin-bottom: 0;
 			}
 
 			label {
-				display: block !important;
-				font-weight: 600 !important;
-				margin-bottom: 0.5rem !important;
-				color: var(--p-dialog-color) !important;
-				font-size: 0.875rem !important;
+				display: block;
+				font-weight: 600;
+				margin-bottom: 0.5rem;
+				color: var(--p-dialog-color, var(--text-color));
+				font-size: 0.875rem;
 			}
 
 			.p-inputtext,
@@ -729,70 +734,73 @@ html, body {
 			.p-multiselect,
 			.p-calendar,
 			.p-inputnumber input {
-				width: 100% !important;
-				padding: 0.75rem !important;
-				border: 1px solid var(--p-inputtext-border-color) !important;
-				border-radius: 6px !important;
-				background: var(--p-inputtext-background) !important;
-				color: var(--p-inputtext-color) !important;
-				font-size: 0.875rem !important;
-				transition: all 0.2s ease !important;
+				width: 100%;
+				padding: 0.75rem;
+				border: 1px solid var(--p-inputtext-border-color, var(--surface-border));
+				border-radius: 6px;
+				background: var(--p-inputtext-background, var(--surface-0));
+				color: var(--p-inputtext-color, var(--text-color));
+				font-size: 0.875rem;
+				transition: all 0.2s ease;
 
 				&:focus {
-					border-color: var(--p-inputtext-focus-border-color) !important;
-					box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2) !important;
-					outline: none !important;
+					border-color: var(
+						--p-inputtext-focus-border-color,
+						var(--primary-color)
+					);
+					box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
+					outline: none;
 				}
 			}
 
 			small {
-				color: var(--p-surface-400) !important;
-				font-size: 0.75rem !important;
-				margin-top: 0.25rem !important;
-				display: block !important;
+				color: var(--p-surface-400, var(--text-color-secondary));
+				font-size: 0.75rem;
+				margin-top: 0.25rem;
+				display: block;
 			}
 		}
 
 		.p-mb-3,
 		.p-mb-2 {
-			margin-bottom: 1.25rem !important;
+			margin-bottom: 1.25rem;
 		}
 
 		.p-mt-1 {
-			margin-top: 0.5rem !important;
+			margin-top: 0.5rem;
 		}
 	}
 
 	/* Specific spacing for different dialog sections */
 	.form-section,
 	.dialog-section {
-		margin-bottom: 1.5rem !important;
+		margin-bottom: 1.5rem;
 
 		&:last-child {
-			margin-bottom: 0 !important;
+			margin-bottom: 0;
 		}
 	}
 
 	/* Image upload section styling */
 	.image-upload-section {
-		border: 2px dashed var(--p-surface-700) !important;
-		border-radius: 8px !important;
-		padding: 1.5rem !important;
-		text-align: center !important;
-		background: var(--p-surface-800) !important;
-		margin: 1rem 0 !important;
+		border: 2px dashed var(--p-surface-700, var(--surface-border));
+		border-radius: 8px;
+		padding: 1.5rem;
+		text-align: center;
+		background: var(--p-surface-800, var(--surface-section));
+		margin: 1rem 0;
 
 		&:hover {
-			border-color: var(--p-primary-500) !important;
-			background: var(--p-surface-700) !important;
+			border-color: var(--p-primary-500, var(--primary-color));
+			background: var(--p-surface-700, var(--surface-hover));
 		}
 	}
 	/* Button groups in dialogs */
 	.button-group {
-		display: flex !important;
-		gap: 0.75rem !important;
-		align-items: center !important;
-		margin-top: 1rem !important;
+		display: flex;
+		gap: 0.75rem;
+		align-items: center;
+		margin-top: 1rem;
 	}
 }
 
@@ -1586,7 +1594,7 @@ html, body {
 
 /* Base PrimeIcon styling */
 ::ng-deep .pi {
-	font-family: 'PrimeIcons' !important;
+	font-family: "PrimeIcons" !important;
 	font-style: normal !important;
 	font-weight: normal !important;
 	font-variant: normal !important;
@@ -1652,7 +1660,7 @@ html, body {
 ::ng-deep .pi-question-circle::before,
 ::ng-deep .pi-exclamation-triangle::before {
 	display: inline-block !important;
-	font-family: 'PrimeIcons' !important;
+	font-family: "PrimeIcons" !important;
 }
 
 /* ==============================================

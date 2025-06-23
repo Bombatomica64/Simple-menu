@@ -36,6 +36,8 @@ import {
 	UpdateItemPositionsMessage,
 	AddSectionMessage,
 	RemoveSectionMessage,
+	UpdateMenuOrientationMessage,
+	UpdateMenuAvailableImagesMessage,
 	UpdateGlobalPastaDisplaySettingsMessage,
 	GlobalPastaDisplaySettings,
 	GetAvailableLogosMessage,
@@ -46,8 +48,7 @@ import {
 	UpdateSectionColorsMessage,
 	UpdatePastaTypesGlobalColorMessage,
 	UpdatePastaSaucesGlobalColorMessage,
-	UpdateBackgroundConfigMessage,
-	DeleteBackgroundConfigMessage,
+	UpdateSectionOrderMessage,
 } from '../webSocketResource';
 import {
 	Menu,
@@ -164,10 +165,11 @@ export class SubmitComponent implements OnInit {
 			opacity: number
 		) => this.updateLogoSettings(logoId, position, size, opacity),
 	};
+
 	// For adding new item
 	newItemName: string = '';
-	newItemDescription: string = '';
 	newItemPrice: number | null = null;
+	newItemDescription: string = '';
 	newItemSectionId: number | null = null;
 
 	// --- Pasta Types Management ---
@@ -289,6 +291,26 @@ export class SubmitComponent implements OnInit {
 		);
 		return option?.label || 'Medie (48px)';
 	});
+	// --- Menu Configuration Management ---
+	showMenuConfigDialog = signal(false);
+	selectedOrientation = signal<'vertical' | 'horizontal'>('vertical');
+	availableImagesText = signal<string>('');
+
+	// Computed properties for current menu configuration
+	currentMenuOrientation = computed(() => {
+		const menu = this.menuWsConnection?.resource?.value();
+		return menu?.orientation || 'vertical';
+	});
+
+	currentMenuAvailableImages = computed(() => {
+		const menu = this.menuWsConnection?.resource?.value();
+		return menu?.availableImages;
+	});
+
+	orientationOptions = [
+		{ label: 'Verticale', value: 'vertical' },
+		{ label: 'Orizzontale', value: 'horizontal' },
+	];
 	// Helper method to check if menu item has available images
 	hasAvailableImages(item: MenuItem): boolean {
 		const menu = this.menuWsConnection?.resource?.value();
@@ -355,6 +377,28 @@ export class SubmitComponent implements OnInit {
 			};
 			this.menuWsConnection?.sendUpdate(message);
 		});
+
+		// Always send full section positions for all existing sections
+		const sectionUpdates: { id: number; position: number }[] = [];
+		sections.forEach((section, index) => {
+			// Only include existing sections (skip new ones as they don't have IDs yet)
+			if (existingSectionIds.has(section.id)) {
+				sectionUpdates.push({
+					id: section.id,
+					position: index + 1, // 1-based position
+				});
+			}
+		});
+
+		// Send position updates if we have existing sections
+		if (sectionUpdates.length > 0) {
+			const message: UpdateSectionOrderMessage = {
+				type: 'updateSectionOrder',
+				sectionUpdates: sectionUpdates,
+			};
+			this.menuWsConnection?.sendUpdate(message);
+			console.log('Sending full section positions:', sectionUpdates);
+		}
 	}
 
 	// Handle moving item to different section
@@ -518,7 +562,7 @@ export class SubmitComponent implements OnInit {
 			item: {
 				name: this.newItemName.trim(),
 				price: this.newItemPrice!, // Use non-null assertion since we validated above
-				description: this.newItemDescription.trim() || undefined, // Only include if not empty
+				description: this.newItemDescription, // Include description
 				sectionId: finalSectionId,
 			},
 		};
@@ -526,8 +570,8 @@ export class SubmitComponent implements OnInit {
 
 		// Clear the form
 		this.newItemName = '';
-		this.newItemDescription = '';
 		this.newItemPrice = null;
+		this.newItemDescription = '';
 		this.newItemSectionId = null;
 	}
 	removeItemById(itemId: number) {
@@ -1079,6 +1123,34 @@ export class SubmitComponent implements OnInit {
 		// For now, return default font size. You can add pasta type display settings later
 		return { 'font-size': '1rem' };
 	}
+
+	// Menu Configuration Dialog Methods
+	openMenuConfigDialog() {
+		this.showMenuConfigDialog.set(true);
+	}
+
+	closeMenuConfigDialog() {
+		this.showMenuConfigDialog.set(false);
+	}
+
+	saveMenuConfiguration() {
+		// Save orientation
+		const orientationMessage: UpdateMenuOrientationMessage = {
+			type: 'updateMenuOrientation',
+			orientation: this.selectedOrientation(),
+		};
+		this.menuWsConnection?.sendUpdate(orientationMessage);
+
+		// Save available images
+		const imagesMessage: UpdateMenuAvailableImagesMessage = {
+			type: 'updateMenuAvailableImages',
+			availableImages: this.availableImagesText(),
+		};
+		this.menuWsConnection?.sendUpdate(imagesMessage);
+
+		this.closeMenuConfigDialog();
+	}
+
 	// Handle pasta display settings update from pasta-display-management component
 	onPastaDisplaySettingsUpdate(settings: GlobalPastaDisplaySettings) {
 		console.log('📡 Received pasta display settings update:', settings);
@@ -1260,15 +1332,15 @@ export class SubmitComponent implements OnInit {
 			type: 'getAvailableLogos',
 		};
 		this.menuWsConnection?.sendUpdate(message);
-	} // Event handlers for child components
+	}
+
+	// Event handlers for child components
 	handleSectionColorUpdate(event: {
 		sectionId: number;
 		backgroundColor: string;
 	}) {
-		console.log('🎨 Submit component received section color update:', event);
-
 		if (!this.menuWsConnection || !this.menuWsConnection.connected()) {
-			console.error('❌ WebSocket connection not available');
+			console.error('WebSocket connection not available');
 			return;
 		}
 
@@ -1279,9 +1351,7 @@ export class SubmitComponent implements OnInit {
 			textColor: '#000000', // Default text color
 		};
 
-		console.log('🎨 Sending WebSocket message:', message);
 		this.menuWsConnection.sendUpdate(message);
-		console.log('🎨 WebSocket message sent successfully');
 	}
 
 	handlePastaTypesColorUpdate(event: { backgroundColor: string }) {
@@ -1342,6 +1412,7 @@ export class SubmitComponent implements OnInit {
 	handleLogoDeletion(event: { logoId: number }) {
 		this.deleteLogo(event.logoId);
 	}
+
 	handleLogoSettingsUpdate(event: {
 		logoId: number;
 		position: string;
@@ -1354,42 +1425,16 @@ export class SubmitComponent implements OnInit {
 			event.size,
 			event.opacity
 		);
-	} // Background configuration handlers
-	handleBackgroundConfigUpdate(config: any) {
-		console.log('Background config updated:', config);
-		console.log('Config properties:', Object.keys(config || {}));
-
-		// Validate the config object
-		if (!config) {
-			console.error('Background config is null or undefined');
-			return;
-		}
-
-		if (!config.value && !config.background) {
-			console.error('Background config missing value/background property');
-			return;
-		}
-
-		// Send the simplified background update through WebSocket to update the live menu
-		if (this.menuWsConnection) {
-			const message = {
-				type: 'updateBackgroundConfig' as const,
-				backgroundType: config.type || 'color',
-				value: config.value || config.background,
-			};
-			console.log('Sending simplified background update message:', message);
-			this.menuWsConnection.sendUpdate(message);
-		}
 	}
-	handleBackgroundConfigDelete() {
-		console.log('Background config deleted');
 
-		// Send the simplified background deletion through WebSocket to update the live menu
-		if (this.menuWsConnection) {
-			const message = {
-				type: 'deleteBackgroundConfig' as const,
-			};
-			this.menuWsConnection.sendUpdate(message);
-		}
+	// Background config handlers - no longer needed since backend sends automatic updates
+	handleBackgroundConfigUpdate(event: any) {
+		console.log('Background config update:', event);
+		// Backend now automatically sends WebSocket updates, no manual triggering needed
+	}
+
+	handleBackgroundConfigDelete() {
+		console.log('Background config delete');
+		// Backend now automatically sends WebSocket updates, no manual triggering needed
 	}
 }
