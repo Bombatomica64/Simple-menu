@@ -5,11 +5,10 @@
 	min-height: 100vh;
 	max-width: 1400px; // Fixed maximum width
 	margin: 0 auto; // Center the container
-	position: relative; // For absolute positioning of price display
-	// Big Price Display - positioned at top left
+	position: relative; // For absolute positioning of price display	// Big Price Display - positioned at bottom left under pasta display
 	.big-price-display {
 		position: absolute;
-		top: 1rem;
+		bottom: 1rem;
 		left: 1rem;
 		background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
 		color: white;
@@ -156,9 +155,7 @@
 			height: 100%;
 
 			.p-panel-header {
-				background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
 				color: white;
-				padding: 1.2rem 1.5rem;
 				font-size: 1.1rem;
 				font-weight: 600;
 				border-bottom: none;
@@ -498,11 +495,11 @@
 
 .menu-sections-sidebar {
 	height: 100%;
-	overflow: hidden;
+	overflow: none;
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
-	background: rgba(255, 255, 255, 0.95);
+	background: whitesmoke;
 	border-radius: 12px;
 	border: 1px solid rgba(255, 255, 255, 0.3);
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -511,7 +508,7 @@
 
 	.sections-header {
 		flex-shrink: 0;
-		padding: 1rem 1.5rem;
+		padding: 0.5rem 1rem;
 		border-bottom: 1px solid rgba(139, 69, 19, 0.1);
 		background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
 		border-radius: 12px 12px 0 0;
@@ -573,7 +570,6 @@
 				overflow: hidden;
 
 				.p-panel-header {
-					background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);
 					color: white;
 					padding: 0.8rem 1rem;
 					font-size: 0.95rem;
@@ -582,7 +578,7 @@
 				}
 
 				.p-panel-content {
-					background: rgba(255, 255, 255, 0.98);
+					background: whitesmoke;
 					padding: 0.8rem;
 
 					.menu-item-row {

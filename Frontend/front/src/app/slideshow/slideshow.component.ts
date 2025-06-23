@@ -57,7 +57,8 @@ export class SlideshowComponent implements OnInit, OnDestroy {
 
 	isActive = computed(() => {
 		const data = this.slideshowResource?.value() as SlideshowStatus | undefined;
-		const shouldShow = data?.isActive && !!data?.slideshow && this.shouldShowSlideshow();
+		const shouldShow =
+			data?.isActive && !!data?.slideshow && this.shouldShowSlideshow();
 		console.log('Should show slideshow:', shouldShow, 'data:', data);
 		return shouldShow || false;
 	});
@@ -102,18 +103,21 @@ export class SlideshowComponent implements OnInit, OnDestroy {
 		if (!isPlatformBrowser(this.platformId)) return;
 
 		// Initialize resource only in browser environment for SSR compatibility
-		this.slideshowResource = resource({
-			loader: async () => {
-				// Access the trigger to make this resource reactive
-				this.refreshTrigger();
-				console.log('Loading slideshow data...');
-				const result = await this.http.get<SlideshowStatus>(`${environment.apiUrl}/api/slideshow/active`).toPromise();
-				return result!;
-			},
-		});
 
 		// Connect to WebSocket for real-time slideshow updates
 		runInInjectionContext(this.injector, () => {
+			this.slideshowResource = resource({
+				loader: async () => {
+					// Access the trigger to make this resource reactive
+					this.refreshTrigger();
+					console.log('Loading slideshow data...');
+					const result = await this.http
+						.get<SlideshowStatus>(`${environment.apiUrl}/api/slideshow/active`)
+						.toPromise();
+					return result!;
+				},
+			});
+
 			this.menuConnection = menuConnection(environment.wsUrl);
 
 			// Listen for slideshow update messages
@@ -128,7 +132,9 @@ export class SlideshowComponent implements OnInit, OnDestroy {
 		// Check time every minute for auto-exit slideshow (view-only mode)
 		this.timeCheckInterval = setInterval(() => {
 			if (this.isActive() && !this.shouldShowSlideshow()) {
-				console.log('Auto-hiding slideshow due to time limit - navigating to home');
+				console.log(
+					'Auto-hiding slideshow due to time limit - navigating to home'
+				);
 				this.router.navigate(['/home']);
 			}
 		}, 60000); // Check every minute
@@ -150,7 +156,7 @@ export class SlideshowComponent implements OnInit, OnDestroy {
 		console.log('Refreshing slideshow data...');
 		if (this.slideshowResource) {
 			// Trigger refresh by updating the signal
-			this.refreshTrigger.update(val => val + 1);
+			this.refreshTrigger.update((val) => val + 1);
 		}
 	}
 

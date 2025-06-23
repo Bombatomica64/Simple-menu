@@ -1343,7 +1343,7 @@ export class SubmitComponent implements OnInit {
 			console.error('WebSocket connection not available');
 			return;
 		}
-
+		console.log('Updating section color:', event);
 		const message: UpdateSectionColorsMessage = {
 			type: 'updateSectionColors',
 			sectionId: event.sectionId,

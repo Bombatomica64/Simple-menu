@@ -1,6 +1,12 @@
 // Menu section viewer styling - inherits from parent multi-page-menu styles
 :host {
 	display: block;
+
+	// Force panel header background color
+	::ng-deep .p-panel-header {
+		background: var(--panel-header-bg, #4a90e2) !important;
+		color: white !important;
+	}
 }
 
 // PrimeNG Panel styling with CSS custom properties
@@ -9,19 +15,19 @@
 		border: 1px solid rgba(0, 0, 0, 0.1);
 		border-radius: 8px;
 		// Use CSS custom property for dynamic background
-		background: var(--p-panel-background, var(--p-panel-background-color, var(--surface-ground))) !important;
 	}
 
 	.p-panel-header {
+		background: var(--panel-header-bg, #4a90e2) !important;
+		color: white !important;
 		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 		font-weight: 600;
-		// Inherit background from parent or use fallback
-		background: inherit;
+		text-align: center;
+		padding: 1rem 1.5rem;
 	}
 
 	.p-panel-content {
-		// Inherit background from parent p-panel
-		background: inherit !important;
+		background: whitesmoke !important;
 	}
 }
 
@@ -119,11 +125,7 @@
 
 		.menu-item-image {
 			margin-right: 0;
-			margin-bottom: 0.5rem;
 		}
 
-		.menu-item-content {
-			margin-bottom: 0.5rem;
-		}
 	}
 }

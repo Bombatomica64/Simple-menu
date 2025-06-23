@@ -1,18 +1,14 @@
 <div class="menu-section-container">
 	@if (section().header) {
-	<h2 class="section-header">{{ section().header }}</h2>
-	}
-	<p-panel
+	<h2 class="section-header"[ngStyle]="{ background: getSectionTextColor() }">{{ section().header }}</h2>
+	}	<p-panel
 		[header]="section().name"
 		styleClass="menu-section-panel"
-		[ngStyle]="{
-			'--p-panel-background': getSectionBackgroundColor(),
-			'--p-panel-background-color': getSectionBackgroundColor()
-		}"
+		[ngStyle]="{ '--panel-header-bg': getSectionBackgroundColor() }"
 	>
-		<div class="grid">
+		<div class="grid" [style]="{ 'background-color': 'white' }">
 			@for (item of itemsWithFullImageUrls(); track item.id) {
-			<div class="col-12 mb-3">
+			<div class="col-12 mb-3 bgwhite">
 				<div class="menu-item-row">
 					@if (item.imageUrl && item.showImage) {
 					<app-image

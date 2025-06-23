@@ -1003,10 +1003,20 @@ async function updateSectionColors(sectionId, backgroundColor, textColor) {
       if (textColor && !hexColorRegex.test(textColor)) {
         throw new Error('Invalid text color format');
       }
-    }
-
-    // Update section colors in database
+    }    // Update section colors in database
     console.log("🎨 Updating section in database...");
+    
+    // First check if the section exists
+    const existingSection = await prisma.menuSection.findUnique({
+      where: { id: sectionId }
+    });
+    
+    if (!existingSection) {
+      console.log("⚠️ Section not found in database, section ID:", sectionId);
+      console.log("🔍 Available sections:", await prisma.menuSection.findMany({ select: { id: true, name: true } }));
+      throw new Error(`Section with ID ${sectionId} not found in database`);
+    }
+    
     const updatedSection = await prisma.menuSection.update({
       where: { id: sectionId },
       data: {
