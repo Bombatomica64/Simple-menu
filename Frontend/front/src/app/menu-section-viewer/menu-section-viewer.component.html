@@ -8,7 +8,7 @@
 	>
 		<div class="grid" [style]="{ 'background-color': 'white' }">
 			@for (item of itemsWithFullImageUrls(); track item.id) {
-			<div class="col-12 mb-3 bgwhite">
+			<div class="col-12">
 				<div class="menu-item-row">
 					@if (item.imageUrl && item.showImage) {
 					<app-image
