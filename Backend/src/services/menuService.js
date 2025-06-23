@@ -34,6 +34,8 @@ async function loadInitialMenu() {
       const reloadedMenu = await prisma.menu.findFirst({
         orderBy: { createdAt: 'desc' },
         include: {
+          logo: true, // Include logo details
+          background: true, // Include background configuration
           menuItems: {
             orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
           },
@@ -469,6 +471,8 @@ async function getAllSavedMenus() {
       include: {
         menu: {
           include: {
+            logo: true, // Include logo details
+            background: true, // Include background configuration
             menuItems: {
               orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
             },
@@ -501,6 +505,8 @@ async function loadSavedMenu(savedMenuId) {
       include: {
         menu: {
           include: {
+            logo: true, // Include logo details
+            background: true, // Include background configuration
             menuItems: {
               orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
             },
@@ -525,6 +531,9 @@ async function loadSavedMenu(savedMenuId) {
         createdAt: savedMenu.menu.createdAt,
         orientation: savedMenu.menu.orientation || 'vertical',
         availableImages: savedMenu.menu.availableImages,
+        background: savedMenu.menu.background, // Include background configuration
+        logo: savedMenu.menu.logo, // Include logo configuration
+        logoId: savedMenu.menu.logoId, // Include logo ID
         menuItems: savedMenu.menu.menuItems,
         menuSections: savedMenu.menu.menuSections || [],
         pastaTypes: savedMenu.menu.pastaTypes,        pastaSauces: savedMenu.menu.pastaSauces,
