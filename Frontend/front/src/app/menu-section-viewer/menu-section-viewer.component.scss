@@ -1,11 +1,11 @@
 // Menu section viewer styling - inherits from parent multi-page-menu styles
 :host {
 	display: block;
-
-	// Force panel header background color
+	// Force panel header background color and font size
 	::ng-deep .p-panel-header {
 		background: var(--panel-header-bg, #4a90e2) !important;
 		color: white !important;
+		font-size: var(--panel-header-font-size, 1.2rem) !important;
 	}
 }
 
@@ -16,12 +16,12 @@
 		border-radius: 8px;
 		// Use CSS custom property for dynamic background
 	}
-
 	.p-panel-header {
 		background: var(--panel-header-bg, #4a90e2) !important;
 		color: white !important;
 		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 		font-weight: 600;
+		font-size: var(--panel-header-font-size, 1.2rem) !important;
 		text-align: center;
 		padding: 1rem 1.5rem;
 	}
@@ -78,13 +78,13 @@
 
 		h4 {
 			margin: 0 0 0.5rem 0;
-			font-size: 2rem;
+			font-size: 1.8rem;
 			font-weight: 500;
 		}
 
 		.menu-item-description {
 			margin: 0;
-			font-size: 1.2rem;
+			font-size: 1.1rem;
 			font-style: italic;
 			line-height: 1.4;
 			opacity: 0.8;

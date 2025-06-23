@@ -380,7 +380,7 @@
 	}
 
 	.p-panel-content {
-		padding: 1rem;
+		padding: 0.1rem;
 	}
 }
 
@@ -388,7 +388,7 @@
 .menu-item-row {
 	display: flex;
 	align-items: center;
-	padding: 1rem;
+	padding: 0.1rem;
 	background-color: rgba(255, 255, 255, 0.95);
 	border: 1px solid #f0f0f0;
 	border-radius: 8px;
@@ -529,11 +529,11 @@
 
 	.sections-container {
 		flex: 1;
-		overflow-y: none; // Disable default scrollbar
+		overflow-y: hidden; // Disable default scrollbar
 		padding: 1rem;
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: 0.1rem;
 		min-height: 0;
 
 		// Custom scrollbar for sections
@@ -575,11 +575,9 @@
 					font-size: 0.95rem;
 					font-weight: 600;
 					text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-				}
-
-				.p-panel-content {
+				}				.p-panel-content {
 					background: whitesmoke;
-					padding: 0.8rem;
+					padding: 0.2rem;
 
 					.menu-item-row {
 						padding: 0.6rem;

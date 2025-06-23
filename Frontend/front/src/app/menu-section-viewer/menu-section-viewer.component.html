@@ -1,10 +1,10 @@
 <div class="menu-section-container">
 	@if (section().header) {
-	<h2 class="section-header"[ngStyle]="{ background: getSectionTextColor() }">{{ section().header }}</h2>
+	<h2 class="section-header"[ngStyle]="{ background: getSectionTextColor(), 'font-size': '2.2rem' }">{{ section().header }}</h2>
 	}	<p-panel
 		[header]="section().name"
 		styleClass="menu-section-panel"
-		[ngStyle]="{ '--panel-header-bg': getSectionBackgroundColor() }"
+		[ngStyle]="{ '--panel-header-bg': getSectionBackgroundColor(), '--panel-header-font-size': '2rem'}"
 	>
 		<div class="grid" [style]="{ 'background-color': 'white' }">
 			@for (item of itemsWithFullImageUrls(); track item.id) {
