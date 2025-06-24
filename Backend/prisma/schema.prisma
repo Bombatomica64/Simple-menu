@@ -56,7 +56,7 @@ model MenuSection {
   id        Int        @id @default(autoincrement())
   name      String
   header    String?    // Optional header text for the section
-  sectionType String   @default("general") // "general", "pasta", "sauce", "insalatone", "poke"
+  sectionType String   @default("general") // "general", "pasta", "sauce", "insalatone", "Pokè"
   backgroundColor String? // Optional background color for the section
   textColor String?   // Optional text color for the section
   position  Int        @default(0) // Position/order of the section in the menu

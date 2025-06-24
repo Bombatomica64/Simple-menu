@@ -1,17 +1,10 @@
-<div class="pasta-container">	<!-- Header Section -->
-	<div class="pasta-header">		<!-- Logo Section - Top Right -->
-		@if (menu()?.logo && menu()?.logo?.isActive) {
-		<div class="logo-section logo-top-right">
-			<app-image
-				[src]="menu()!.logo!.imageUrl"
-				[alt]="menu()!.logo!.name"
-				[title]="menu()!.logo!.name"
-				cssClass="menu-logo"
-				[style]="'width: ' + getLogoSize() + '; height: ' + getLogoSize() + ';'"
-			/>
+<div class="pasta-container">
+	<!-- Header Section -->
+	<div class="pasta-header">
+		<!-- Logo Section - Top Left -->
+		<div class="logo-section logo-top-left">
+			<img src="logo.png" title="Logo del ristorante" />
 		</div>
-		}
-
 	</div>
 	<!-- Main Layout - Single Column for Pasta Only -->
 	<div class="main-layout">
@@ -39,7 +32,8 @@
 							(touchstart)="onItemTouchStart($event, pasta, 'pasta')"
 							(touchend)="onItemTouchEnd()"
 							(touchmove)="onItemTouchMove()"
-						>							@if (showImages() && pasta.imageUrl && pasta.imageUrl !==
+						>
+							@if (showImages() && pasta.imageUrl && pasta.imageUrl !==
 							'assets/placeholder.png') {
 							<app-image
 								[src]="pasta.imageUrl"
@@ -77,7 +71,8 @@
 							(touchstart)="onItemTouchStart($event, sauce, 'sauce')"
 							(touchend)="onItemTouchEnd()"
 							(touchmove)="onItemTouchMove()"
-						>							@if (showImages() && sauce.imageUrl && sauce.imageUrl !==
+						>
+							@if (showImages() && sauce.imageUrl && sauce.imageUrl !==
 							'assets/placeholder.png') {
 							<app-image
 								[src]="sauce.imageUrl"
@@ -100,9 +95,9 @@
 				</div>
 			</div>
 		</div>
-	</div><!-- Footer message -->
+	</div>	<!-- Footer message -->
 	<div class="footer-message">
-		TUTTI I PRODOTTI UTILIZZATI SONO FRESCHI
-		<span class="powered-by">Powered by Centro Audio Video</span>
+		<div class="main-message">TUTTI I PRODOTTI UTILIZZATI SONO FRESCHI</div>
+		<div class="powered-by">Powered by Centro Audio Video</div>
 	</div>
 </div>

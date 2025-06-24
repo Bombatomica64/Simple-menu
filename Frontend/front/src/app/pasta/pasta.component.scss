@@ -1,4 +1,5 @@
-:host ::ng-deep {	// Main container styling - full viewport
+:host ::ng-deep {
+	// Main container styling - full viewport
 	.pasta-container {
 		width: 100vw;
 		height: 100vh;
@@ -24,7 +25,8 @@
 			position: absolute;
 			z-index: 10;
 			top: -10px; // Adjust position slightly above header
-
+			max-width: 150px; // Limit max width for better layout
+			width: 100%;
 			&.logo-top-left {
 				left: 0;
 			}
@@ -151,10 +153,12 @@
 		.sub-title {
 			color: #8b4513;
 			font-weight: 600;
+			font-size: 1.1rem;
 			text-align: center;
 			margin-bottom: 0.6rem;
 			text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-		}	}
+		}
+	}
 }
 
 .items-grid {
@@ -219,7 +223,8 @@
 		&:hover {
 			transform: scale(1.05);
 		}
-	}	.item-content {
+	}
+	.item-content {
 		flex: 1;
 
 		.item-name {
@@ -416,7 +421,8 @@
 			}
 			.item-description {
 				font-size: 2rem !important;
-			}		}
+			}
+		}
 	}
 
 	.pasta-header h1 {
@@ -562,12 +568,29 @@
 	width: 100%;
 	background: rgba(255, 255, 255, 0.9);
 	border-top: 1px solid rgba(139, 69, 19, 0.2);
-	padding: 0;
-	text-align: center;
-	font-size: 0.7rem;
-	color: #8b4513;
+	padding: 8px 20px;
 	box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
 	z-index: 1001;
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	align-items: center;
+
+	.main-message {
+		grid-column: 2;
+		text-align: center;
+		font-size: 0.9rem;
+		font-weight: bold;
+		color: #8b4513;
+	}
+
+	.powered-by {
+		grid-column: 3;
+		text-align: right;
+		font-size: 0.8rem;
+		color: black;
+		font-weight: normal;
+		white-space: nowrap;
+	}
 
 	&.hidden {
 		display: none;

@@ -17,7 +17,7 @@ export interface MenuSection {
     menuId?: number;
     menuItems?: MenuItem[];
     header?: string; // Optional header text for the section
-    sectionType?: string; // "general", "pasta", "sauce", "insalatone", "poke"
+    sectionType?: string; // "general", "pasta", "sauce", "insalatone", "Pokè"
     backgroundColor?: string; // Optional background color for the section
     textColor?: string; // Optional text color for the section
 }

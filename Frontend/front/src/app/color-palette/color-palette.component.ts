@@ -67,7 +67,7 @@ export class ColorPaletteComponent {
 	});
 
 	// Pasta types and sauces global background colors - Default colors per requirements
-	// Pasta: Giallino (yellowish), Sughi: Rossino (reddish), Insalatone: Verdolino (greenish), Poke: Rossino (reddish)
+	// Pasta: Giallino (yellowish), Sughi: Rossino (reddish), Insalatone: Verdolino (greenish), Pokè: Rossino (reddish)
 	pastaTypesBackgroundColor = signal('#FFFACD'); // Lemon chiffon (giallino)
 	pastaSaucesBackgroundColor = signal('#FFE4E1'); // Misty rose (rossino)
 

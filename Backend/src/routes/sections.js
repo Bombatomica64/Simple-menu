@@ -176,7 +176,7 @@ router.put('/api/sections/:id/type', async (req, res) => {
     const { sectionType } = req.body;
 
     // Validate section type
-    const validTypes = ['general', 'pasta', 'sauce', 'insalatone', 'poke'];
+    const validTypes = ['general', 'pasta', 'sauce', 'insalatone', 'Pokè'];
     if (!validTypes.includes(sectionType)) {
       return res.status(400).json({ 
         error: `Invalid section type. Must be one of: ${validTypes.join(', ')}` 

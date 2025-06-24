@@ -4,70 +4,86 @@ const { prisma } = require("../config/database");
 let currentInMemoryMenu = null;
 
 async function loadInitialMenu() {
-  try {    const latestMenuFromDB = await prisma.menu.findFirst({
+  try {
+    const latestMenuFromDB = await prisma.menu.findFirst({
       orderBy: { createdAt: "desc" },
       include: {
         logo: true, // Include logo details
         background: true, // Include background configuration
         menuItems: {
-          orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+          orderBy: [{ sectionId: "asc" }, { position: "asc" }],
         },
         menuSections: {
-          orderBy: { position: 'asc' },
+          orderBy: { position: "asc" },
           include: {
             menuItems: {
-              orderBy: { position: 'asc' }
-            }
-          }
+              orderBy: { position: "asc" },
+            },
+          },
         },
         pastaTypes: { include: { pastaType: true } },
         pastaSauces: { include: { pastaSauce: true } },
       },
-    });    if (latestMenuFromDB) {
+    });
+    if (latestMenuFromDB) {
       currentInMemoryMenu = latestMenuFromDB;
       console.log("Initial menu loaded from DB into memory.");
-      
+
       // Ensure predefined sections exist
       await ensurePredefinedSections(latestMenuFromDB.id);
-      
+
       // Reload the menu to include any newly created predefined sections
       const reloadedMenu = await prisma.menu.findFirst({
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           logo: true, // Include logo details
           background: true, // Include background configuration
           menuItems: {
-            orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+            orderBy: [{ sectionId: "asc" }, { position: "asc" }],
           },
           menuSections: {
-            orderBy: { position: 'asc' },
+            orderBy: { position: "asc" },
             include: {
               menuItems: {
-                orderBy: { position: 'asc' }
-              }
-            }
+                orderBy: { position: "asc" },
+              },
+            },
           },
           pastaTypes: { include: { pastaType: true } },
           pastaSauces: { include: { pastaSauce: true } },
-        }
+        },
       });
-      
+
       if (reloadedMenu) {
         currentInMemoryMenu = reloadedMenu;
         console.log("Menu reloaded with predefined sections.");
       }
-    } else {      // Seed default data if database is empty
-      const { seedDefaultData } = require("./seedService");      await seedDefaultData();
-      
+    } else {
+      // Seed default data if database is empty
+      const { seedDefaultData } = require("./seedService");
+      await seedDefaultData();
+
       // Create initial menu with predefined sections
       const predefinedSections = [
-        { id: `temp-${Date.now()}-1`, name: 'Poke', sectionType: 'poke', position: 0, menuItems: [] },
-        { id: `temp-${Date.now()}-2`, name: 'Insalatone', sectionType: 'insalatone', position: 1, menuItems: [] }
+        {
+          id: `temp-${Date.now()}-1`,
+          name: "Pokè",
+          sectionType: "Pokè",
+          position: 0,
+          menuItems: [],
+        },
+        {
+          id: `temp-${Date.now()}-2`,
+          name: "Insalatone",
+          sectionType: "insalatone",
+          position: 1,
+          menuItems: [],
+        },
       ];
-      
+
       currentInMemoryMenu = {
         createdAt: new Date().toISOString(),
-        orientation: 'vertical',
+        orientation: "vertical",
         availableImages: null,
         background: null, // No background configuration
         menuItems: [],
@@ -75,18 +91,34 @@ async function loadInitialMenu() {
         pastaTypes: [],
         pastaSauces: [],
       };
-      console.log("No menu in DB, seeded default data and initialized empty in-memory menu.");
-    }  } catch (error) {    console.error("Error loading initial menu:", error);
-    
+      console.log(
+        "No menu in DB, seeded default data and initialized empty in-memory menu."
+      );
+    }
+  } catch (error) {
+    console.error("Error loading initial menu:", error);
+
     // Create initial menu with predefined sections even in error case
     const predefinedSections = [
-      { id: `temp-${Date.now()}-1`, name: 'Poke', sectionType: 'poke', position: 0, menuItems: [] },
-      { id: `temp-${Date.now()}-2`, name: 'Insalatone', sectionType: 'insalatone', position: 1, menuItems: [] }
+      {
+        id: `temp-${Date.now()}-1`,
+        name: "Pokè",
+        sectionType: "Pokè",
+        position: 0,
+        menuItems: [],
+      },
+      {
+        id: `temp-${Date.now()}-2`,
+        name: "Insalatone",
+        sectionType: "insalatone",
+        position: 1,
+        menuItems: [],
+      },
     ];
-    
+
     currentInMemoryMenu = {
       createdAt: new Date().toISOString(),
-      orientation: 'vertical',
+      orientation: "vertical",
       availableImages: null,
       background: null, // No background configuration
       menuItems: [],
@@ -113,13 +145,24 @@ async function addItemToMenu(item) {
     let position = 0;
     if (item.sectionId) {
       // Find max position in the specific section
-      const sectionItems = currentInMemoryMenu.menuItems.filter(i => i.sectionId === item.sectionId);
-      position = sectionItems.length > 0 ? Math.max(...sectionItems.map(i => i.position || 0)) + 1 : 0;
+      const sectionItems = currentInMemoryMenu.menuItems.filter(
+        (i) => i.sectionId === item.sectionId
+      );
+      position =
+        sectionItems.length > 0
+          ? Math.max(...sectionItems.map((i) => i.position || 0)) + 1
+          : 0;
     } else {
       // Find max position overall if no section specified
-      const unsectionedItems = currentInMemoryMenu.menuItems.filter(i => !i.sectionId);
-      position = unsectionedItems.length > 0 ? Math.max(...unsectionedItems.map(i => i.position || 0)) + 1 : 0;
-    }    const newItem = {
+      const unsectionedItems = currentInMemoryMenu.menuItems.filter(
+        (i) => !i.sectionId
+      );
+      position =
+        unsectionedItems.length > 0
+          ? Math.max(...unsectionedItems.map((i) => i.position || 0)) + 1
+          : 0;
+    }
+    const newItem = {
       id: Date.now(), // Temporary in-memory ID
       name: item.name,
       price: item.price,
@@ -152,9 +195,13 @@ async function addPastaTypeToMenu(pastaTypeId) {
   if (!currentInMemoryMenu) return false;
 
   if (typeof pastaTypeId === "number") {
-    const pastaTypeExists = currentInMemoryMenu.pastaTypes.some(pt => pt.pastaType.id === pastaTypeId);
+    const pastaTypeExists = currentInMemoryMenu.pastaTypes.some(
+      (pt) => pt.pastaType.id === pastaTypeId
+    );
     if (!pastaTypeExists) {
-      const pastaTypeToAdd = await prisma.pastaType.findUnique({ where: { id: pastaTypeId } });
+      const pastaTypeToAdd = await prisma.pastaType.findUnique({
+        where: { id: pastaTypeId },
+      });
       if (pastaTypeToAdd) {
         currentInMemoryMenu.pastaTypes.push({
           pastaTypeId: pastaTypeToAdd.id,
@@ -186,9 +233,13 @@ async function addPastaSauceToMenu(pastaSauceId) {
   if (!currentInMemoryMenu) return false;
 
   if (typeof pastaSauceId === "number") {
-    const sauceExists = currentInMemoryMenu.pastaSauces.some(ps => ps.pastaSauce.id === pastaSauceId);
+    const sauceExists = currentInMemoryMenu.pastaSauces.some(
+      (ps) => ps.pastaSauce.id === pastaSauceId
+    );
     if (!sauceExists) {
-      const pastaSauceToAdd = await prisma.pastaSauce.findUnique({ where: { id: pastaSauceId } });
+      const pastaSauceToAdd = await prisma.pastaSauce.findUnique({
+        where: { id: pastaSauceId },
+      });
       if (pastaSauceToAdd) {
         currentInMemoryMenu.pastaSauces.push({
           pastaSauceId: pastaSauceToAdd.id,
@@ -219,7 +270,7 @@ async function removePastaSauceFromMenu(pastaSauceId) {
 async function updateMenuItemImage(itemId, imageUrl) {
   if (!currentInMemoryMenu) return false;
 
-  const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
+  const item = currentInMemoryMenu.menuItems.find((item) => item.id === itemId);
   if (item) {
     item.imageUrl = imageUrl;
     return true;
@@ -230,7 +281,7 @@ async function updateMenuItemImage(itemId, imageUrl) {
 async function toggleMenuItemShowImage(itemId, showImage) {
   if (!currentInMemoryMenu) return false;
 
-  const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
+  const item = currentInMemoryMenu.menuItems.find((item) => item.id === itemId);
   if (item) {
     item.showImage = showImage;
     return true;
@@ -241,7 +292,7 @@ async function toggleMenuItemShowImage(itemId, showImage) {
 async function addImageToMenuItem(itemId, imageUrl) {
   if (!currentInMemoryMenu) return false;
 
-  const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
+  const item = currentInMemoryMenu.menuItems.find((item) => item.id === itemId);
   if (item) {
     // Add image to global menu available images
     let availableImages = [];
@@ -266,7 +317,7 @@ async function addImageToMenuItem(itemId, imageUrl) {
 async function removeImageFromMenuItem(itemId, imageUrl) {
   if (!currentInMemoryMenu) return false;
 
-  const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
+  const item = currentInMemoryMenu.menuItems.find((item) => item.id === itemId);
   if (item) {
     // Remove image from global menu available images
     let availableImages = [];
@@ -276,7 +327,7 @@ async function removeImageFromMenuItem(itemId, imageUrl) {
       availableImages = [];
     }
 
-    const updatedImages = availableImages.filter(img => img !== imageUrl);
+    const updatedImages = availableImages.filter((img) => img !== imageUrl);
     currentInMemoryMenu.availableImages = JSON.stringify(updatedImages);
 
     // If the removed image was the current image for this item, clear it
@@ -292,7 +343,7 @@ async function removeImageFromMenuItem(itemId, imageUrl) {
 async function updateMenuOrientation(orientation) {
   if (!currentInMemoryMenu) return false;
 
-  if (orientation === 'vertical' || orientation === 'horizontal') {
+  if (orientation === "vertical" || orientation === "horizontal") {
     currentInMemoryMenu.orientation = orientation;
     return true;
   }
@@ -310,25 +361,41 @@ async function updateMenuAvailableImages(availableImages) {
 // Save current menu to database
 async function saveCurrentMenu(name) {
   try {
-    const result = await prisma.$transaction(async (tx) => {      // First create the base menu with orientation and availableImages
+    const result = await prisma.$transaction(async (tx) => {
+      // First create the base menu with orientation and availableImages
       const savedMenu = await tx.menu.create({
         data: {
-          orientation: currentInMemoryMenu.orientation || 'vertical',
-          availableImages: currentInMemoryMenu.availableImages || null
-        }
+          orientation: currentInMemoryMenu.orientation || "vertical",
+          availableImages: currentInMemoryMenu.availableImages || null,
+          globalPastaTypeBackgroundColor: currentInMemoryMenu.globalPastaTypeBackgroundColor || null,
+          globalPastaSauceBackgroundColor: currentInMemoryMenu.globalPastaSauceBackgroundColor || null,
+          // Include any other global pasta display settings
+          globalPastaTypeFontSize: currentInMemoryMenu.globalPastaTypeFontSize || 2.2,
+          globalPastaSauceFontSize: currentInMemoryMenu.globalPastaSauceFontSize || 2.2,
+          globalPastaTypeShowImage: currentInMemoryMenu.globalPastaTypeShowImage !== undefined ? currentInMemoryMenu.globalPastaTypeShowImage : true,
+          globalPastaTypeImageSize: currentInMemoryMenu.globalPastaTypeImageSize || "size-medium",
+          globalPastaTypeShowDescription: currentInMemoryMenu.globalPastaTypeShowDescription !== undefined ? currentInMemoryMenu.globalPastaTypeShowDescription : true,
+          globalPastaSauceShowImage: currentInMemoryMenu.globalPastaSauceShowImage !== undefined ? currentInMemoryMenu.globalPastaSauceShowImage : true,
+          globalPastaSauceImageSize: currentInMemoryMenu.globalPastaSauceImageSize || "size-medium",
+          globalPastaSauceShowDescription: currentInMemoryMenu.globalPastaSauceShowDescription !== undefined ? currentInMemoryMenu.globalPastaSauceShowDescription : true,
+        },
       });
 
       // Create section mapping from temp IDs to real IDs
       const sectionIdMapping = new Map();
 
       // Create sections first
-      for (const section of currentInMemoryMenu.menuSections) {        const createdSection = await tx.menuSection.create({
+      for (const section of currentInMemoryMenu.menuSections) {
+        const createdSection = await tx.menuSection.create({
           data: {
             name: section.name,
             header: section.header || null,
             position: section.position || 0,
-            menuId: savedMenu.id
-          }
+            sectionType: section.sectionType || "general",
+            backgroundColor: section.backgroundColor || null,
+            textColor: section.textColor || null,
+            menuId: savedMenu.id,
+          },
         });
         sectionIdMapping.set(section.id, createdSection.id);
       }
@@ -339,12 +406,12 @@ async function saveCurrentMenu(name) {
 
       // Add items from sections
       if (currentInMemoryMenu.menuSections) {
-        currentInMemoryMenu.menuSections.forEach(section => {
+        currentInMemoryMenu.menuSections.forEach((section) => {
           if (section.menuItems && section.menuItems.length > 0) {
-            section.menuItems.forEach(item => {
+            section.menuItems.forEach((item) => {
               allItems.push({
                 ...item,
-                sectionId: section.id // Ensure section reference
+                sectionId: section.id, // Ensure section reference
               });
             });
           }
@@ -353,9 +420,9 @@ async function saveCurrentMenu(name) {
 
       // Add standalone items (not in sections)
       if (currentInMemoryMenu.menuItems) {
-        currentInMemoryMenu.menuItems.forEach(item => {
+        currentInMemoryMenu.menuItems.forEach((item) => {
           // Only add if not already added from sections
-          if (!allItems.find(existingItem => existingItem.id === item.id)) {
+          if (!allItems.find((existingItem) => existingItem.id === item.id)) {
             allItems.push(item);
           }
         });
@@ -366,40 +433,51 @@ async function saveCurrentMenu(name) {
         let finalSectionId = null;
         if (item.sectionId) {
           finalSectionId = sectionIdMapping.get(item.sectionId) || null;
-        }        await tx.menuItem.create({
+        }
+        await tx.menuItem.create({
           data: {
             name: item.name,
             price: item.price,
             description: item.description || null,
             position: item.position || 0,
-            imageUrl: item.imageUrl || '',
+            imageUrl: item.imageUrl || "",
             showImage: item.showImage || false,
             sectionId: finalSectionId,
-            menuId: savedMenu.id
-          }
+            menuId: savedMenu.id,
+          },
         });
       }
 
       // Create pasta type relations
-      if (currentInMemoryMenu.pastaTypes && currentInMemoryMenu.pastaTypes.length > 0) {
+      if (
+        currentInMemoryMenu.pastaTypes &&
+        currentInMemoryMenu.pastaTypes.length > 0
+      ) {
         for (const pastaType of currentInMemoryMenu.pastaTypes) {
           await tx.menuToPastaType.create({
             data: {
               menuId: savedMenu.id,
-              pastaTypeId: pastaType.pastaType ? pastaType.pastaType.id : pastaType.id
-            }
+              pastaTypeId: pastaType.pastaType
+                ? pastaType.pastaType.id
+                : pastaType.id,
+            },
           });
         }
       }
 
       // Create pasta sauce relations
-      if (currentInMemoryMenu.pastaSauces && currentInMemoryMenu.pastaSauces.length > 0) {
+      if (
+        currentInMemoryMenu.pastaSauces &&
+        currentInMemoryMenu.pastaSauces.length > 0
+      ) {
         for (const pastaSauce of currentInMemoryMenu.pastaSauces) {
           await tx.menuToPastaSauce.create({
             data: {
               menuId: savedMenu.id,
-              pastaSauceId: pastaSauce.pastaSauce ? pastaSauce.pastaSauce.id : pastaSauce.id
-            }
+              pastaSauceId: pastaSauce.pastaSauce
+                ? pastaSauce.pastaSauce.id
+                : pastaSauce.id,
+            },
           });
         }
       }
@@ -409,20 +487,21 @@ async function saveCurrentMenu(name) {
         where: { id: savedMenu.id },
         include: {
           menuItems: {
-            orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+            orderBy: [{ sectionId: "asc" }, { position: "asc" }],
           },
           menuSections: {
-            orderBy: { position: 'asc' },
+            orderBy: { position: "asc" },
             include: {
               menuItems: {
-                orderBy: { position: 'asc' }
-              }
-            }
+                orderBy: { position: "asc" },
+              },
+            },
           },
           pastaTypes: { include: { pastaType: true } },
           pastaSauces: { include: { pastaSauce: true } },
-        }
-      });    });
+        },
+      });
+    });
 
     // Ensure predefined sections exist for the newly saved menu
     await ensurePredefinedSections(result.id);
@@ -437,28 +516,27 @@ async function saveCurrentMenu(name) {
         menu: {
           include: {
             menuItems: {
-              orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+              orderBy: [{ sectionId: "asc" }, { position: "asc" }],
             },
             menuSections: {
-              orderBy: { position: 'asc' },
+              orderBy: { position: "asc" },
               include: {
                 menuItems: {
-                  orderBy: { position: 'asc' }
-                }
-              }
+                  orderBy: { position: "asc" },
+                },
+              },
             },
             pastaTypes: { include: { pastaType: true } },
             pastaSauces: { include: { pastaSauce: true } },
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    console.log('Menu saved successfully:', savedMenuEntry.name);
+    console.log("Menu saved successfully:", savedMenuEntry.name);
     return savedMenuEntry;
-
   } catch (error) {
-    console.error('Error saving menu:', error);
+    console.error("Error saving menu:", error);
     throw error;
   }
 }
@@ -467,28 +545,28 @@ async function saveCurrentMenu(name) {
 async function getAllSavedMenus() {
   try {
     const savedMenus = await prisma.savedMenu.findMany({
-      orderBy: { savedAt: 'desc' },
+      orderBy: { savedAt: "desc" },
       include: {
         menu: {
           include: {
             logo: true, // Include logo details
             background: true, // Include background configuration
             menuItems: {
-              orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+              orderBy: [{ sectionId: "asc" }, { position: "asc" }],
             },
             menuSections: {
-              orderBy: { position: 'asc' },
+              orderBy: { position: "asc" },
               include: {
                 menuItems: {
-                  orderBy: { position: 'asc' }
-                }
-              }
+                  orderBy: { position: "asc" },
+                },
+              },
             },
             pastaTypes: { include: { pastaType: true } },
             pastaSauces: { include: { pastaSauce: true } },
-          }
-        }
-      }
+          },
+        },
+      },
     });
     return savedMenus;
   } catch (error) {
@@ -508,35 +586,37 @@ async function loadSavedMenu(savedMenuId) {
             logo: true, // Include logo details
             background: true, // Include background configuration
             menuItems: {
-              orderBy: [{ sectionId: 'asc' }, { position: 'asc' }]
+              orderBy: [{ sectionId: "asc" }, { position: "asc" }],
             },
             menuSections: {
-              orderBy: { position: 'asc' },
+              orderBy: { position: "asc" },
               include: {
                 menuItems: {
-                  orderBy: { position: 'asc' }
-                }
-              }
+                  orderBy: { position: "asc" },
+                },
+              },
             },
             pastaTypes: { include: { pastaType: true } },
             pastaSauces: { include: { pastaSauce: true } },
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    if (savedMenu) {      // Convert database format to in-memory format
+    if (savedMenu) {
+      // Convert database format to in-memory format
       currentInMemoryMenu = {
         id: savedMenu.menu.id,
         createdAt: savedMenu.menu.createdAt,
-        orientation: savedMenu.menu.orientation || 'vertical',
+        orientation: savedMenu.menu.orientation || "vertical",
         availableImages: savedMenu.menu.availableImages,
         background: savedMenu.menu.background, // Include background configuration
         logo: savedMenu.menu.logo, // Include logo configuration
         logoId: savedMenu.menu.logoId, // Include logo ID
         menuItems: savedMenu.menu.menuItems,
         menuSections: savedMenu.menu.menuSections || [],
-        pastaTypes: savedMenu.menu.pastaTypes,        pastaSauces: savedMenu.menu.pastaSauces,
+        pastaTypes: savedMenu.menu.pastaTypes,
+        pastaSauces: savedMenu.menu.pastaSauces,
       };
 
       // Ensure predefined sections exist for the loaded menu
@@ -556,7 +636,7 @@ async function deleteSavedMenu(savedMenuId) {
   try {
     // This will also delete the associated Menu due to cascade
     await prisma.savedMenu.delete({
-      where: { id: savedMenuId }
+      where: { id: savedMenuId },
     });
     return true;
   } catch (error) {
@@ -573,7 +653,10 @@ async function addSectionToMenu(sectionData) {
   if (sectionData && typeof sectionData.name === "string") {
     // Determine position for new section
     const existingSections = currentInMemoryMenu.menuSections || [];
-    const maxPosition = existingSections.length > 0 ? Math.max(...existingSections.map(s => s.position || 0)) : -1;
+    const maxPosition =
+      existingSections.length > 0
+        ? Math.max(...existingSections.map((s) => s.position || 0))
+        : -1;
 
     const newSection = {
       id: Date.now(), // Temporary in-memory ID
@@ -596,7 +679,9 @@ async function removeSectionFromMenu(sectionId) {
   if (!currentInMemoryMenu || !currentInMemoryMenu.menuSections) return false;
 
   if (typeof sectionId === "number") {
-    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
+    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(
+      (s) => s.id === sectionId
+    );
     if (sectionIndex !== -1) {
       const removedSection = currentInMemoryMenu.menuSections[sectionIndex];
 
@@ -604,16 +689,20 @@ async function removeSectionFromMenu(sectionId) {
       if (removedSection.menuItems && removedSection.menuItems.length > 0) {
         if (currentInMemoryMenu.menuSections.length > 1) {
           // Move to first remaining section
-          const targetSection = currentInMemoryMenu.menuSections.find(s => s.id !== sectionId);
+          const targetSection = currentInMemoryMenu.menuSections.find(
+            (s) => s.id !== sectionId
+          );
           if (targetSection) {
             targetSection.menuItems = targetSection.menuItems || [];
             targetSection.menuItems.push(...removedSection.menuItems);
           }
         } else {
           // Make items unsectioned (remove sectionId)
-          removedSection.menuItems.forEach(item => {
+          removedSection.menuItems.forEach((item) => {
             item.sectionId = null;
-            const menuItem = currentInMemoryMenu.menuItems.find(mi => mi.id === item.id);
+            const menuItem = currentInMemoryMenu.menuItems.find(
+              (mi) => mi.id === item.id
+            );
             if (menuItem) {
               menuItem.sectionId = null;
             }
@@ -633,8 +722,10 @@ async function updateSectionOrder(sectionUpdates) {
 
   try {
     // Update positions for each section
-    sectionUpdates.forEach(update => {
-      const section = currentInMemoryMenu.menuSections.find(s => s.id === update.id);
+    sectionUpdates.forEach((update) => {
+      const section = currentInMemoryMenu.menuSections.find(
+        (s) => s.id === update.id
+      );
       if (section) {
         section.position = update.position;
       }
@@ -652,13 +743,17 @@ async function updateSectionOrder(sectionUpdates) {
 async function moveItemToSection(itemId, targetSectionId, position) {
   if (!currentInMemoryMenu) return false;
 
-  const item = currentInMemoryMenu.menuItems.find(item => item.id === itemId);
+  const item = currentInMemoryMenu.menuItems.find((item) => item.id === itemId);
   if (item) {
     // Remove from current section if it has one
     if (item.sectionId && currentInMemoryMenu.menuSections) {
-      const currentSection = currentInMemoryMenu.menuSections.find(s => s.id === item.sectionId);
+      const currentSection = currentInMemoryMenu.menuSections.find(
+        (s) => s.id === item.sectionId
+      );
       if (currentSection && currentSection.menuItems) {
-        currentSection.menuItems = currentSection.menuItems.filter(i => i.id !== itemId);
+        currentSection.menuItems = currentSection.menuItems.filter(
+          (i) => i.id !== itemId
+        );
       }
     }
 
@@ -668,14 +763,18 @@ async function moveItemToSection(itemId, targetSectionId, position) {
 
     // Add to target section
     if (targetSectionId && currentInMemoryMenu.menuSections) {
-      const targetSection = currentInMemoryMenu.menuSections.find(s => s.id === targetSectionId);
+      const targetSection = currentInMemoryMenu.menuSections.find(
+        (s) => s.id === targetSectionId
+      );
       if (targetSection) {
         if (!targetSection.menuItems) {
           targetSection.menuItems = [];
         }
         targetSection.menuItems.push(item);
         // Sort items in section by position
-        targetSection.menuItems.sort((a, b) => (a.position || 0) - (b.position || 0));
+        targetSection.menuItems.sort(
+          (a, b) => (a.position || 0) - (b.position || 0)
+        );
       }
     }
 
@@ -688,8 +787,10 @@ async function updateItemPositions(itemUpdates) {
   if (!currentInMemoryMenu) return false;
 
   try {
-    itemUpdates.forEach(update => {
-      const item = currentInMemoryMenu.menuItems.find(item => item.id === update.itemId);
+    itemUpdates.forEach((update) => {
+      const item = currentInMemoryMenu.menuItems.find(
+        (item) => item.id === update.itemId
+      );
       if (item) {
         item.position = update.position;
         if (update.sectionId !== undefined) {
@@ -700,9 +801,9 @@ async function updateItemPositions(itemUpdates) {
 
     // Update section menuItems arrays
     if (currentInMemoryMenu.menuSections) {
-      currentInMemoryMenu.menuSections.forEach(section => {
+      currentInMemoryMenu.menuSections.forEach((section) => {
         section.menuItems = currentInMemoryMenu.menuItems
-          .filter(item => item.sectionId === section.id)
+          .filter((item) => item.sectionId === section.id)
           .sort((a, b) => (a.position || 0) - (b.position || 0));
       });
     }
@@ -732,7 +833,7 @@ async function updateGlobalPastaDisplaySettings(settings) {
           globalPastaSauceShowImage: settings.pastaSauceShowImage,
           globalPastaSauceImageSize: settings.pastaSauceImageSize,
           globalPastaSauceShowDescription: settings.pastaSauceShowDescription,
-        }
+        },
       });
     }
 
@@ -741,10 +842,14 @@ async function updateGlobalPastaDisplaySettings(settings) {
     currentInMemoryMenu.globalPastaSauceFontSize = settings.pastaSauceFontSize;
     currentInMemoryMenu.globalPastaTypeShowImage = settings.pastaTypeShowImage;
     currentInMemoryMenu.globalPastaTypeImageSize = settings.pastaTypeImageSize;
-    currentInMemoryMenu.globalPastaTypeShowDescription = settings.pastaTypeShowDescription;
-    currentInMemoryMenu.globalPastaSauceShowImage = settings.pastaSauceShowImage;
-    currentInMemoryMenu.globalPastaSauceImageSize = settings.pastaSauceImageSize;
-    currentInMemoryMenu.globalPastaSauceShowDescription = settings.pastaSauceShowDescription;
+    currentInMemoryMenu.globalPastaTypeShowDescription =
+      settings.pastaTypeShowDescription;
+    currentInMemoryMenu.globalPastaSauceShowImage =
+      settings.pastaSauceShowImage;
+    currentInMemoryMenu.globalPastaSauceImageSize =
+      settings.pastaSauceImageSize;
+    currentInMemoryMenu.globalPastaSauceShowDescription =
+      settings.pastaSauceShowDescription;
 
     console.log("✅ Global pasta display settings updated:", settings);
     return true;
@@ -771,30 +876,30 @@ async function updateLogo(logoUrl, logoSettings = {}) {
         where: { id: currentInMemoryMenu.logoId },
         data: {
           imageUrl: logoUrl,
-          name: logoSettings.name || 'Menu Logo',
-          position: logoSettings.position || 'top-left',
-          size: logoSettings.size || 'medium',
+          name: logoSettings.name || "Menu Logo",
+          position: logoSettings.position || "top-left",
+          size: logoSettings.size || "medium",
           opacity: logoSettings.opacity || 1.0,
           // Remove isActive - use in-memory menu state instead
-        }
+        },
       });
     } else {
       // Create new logo
       logo = await prisma.logo.create({
         data: {
-          name: logoSettings.name || 'Menu Logo',
+          name: logoSettings.name || "Menu Logo",
           imageUrl: logoUrl,
-          position: logoSettings.position || 'top-left',
-          size: logoSettings.size || 'medium',
+          position: logoSettings.position || "top-left",
+          size: logoSettings.size || "medium",
           opacity: logoSettings.opacity || 1.0,
-          isActive: false // Default to false, activation is through menu linkage
-        }
+          isActive: false, // Default to false, activation is through menu linkage
+        },
       });
 
       // Link logo to current menu
       await prisma.menu.update({
         where: { id: currentInMemoryMenu.id },
-        data: { logoId: logo.id }
+        data: { logoId: logo.id },
       });
     }
 
@@ -820,7 +925,7 @@ async function removeLogo() {
     // Remove logo reference from menu (but keep logo in database for reuse)
     await prisma.menu.update({
       where: { id: currentInMemoryMenu.id },
-      data: { logoId: null }
+      data: { logoId: null },
     });
 
     // Update in-memory menu
@@ -846,12 +951,19 @@ async function updateLogoSettings(logoSettings = {}) {
     const updatedLogo = await prisma.logo.update({
       where: { id: currentInMemoryMenu.logoId },
       data: {
-        name: logoSettings.name || currentInMemoryMenu.logo?.name || 'Menu Logo',
-        position: logoSettings.position || currentInMemoryMenu.logo?.position || 'top-left',
-        size: logoSettings.size || currentInMemoryMenu.logo?.size || 'medium',
-        opacity: logoSettings.opacity !== undefined ? logoSettings.opacity : (currentInMemoryMenu.logo?.opacity || 1.0),
+        name:
+          logoSettings.name || currentInMemoryMenu.logo?.name || "Menu Logo",
+        position:
+          logoSettings.position ||
+          currentInMemoryMenu.logo?.position ||
+          "top-left",
+        size: logoSettings.size || currentInMemoryMenu.logo?.size || "medium",
+        opacity:
+          logoSettings.opacity !== undefined
+            ? logoSettings.opacity
+            : currentInMemoryMenu.logo?.opacity || 1.0,
         // Remove isActive - use in-memory menu state for activation
-      }
+      },
     });
 
     // Update in-memory menu
@@ -868,7 +980,7 @@ async function updateLogoSettings(logoSettings = {}) {
 async function getAvailableLogos() {
   try {
     const logos = await prisma.logo.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
     return logos;
   } catch (error) {
@@ -886,7 +998,7 @@ async function setMenuLogo(logoId) {
 
     // Verify logo exists
     const logo = await prisma.logo.findUnique({
-      where: { id: logoId }
+      where: { id: logoId },
     });
 
     if (!logo) {
@@ -897,7 +1009,7 @@ async function setMenuLogo(logoId) {
     // Update menu with new logo
     await prisma.menu.update({
       where: { id: currentInMemoryMenu.id },
-      data: { logoId: logoId }
+      data: { logoId: logoId },
     });
 
     // Update in-memory menu
@@ -916,14 +1028,14 @@ async function deleteLogo(logoId) {
   try {
     // Check if logo is being used by any menus
     const menusUsingLogo = await prisma.menu.findMany({
-      where: { logoId: logoId }
+      where: { logoId: logoId },
     });
 
     if (menusUsingLogo.length > 0) {
       // Remove logo from all menus first
       await prisma.menu.updateMany({
         where: { logoId: logoId },
-        data: { logoId: null }
+        data: { logoId: null },
       });
 
       // Update in-memory menu if it's using this logo
@@ -935,7 +1047,7 @@ async function deleteLogo(logoId) {
 
     // Delete the logo
     await prisma.logo.delete({
-      where: { id: logoId }
+      where: { id: logoId },
     });
 
     console.log("✅ Logo deleted successfully");
@@ -959,20 +1071,22 @@ async function updateSectionStyle(sectionId, style = {}) {
     const updatedSection = await prisma.menuSection.update({
       where: { id: sectionId },
       data: {
-        sectionType: style.sectionType || 'general',
+        sectionType: style.sectionType || "general",
         backgroundColor: style.backgroundColor || null,
-        textColor: style.textColor || null
-      }
+        textColor: style.textColor || null,
+      },
     });
 
     // Update in-memory menu
-    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
+    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(
+      (s) => s.id === sectionId
+    );
     if (sectionIndex !== -1) {
       currentInMemoryMenu.menuSections[sectionIndex] = {
         ...currentInMemoryMenu.menuSections[sectionIndex],
-        sectionType: style.sectionType || 'general',
+        sectionType: style.sectionType || "general",
         backgroundColor: style.backgroundColor || null,
-        textColor: style.textColor || null
+        textColor: style.textColor || null,
       };
     }
 
@@ -986,8 +1100,12 @@ async function updateSectionStyle(sectionId, style = {}) {
 
 // Specific section color management functions
 async function updateSectionColors(sectionId, backgroundColor, textColor) {
-  console.log("🎨 updateSectionColors called with:", { sectionId, backgroundColor, textColor });
-  
+  console.log("🎨 updateSectionColors called with:", {
+    sectionId,
+    backgroundColor,
+    textColor,
+  });
+
   if (!currentInMemoryMenu) {
     console.error("❌ No current in-memory menu available");
     return false;
@@ -998,49 +1116,59 @@ async function updateSectionColors(sectionId, backgroundColor, textColor) {
     if (backgroundColor || textColor) {
       const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
       if (backgroundColor && !hexColorRegex.test(backgroundColor)) {
-        throw new Error('Invalid background color format');
+        throw new Error("Invalid background color format");
       }
       if (textColor && !hexColorRegex.test(textColor)) {
-        throw new Error('Invalid text color format');
+        throw new Error("Invalid text color format");
       }
-    }    // Update section colors in database
+    } // Update section colors in database
     console.log("🎨 Updating section in database...");
-    
+
     // First check if the section exists
     const existingSection = await prisma.menuSection.findUnique({
-      where: { id: sectionId }
+      where: { id: sectionId },
     });
-    
+
     if (!existingSection) {
       console.log("⚠️ Section not found in database, section ID:", sectionId);
-      console.log("🔍 Available sections:", await prisma.menuSection.findMany({ select: { id: true, name: true } }));
+      console.log(
+        "🔍 Available sections:",
+        await prisma.menuSection.findMany({ select: { id: true, name: true } })
+      );
       throw new Error(`Section with ID ${sectionId} not found in database`);
     }
-    
+
     const updatedSection = await prisma.menuSection.update({
       where: { id: sectionId },
       data: {
         backgroundColor: backgroundColor || null,
-        textColor: textColor || null
-      }
+        textColor: textColor || null,
+      },
     });
     console.log("🎨 Database update successful:", updatedSection);
 
     // Update in-memory menu
-    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
+    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(
+      (s) => s.id === sectionId
+    );
     if (sectionIndex !== -1) {
       console.log("🎨 Updating in-memory menu section at index:", sectionIndex);
       currentInMemoryMenu.menuSections[sectionIndex] = {
         ...currentInMemoryMenu.menuSections[sectionIndex],
         backgroundColor: backgroundColor || null,
-        textColor: textColor || null
+        textColor: textColor || null,
       };
-      console.log("🎨 In-memory section updated:", currentInMemoryMenu.menuSections[sectionIndex]);
+      console.log(
+        "🎨 In-memory section updated:",
+        currentInMemoryMenu.menuSections[sectionIndex]
+      );
     } else {
       console.error("❌ Section not found in in-memory menu:", sectionId);
     }
 
-    console.log(`✅ Section colors updated: ${sectionId} - bg: ${backgroundColor}, text: ${textColor}`);
+    console.log(
+      `✅ Section colors updated: ${sectionId} - bg: ${backgroundColor}, text: ${textColor}`
+    );
     return true;
   } catch (error) {
     console.error("❌ Error updating section colors:", error);
@@ -1057,17 +1185,19 @@ async function resetSectionColors(sectionId) {
       where: { id: sectionId },
       data: {
         backgroundColor: null,
-        textColor: null
-      }
+        textColor: null,
+      },
     });
 
     // Update in-memory menu
-    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
+    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(
+      (s) => s.id === sectionId
+    );
     if (sectionIndex !== -1) {
       currentInMemoryMenu.menuSections[sectionIndex] = {
         ...currentInMemoryMenu.menuSections[sectionIndex],
         backgroundColor: null,
-        textColor: null
+        textColor: null,
       };
     }
 
@@ -1084,7 +1214,7 @@ async function updateSectionType(sectionId, sectionType) {
 
   try {
     // Validate section type
-    const validTypes = ['general', 'pasta', 'sauce', 'insalatone', 'poke'];
+    const validTypes = ["general", "pasta", "sauce", "insalatone", "Pokè"];
     if (!validTypes.includes(sectionType)) {
       throw new Error(`Invalid section type: ${sectionType}`);
     }
@@ -1092,15 +1222,17 @@ async function updateSectionType(sectionId, sectionType) {
     // Update section type in database
     const updatedSection = await prisma.menuSection.update({
       where: { id: sectionId },
-      data: { sectionType }
+      data: { sectionType },
     });
 
     // Update in-memory menu
-    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(s => s.id === sectionId);
+    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(
+      (s) => s.id === sectionId
+    );
     if (sectionIndex !== -1) {
       currentInMemoryMenu.menuSections[sectionIndex] = {
         ...currentInMemoryMenu.menuSections[sectionIndex],
-        sectionType
+        sectionType,
       };
     }
 
@@ -1121,7 +1253,7 @@ async function updatePastaTypesGlobalColor(backgroundColor) {
     if (backgroundColor) {
       const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
       if (!hexColorRegex.test(backgroundColor)) {
-        throw new Error('Invalid background color format');
+        throw new Error("Invalid background color format");
       }
     }
 
@@ -1129,14 +1261,17 @@ async function updatePastaTypesGlobalColor(backgroundColor) {
     const updatedMenu = await prisma.menu.update({
       where: { id: currentInMemoryMenu.id },
       data: {
-        globalPastaTypeBackgroundColor: backgroundColor || null
-      }
+        globalPastaTypeBackgroundColor: backgroundColor || null,
+      },
     });
 
     // Update in-memory menu
-    currentInMemoryMenu.globalPastaTypeBackgroundColor = backgroundColor || null;
+    currentInMemoryMenu.globalPastaTypeBackgroundColor =
+      backgroundColor || null;
 
-    console.log(`✅ Global pasta types background color updated: ${backgroundColor}`);
+    console.log(
+      `✅ Global pasta types background color updated: ${backgroundColor}`
+    );
     return true;
   } catch (error) {
     console.error("❌ Error updating pasta types global color:", error);
@@ -1152,7 +1287,7 @@ async function updatePastaSaucesGlobalColor(backgroundColor) {
     if (backgroundColor) {
       const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
       if (!hexColorRegex.test(backgroundColor)) {
-        throw new Error('Invalid background color format');
+        throw new Error("Invalid background color format");
       }
     }
 
@@ -1160,14 +1295,17 @@ async function updatePastaSaucesGlobalColor(backgroundColor) {
     const updatedMenu = await prisma.menu.update({
       where: { id: currentInMemoryMenu.id },
       data: {
-        globalPastaSauceBackgroundColor: backgroundColor || null
-      }
+        globalPastaSauceBackgroundColor: backgroundColor || null,
+      },
     });
 
     // Update in-memory menu
-    currentInMemoryMenu.globalPastaSauceBackgroundColor = backgroundColor || null;
+    currentInMemoryMenu.globalPastaSauceBackgroundColor =
+      backgroundColor || null;
 
-    console.log(`✅ Global pasta sauces background color updated: ${backgroundColor}`);
+    console.log(
+      `✅ Global pasta sauces background color updated: ${backgroundColor}`
+    );
     return true;
   } catch (error) {
     console.error("❌ Error updating pasta sauces global color:", error);
@@ -1177,46 +1315,70 @@ async function updatePastaSaucesGlobalColor(backgroundColor) {
 
 // Predefined section types
 const PREDEFINED_SECTIONS = [
-  { name: 'Poke', sectionType: 'poke' },
-  { name: 'Insalatone', sectionType: 'insalatone' }
+  { name: "Pokè", sectionType: "Pokè" },
+  { name: "Insalatone", sectionType: "insalatone" },
 ];
 
 async function ensurePredefinedSections(menuId) {
   try {
     for (const predefinedSection of PREDEFINED_SECTIONS) {
-      // Check if section already exists
-      const existingSection = await prisma.menuSection.findFirst({
+      // Check if section already exists in database
+      const existingInDB = await prisma.menuSection.findFirst({
         where: {
           menuId: menuId,
-          sectionType: predefinedSection.sectionType
-        }
+          sectionType: predefinedSection.sectionType,
+        },
       });
 
-      if (!existingSection) {
+      // Check if section already exists in memory
+      const existingInMemory = currentInMemoryMenu?.sections?.find(
+        section => section.sectionType === predefinedSection.sectionType
+      );
+
+      // Only create if it doesn't exist in either location
+      if (!existingInDB && !existingInMemory) {
         // Find the highest position
         const maxPosition = await prisma.menuSection.findFirst({
           where: { menuId },
-          orderBy: { position: 'desc' },
-          select: { position: true }
+          orderBy: { position: "desc" },
+          select: { position: true },
         });
 
         const nextPosition = maxPosition ? maxPosition.position + 1 : 0;
 
         // Create the predefined section
-        await prisma.menuSection.create({
+        const newSection = await prisma.menuSection.create({
           data: {
             name: predefinedSection.name,
             sectionType: predefinedSection.sectionType,
             position: nextPosition,
-            menuId: menuId
-          }
+            menuId: menuId,
+          },
         });
 
+        // Add to in-memory menu if it exists
+        if (currentInMemoryMenu?.sections) {
+          currentInMemoryMenu.sections.push({
+            id: newSection.id,
+            name: newSection.name,
+            sectionType: newSection.sectionType,
+            position: newSection.position,
+            menuId: newSection.menuId,
+            items: [],
+            color: newSection.color || null,
+            fontSize: newSection.fontSize || null,
+          });
+        }
+
         console.log(`Created predefined section: ${predefinedSection.name}`);
+      } else if (existingInMemory && !existingInDB) {
+        console.log(`Section ${predefinedSection.name} exists in memory but not in DB - will be saved later`);
+      } else {
+        console.log(`Section ${predefinedSection.name} already exists, skipping creation`);
       }
     }
   } catch (error) {
-    console.error('Error ensuring predefined sections:', error);
+    console.error("Error ensuring predefined sections:", error);
   }
 }
 
@@ -1230,16 +1392,19 @@ async function refreshMenuBackground() {
 
     // Get the latest background configuration from the database
     const backgroundConfig = await prisma.backgroundConfig.findFirst({
-      where: { page: 'pasta' } // Use fixed page since we only have one
+      where: { page: "pasta" }, // Use fixed page since we only have one
     });
 
     // Update the in-memory menu's background
     currentInMemoryMenu.background = backgroundConfig;
-    
-    console.log("✅ Menu background refreshed in memory:", backgroundConfig ? backgroundConfig.id : 'null');
+
+    console.log(
+      "✅ Menu background refreshed in memory:",
+      backgroundConfig ? backgroundConfig.id : "null"
+    );
     return backgroundConfig;
   } catch (error) {
-    console.error('Error refreshing menu background:', error);
+    console.error("Error refreshing menu background:", error);
     throw error;
   }
 }

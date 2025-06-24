@@ -111,7 +111,7 @@ export class PastaComponent implements OnInit, OnDestroy {
 			pasta: '#FFFACD', // Giallino (yellowish)
 			sauce: '#FFE4E1', // Rossino (reddish)
 			insalatone: '#F0FFF0', // Verdolino (greenish)
-			poke: '#FFE4E1', // Rossino (reddish)
+			Pokè: '#FFE4E1', // Rossino (reddish)
 			general: '#ffffff', // White
 		};
 
