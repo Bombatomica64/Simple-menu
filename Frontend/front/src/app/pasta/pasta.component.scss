@@ -24,11 +24,12 @@
 		.logo-section {
 			position: absolute;
 			z-index: 10;
-			top: -10px; // Adjust position slightly above header
-			max-width: 150px; // Limit max width for better layout
+			top: -20px; // Adjust position slightly above header
+			left: -25px; // Adjust position slightly to the left
+			max-width: 175px; // Limit max width for better layout
 			width: 100%;
 			&.logo-top-left {
-				left: 0;
+				left: -20px; // Apply the left offset for top-left positioning
 			}
 
 			&.logo-top-right {
@@ -568,28 +569,35 @@
 	width: 100%;
 	background: rgba(255, 255, 255, 0.9);
 	border-top: 1px solid rgba(139, 69, 19, 0.2);
-	padding: 8px 20px;
+	padding: 10px 20px;
 	box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
 	z-index: 1001;
 	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-columns: 1fr 2fr 1fr;
 	align-items: center;
+	gap: 10px;
 
 	.main-message {
 		grid-column: 2;
 		text-align: center;
-		font-size: 0.9rem;
+		font-size: 1.1rem;
 		font-weight: bold;
 		color: #8b4513;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.powered-by {
 		grid-column: 3;
 		text-align: right;
-		font-size: 0.8rem;
+		font-size: 1.0rem;
+		font-family: 'Croissant One', cursive;
 		color: black;
 		font-weight: normal;
 		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	&.hidden {
