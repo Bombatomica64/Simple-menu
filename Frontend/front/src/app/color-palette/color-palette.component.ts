@@ -20,7 +20,7 @@ import { SectionOperations } from '../services/menu-components.service';
 import { MenuSection } from '../Menu/menu';
 
 // Simplified types for color management
-export type ColorableItemType = 'section' | 'pastaTypes' | 'pastaSauces';
+export type ColorableItemType = 'general' | 'pastaTypes' | 'pastaSauces';
 
 export interface ColorableItem {
 	id?: number;
@@ -55,7 +55,7 @@ export class ColorPaletteComponent {
 	loading = signal(false);
 	showColorDialog = signal(false);
 	selectedItem = signal<ColorableItem | null>(null);
-	selectedItemType = signal<ColorableItemType>('section');
+	selectedItemType = signal<ColorableItemType>('general');
 	selectedColor = signal('#ffffff');
 
 	// Data computed from menu connection
@@ -83,7 +83,7 @@ export class ColorPaletteComponent {
 
 		// Set current color
 		let currentColor = '#ffffff';
-		if (type === 'section') {
+		if (type === 'general') {
 			currentColor = item.backgroundColor || '#ffffff';
 		} else if (type === 'pastaTypes') {
 			currentColor = this.pastaTypesBackgroundColor();
@@ -124,7 +124,7 @@ export class ColorPaletteComponent {
 
 		console.log('🎨 Color palette saving color:', { item, type, color });
 
-		if (type === 'section' && item.id) {
+		if (type === 'general' && item.id) {
 			console.log('🎨 Emitting section color update:', {
 				sectionId: item.id,
 				backgroundColor: color,
@@ -168,7 +168,7 @@ export class ColorPaletteComponent {
 
 		if (!item) return;
 
-		if (type === 'section' && item.id) {
+		if (type === 'general' && item.id) {
 			this.sectionColorUpdateRequested.emit({
 				sectionId: item.id,
 				backgroundColor: '#ffffff',

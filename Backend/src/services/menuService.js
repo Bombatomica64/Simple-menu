@@ -651,26 +651,47 @@ async function addSectionToMenu(sectionData) {
   if (!currentInMemoryMenu) return false;
 
   if (sectionData && typeof sectionData.name === "string") {
-    // Determine position for new section
-    const existingSections = currentInMemoryMenu.menuSections || [];
-    const maxPosition =
-      existingSections.length > 0
-        ? Math.max(...existingSections.map((s) => s.position || 0))
-        : -1;
+    try {
+      // Determine position for new section
+      const existingSections = currentInMemoryMenu.menuSections || [];
+      const maxPosition =
+        existingSections.length > 0
+          ? Math.max(...existingSections.map((s) => s.position || 0))
+          : -1;
 
-    const newSection = {
-      id: Date.now(), // Temporary in-memory ID
-      name: sectionData.name,
-      header: sectionData.header || null, // Add header support
-      position: maxPosition + 1,
-      menuItems: [],
-    };
+      // Save section directly to database
+      const createdSection = await prisma.menuSection.create({
+        data: {
+          name: sectionData.name,
+          header: sectionData.header || null,
+          position: maxPosition + 1,
+          sectionType: 'general',
+          backgroundColor: null,
+          textColor: null,
+          menuId: currentInMemoryMenu.id,
+        },
+        include: {
+          menuItems: {
+            orderBy: { position: "asc" },
+          },
+        },
+      });
 
-    if (!currentInMemoryMenu.menuSections) {
-      currentInMemoryMenu.menuSections = [];
+      // Add to in-memory menu
+      if (!currentInMemoryMenu.menuSections) {
+        currentInMemoryMenu.menuSections = [];
+      }
+      currentInMemoryMenu.menuSections.push(createdSection);
+
+      // Sort sections by position
+      currentInMemoryMenu.menuSections.sort((a, b) => a.position - b.position);
+
+      console.log("✅ Section added to database:", createdSection.name);
+      return currentInMemoryMenu;
+    } catch (error) {
+      console.error("❌ Error adding section to database:", error);
+      return false;
     }
-    currentInMemoryMenu.menuSections.push(newSection);
-    return newSection;
   }
   return false;
 }

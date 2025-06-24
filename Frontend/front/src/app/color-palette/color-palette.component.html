@@ -9,7 +9,7 @@
         @for (section of sections(); track section.id) {
           <div class="color-item"
                [style.background-color]="section.backgroundColor || '#f8f9fa'"
-               (click)="openColorPicker(section, 'section')">
+               (click)="openColorPicker(section, 'general')">
             <div class="color-info">
               <span class="item-name">{{ section.name }}</span>
               <span class="color-value">{{ section.backgroundColor || '#f8f9fa' }}</span>

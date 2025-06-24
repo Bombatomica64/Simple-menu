@@ -1384,7 +1384,7 @@ export class SubmitComponent implements OnInit {
 
 	handleSectionColorReset(event: { itemId: number; itemType: string }) {
 		switch (event.itemType) {
-			case 'section':
+			case 'general':
 				this.resetSectionColors(event.itemId);
 				break;
 			case 'pastaType':
