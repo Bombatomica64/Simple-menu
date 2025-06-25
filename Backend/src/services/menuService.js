@@ -137,6 +137,43 @@ function setCurrentMenu(menu) {
   currentInMemoryMenu = menu;
 }
 
+// Refresh the in-memory menu from the database
+async function refreshInMemoryMenu() {
+  try {
+    const latestMenuFromDB = await prisma.menu.findFirst({
+      orderBy: { createdAt: "desc" },
+      include: {
+        logo: true, // Include logo details
+        background: true, // Include background configuration
+        menuItems: {
+          orderBy: [{ sectionId: "asc" }, { position: "asc" }],
+        },
+        menuSections: {
+          orderBy: { position: "asc" },
+          include: {
+            menuItems: {
+              orderBy: { position: "asc" },
+            },
+          },
+        },
+        pastaTypes: { include: { pastaType: true } },
+        pastaSauces: { include: { pastaSauce: true } },
+      },
+    });
+
+    if (latestMenuFromDB) {
+      currentInMemoryMenu = latestMenuFromDB;
+      console.log("In-memory menu refreshed from database.");
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Error refreshing in-memory menu:", error);
+    return false;
+  }
+}
+
 async function addItemToMenu(item) {
   if (!currentInMemoryMenu) return false;
 
@@ -367,17 +404,35 @@ async function saveCurrentMenu(name) {
         data: {
           orientation: currentInMemoryMenu.orientation || "vertical",
           availableImages: currentInMemoryMenu.availableImages || null,
-          globalPastaTypeBackgroundColor: currentInMemoryMenu.globalPastaTypeBackgroundColor || null,
-          globalPastaSauceBackgroundColor: currentInMemoryMenu.globalPastaSauceBackgroundColor || null,
+          globalPastaTypeBackgroundColor:
+            currentInMemoryMenu.globalPastaTypeBackgroundColor || null,
+          globalPastaSauceBackgroundColor:
+            currentInMemoryMenu.globalPastaSauceBackgroundColor || null,
           // Include any other global pasta display settings
-          globalPastaTypeFontSize: currentInMemoryMenu.globalPastaTypeFontSize || 2.2,
-          globalPastaSauceFontSize: currentInMemoryMenu.globalPastaSauceFontSize || 2.2,
-          globalPastaTypeShowImage: currentInMemoryMenu.globalPastaTypeShowImage !== undefined ? currentInMemoryMenu.globalPastaTypeShowImage : true,
-          globalPastaTypeImageSize: currentInMemoryMenu.globalPastaTypeImageSize || "size-medium",
-          globalPastaTypeShowDescription: currentInMemoryMenu.globalPastaTypeShowDescription !== undefined ? currentInMemoryMenu.globalPastaTypeShowDescription : true,
-          globalPastaSauceShowImage: currentInMemoryMenu.globalPastaSauceShowImage !== undefined ? currentInMemoryMenu.globalPastaSauceShowImage : true,
-          globalPastaSauceImageSize: currentInMemoryMenu.globalPastaSauceImageSize || "size-medium",
-          globalPastaSauceShowDescription: currentInMemoryMenu.globalPastaSauceShowDescription !== undefined ? currentInMemoryMenu.globalPastaSauceShowDescription : true,
+          globalPastaTypeFontSize:
+            currentInMemoryMenu.globalPastaTypeFontSize || 2.2,
+          globalPastaSauceFontSize:
+            currentInMemoryMenu.globalPastaSauceFontSize || 2.2,
+          globalPastaTypeShowImage:
+            currentInMemoryMenu.globalPastaTypeShowImage !== undefined
+              ? currentInMemoryMenu.globalPastaTypeShowImage
+              : true,
+          globalPastaTypeImageSize:
+            currentInMemoryMenu.globalPastaTypeImageSize || "size-medium",
+          globalPastaTypeShowDescription:
+            currentInMemoryMenu.globalPastaTypeShowDescription !== undefined
+              ? currentInMemoryMenu.globalPastaTypeShowDescription
+              : true,
+          globalPastaSauceShowImage:
+            currentInMemoryMenu.globalPastaSauceShowImage !== undefined
+              ? currentInMemoryMenu.globalPastaSauceShowImage
+              : true,
+          globalPastaSauceImageSize:
+            currentInMemoryMenu.globalPastaSauceImageSize || "size-medium",
+          globalPastaSauceShowDescription:
+            currentInMemoryMenu.globalPastaSauceShowDescription !== undefined
+              ? currentInMemoryMenu.globalPastaSauceShowDescription
+              : true,
         },
       });
 
@@ -665,7 +720,7 @@ async function addSectionToMenu(sectionData) {
           name: sectionData.name,
           header: sectionData.header || null,
           position: maxPosition + 1,
-          sectionType: 'general',
+          sectionType: "general",
           backgroundColor: null,
           textColor: null,
           menuId: currentInMemoryMenu.id,
@@ -700,39 +755,65 @@ async function removeSectionFromMenu(sectionId) {
   if (!currentInMemoryMenu || !currentInMemoryMenu.menuSections) return false;
 
   if (typeof sectionId === "number") {
-    const sectionIndex = currentInMemoryMenu.menuSections.findIndex(
-      (s) => s.id === sectionId
-    );
-    if (sectionIndex !== -1) {
-      const removedSection = currentInMemoryMenu.menuSections[sectionIndex];
+    try {
+      const sectionIndex = currentInMemoryMenu.menuSections.findIndex(
+        (s) => s.id === sectionId
+      );
+      if (sectionIndex !== -1) {
+        const removedSection = currentInMemoryMenu.menuSections[sectionIndex];
 
-      // Move items from removed section to first section or make them unsectioned
-      if (removedSection.menuItems && removedSection.menuItems.length > 0) {
-        if (currentInMemoryMenu.menuSections.length > 1) {
-          // Move to first remaining section
-          const targetSection = currentInMemoryMenu.menuSections.find(
-            (s) => s.id !== sectionId
-          );
-          if (targetSection) {
-            targetSection.menuItems = targetSection.menuItems || [];
-            targetSection.menuItems.push(...removedSection.menuItems);
-          }
-        } else {
-          // Make items unsectioned (remove sectionId)
-          removedSection.menuItems.forEach((item) => {
-            item.sectionId = null;
-            const menuItem = currentInMemoryMenu.menuItems.find(
-              (mi) => mi.id === item.id
+        // First, handle items from the removed section
+        if (removedSection.menuItems && removedSection.menuItems.length > 0) {
+          if (currentInMemoryMenu.menuSections.length > 1) {
+            // Move to first remaining section
+            const targetSection = currentInMemoryMenu.menuSections.find(
+              (s) => s.id !== sectionId
             );
-            if (menuItem) {
-              menuItem.sectionId = null;
-            }
-          });
-        }
-      }
+            if (targetSection) {
+              // Update items in database to move to target section
+              await prisma.menuItem.updateMany({
+                where: { sectionId: sectionId },
+                data: { sectionId: targetSection.id },
+              });
 
-      currentInMemoryMenu.menuSections.splice(sectionIndex, 1);
-      return true;
+              // Update in-memory
+              targetSection.menuItems = targetSection.menuItems || [];
+              targetSection.menuItems.push(...removedSection.menuItems);
+            }
+          } else {
+            // Make items unsectioned (remove sectionId)
+            await prisma.menuItem.updateMany({
+              where: { sectionId: sectionId },
+              data: { sectionId: null },
+            });
+
+            // Update in-memory
+            removedSection.menuItems.forEach((item) => {
+              item.sectionId = null;
+              const menuItem = currentInMemoryMenu.menuItems.find(
+                (mi) => mi.id === item.id
+              );
+              if (menuItem) {
+                menuItem.sectionId = null;
+              }
+            });
+          }
+        }
+
+        // Delete the section from database
+        await prisma.menuSection.delete({
+          where: { id: sectionId },
+        });
+
+        // Remove from in-memory menu
+        currentInMemoryMenu.menuSections.splice(sectionIndex, 1);
+
+        console.log("✅ Section removed from database and memory:", sectionId);
+        return true;
+      }
+    } catch (error) {
+      console.error("❌ Error removing section from database:", error);
+      return false;
     }
   }
   return false;
@@ -742,7 +823,15 @@ async function updateSectionOrder(sectionUpdates) {
   if (!currentInMemoryMenu || !currentInMemoryMenu.menuSections) return false;
 
   try {
-    // Update positions for each section
+    // Update positions in database for each section
+    for (const update of sectionUpdates) {
+      await prisma.menuSection.update({
+        where: { id: update.id },
+        data: { position: update.position },
+      });
+    }
+
+    // Update positions in in-memory menu
     sectionUpdates.forEach((update) => {
       const section = currentInMemoryMenu.menuSections.find(
         (s) => s.id === update.id
@@ -754,9 +843,11 @@ async function updateSectionOrder(sectionUpdates) {
 
     // Sort sections by position
     currentInMemoryMenu.menuSections.sort((a, b) => a.position - b.position);
+
+    console.log("✅ Section order updated in database and memory");
     return true;
   } catch (error) {
-    console.error("Error updating section order:", error);
+    console.error("❌ Error updating section order:", error);
     return false;
   }
 }
@@ -764,50 +855,81 @@ async function updateSectionOrder(sectionUpdates) {
 async function moveItemToSection(itemId, targetSectionId, position) {
   if (!currentInMemoryMenu) return false;
 
-  const item = currentInMemoryMenu.menuItems.find((item) => item.id === itemId);
-  if (item) {
-    // Remove from current section if it has one
-    if (item.sectionId && currentInMemoryMenu.menuSections) {
-      const currentSection = currentInMemoryMenu.menuSections.find(
-        (s) => s.id === item.sectionId
-      );
-      if (currentSection && currentSection.menuItems) {
-        currentSection.menuItems = currentSection.menuItems.filter(
-          (i) => i.id !== itemId
+  try {
+    const item = currentInMemoryMenu.menuItems.find(
+      (item) => item.id === itemId
+    );
+    if (item) {
+      // Update in database first
+      await prisma.menuItem.update({
+        where: { id: itemId },
+        data: {
+          sectionId: targetSectionId,
+          position: position || 0,
+        },
+      });
+
+      // Remove from current section if it has one
+      if (item.sectionId && currentInMemoryMenu.menuSections) {
+        const currentSection = currentInMemoryMenu.menuSections.find(
+          (s) => s.id === item.sectionId
         );
-      }
-    }
-
-    // Update item's section
-    item.sectionId = targetSectionId;
-    item.position = position || 0;
-
-    // Add to target section
-    if (targetSectionId && currentInMemoryMenu.menuSections) {
-      const targetSection = currentInMemoryMenu.menuSections.find(
-        (s) => s.id === targetSectionId
-      );
-      if (targetSection) {
-        if (!targetSection.menuItems) {
-          targetSection.menuItems = [];
+        if (currentSection && currentSection.menuItems) {
+          currentSection.menuItems = currentSection.menuItems.filter(
+            (i) => i.id !== itemId
+          );
         }
-        targetSection.menuItems.push(item);
-        // Sort items in section by position
-        targetSection.menuItems.sort(
-          (a, b) => (a.position || 0) - (b.position || 0)
-        );
       }
-    }
 
-    return true;
+      // Update item's section in memory
+      item.sectionId = targetSectionId;
+      item.position = position || 0;
+
+      // Add to target section
+      if (targetSectionId && currentInMemoryMenu.menuSections) {
+        const targetSection = currentInMemoryMenu.menuSections.find(
+          (s) => s.id === targetSectionId
+        );
+        if (targetSection) {
+          if (!targetSection.menuItems) {
+            targetSection.menuItems = [];
+          }
+          targetSection.menuItems.push(item);
+          // Sort items in section by position
+          targetSection.menuItems.sort(
+            (a, b) => (a.position || 0) - (b.position || 0)
+          );
+        }
+      }
+
+      console.log("✅ Item moved to section in database and memory:", itemId);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("❌ Error moving item to section:", error);
+    return false;
   }
-  return false;
 }
 
 async function updateItemPositions(itemUpdates) {
   if (!currentInMemoryMenu) return false;
 
   try {
+    // Update positions in database for each item
+    for (const update of itemUpdates) {
+      const updateData = { position: update.position };
+      if (update.sectionId !== undefined) {
+        updateData.sectionId = update.sectionId;
+      }
+
+      await prisma.menuItem.update({
+        where: { id: update.itemId },
+        data: updateData,
+      });
+    }
+
+    // Update positions in in-memory menu
     itemUpdates.forEach((update) => {
       const item = currentInMemoryMenu.menuItems.find(
         (item) => item.id === update.itemId
@@ -829,9 +951,10 @@ async function updateItemPositions(itemUpdates) {
       });
     }
 
+    console.log("✅ Item positions updated in database and memory");
     return true;
   } catch (error) {
-    console.error("Error updating item positions:", error);
+    console.error("❌ Error updating item positions:", error);
     return false;
   }
 }
@@ -1353,7 +1476,7 @@ async function ensurePredefinedSections(menuId) {
 
       // Check if section already exists in memory
       const existingInMemory = currentInMemoryMenu?.sections?.find(
-        section => section.sectionType === predefinedSection.sectionType
+        (section) => section.sectionType === predefinedSection.sectionType
       );
 
       // Only create if it doesn't exist in either location
@@ -1393,9 +1516,13 @@ async function ensurePredefinedSections(menuId) {
 
         console.log(`Created predefined section: ${predefinedSection.name}`);
       } else if (existingInMemory && !existingInDB) {
-        console.log(`Section ${predefinedSection.name} exists in memory but not in DB - will be saved later`);
+        console.log(
+          `Section ${predefinedSection.name} exists in memory but not in DB - will be saved later`
+        );
       } else {
-        console.log(`Section ${predefinedSection.name} already exists, skipping creation`);
+        console.log(
+          `Section ${predefinedSection.name} already exists, skipping creation`
+        );
       }
     }
   } catch (error) {
@@ -1434,6 +1561,7 @@ module.exports = {
   loadInitialMenu,
   getCurrentMenu,
   setCurrentMenu,
+  refreshInMemoryMenu,
   addItemToMenu,
   removeItemFromMenu,
   addPastaTypeToMenu,

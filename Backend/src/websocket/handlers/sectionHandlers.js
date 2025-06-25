@@ -127,6 +127,13 @@ async function handleUpdatePastaSaucesColor(message, ws, { broadcastInMemoryMenu
   }
 }
 
+async function handleUpdateItemPositions(message, ws, { broadcastInMemoryMenu }) {
+  const updated = await menuService.updateItemPositions(message.itemUpdates);
+  if (updated) {
+    broadcastInMemoryMenu();
+  }
+}
+
 module.exports = {
   handleAddSection,
   handleRemoveSection,
@@ -137,5 +144,6 @@ module.exports = {
   handleResetSectionColors,
   handleUpdateSectionType,
   handleUpdatePastaTypesColor,
-  handleUpdatePastaSaucesColor
+  handleUpdatePastaSaucesColor,
+  handleUpdateItemPositions
 };

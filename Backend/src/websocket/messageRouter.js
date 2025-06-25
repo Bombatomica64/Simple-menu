@@ -23,6 +23,7 @@ const MESSAGE_HANDLERS = {
   "removeSection": sectionHandlers.handleRemoveSection,
   "updateSectionOrder": sectionHandlers.handleUpdateSectionOrder,
   "moveItemToSection": sectionHandlers.handleMoveItemToSection,
+  "updateItemPositions": sectionHandlers.handleUpdateItemPositions,
   "updateSectionStyle": sectionHandlers.handleUpdateSectionStyle,
   "updateSectionColors": sectionHandlers.handleUpdateSectionColors,
   "resetSectionColors": sectionHandlers.handleResetSectionColors,

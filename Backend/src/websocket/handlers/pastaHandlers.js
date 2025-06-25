@@ -2,35 +2,59 @@
 const menuService = require("../../services/menuService");
 const { prisma } = require("../../config/database");
 
-async function handleAddPastaTypeToMenu(message, ws, { broadcastInMemoryMenu }) {
+async function handleAddPastaTypeToMenu(
+  message,
+  ws,
+  { broadcastInMemoryMenu }
+) {
   const updated = await menuService.addPastaTypeToMenu(message.pastaTypeId);
   if (updated) {
     broadcastInMemoryMenu();
   }
 }
 
-async function handleRemovePastaTypeFromMenu(message, ws, { broadcastInMemoryMenu }) {
-  const updated = await menuService.removePastaTypeFromMenu(message.pastaTypeId);
+async function handleRemovePastaTypeFromMenu(
+  message,
+  ws,
+  { broadcastInMemoryMenu }
+) {
+  const updated = await menuService.removePastaTypeFromMenu(
+    message.pastaTypeId
+  );
   if (updated) {
     broadcastInMemoryMenu();
   }
 }
 
-async function handleAddPastaSauceToMenu(message, ws, { broadcastInMemoryMenu }) {
+async function handleAddPastaSauceToMenu(
+  message,
+  ws,
+  { broadcastInMemoryMenu }
+) {
   const updated = await menuService.addPastaSauceToMenu(message.pastaSauceId);
   if (updated) {
     broadcastInMemoryMenu();
   }
 }
 
-async function handleRemovePastaSauceFromMenu(message, ws, { broadcastInMemoryMenu }) {
-  const updated = await menuService.removePastaSauceFromMenu(message.pastaSauceId);
+async function handleRemovePastaSauceFromMenu(
+  message,
+  ws,
+  { broadcastInMemoryMenu }
+) {
+  const updated = await menuService.removePastaSauceFromMenu(
+    message.pastaSauceId
+  );
   if (updated) {
     broadcastInMemoryMenu();
   }
 }
 
-async function handleCreatePastaType(message, ws, { sendToClient }) {
+async function handleCreatePastaType(
+  message,
+  ws,
+  { sendToClient, broadcastInMemoryMenu }
+) {
   try {
     const newPastaType = await prisma.pastaType.create({
       data: {
@@ -45,6 +69,10 @@ async function handleCreatePastaType(message, ws, { sendToClient }) {
       type: "pastaTypeCreated",
       pastaType: newPastaType,
     });
+
+    // Refresh in-memory menu to include the new pasta type
+    await menuService.refreshInMemoryMenu();
+    broadcastInMemoryMenu();
   } catch (error) {
     console.error("❌ Failed to create pasta type:", error);
     sendToClient(ws, {
@@ -54,8 +82,16 @@ async function handleCreatePastaType(message, ws, { sendToClient }) {
   }
 }
 
-async function handleDeletePastaType(message, ws, { sendToClient }) {
+async function handleDeletePastaType(
+  message,
+  ws,
+  { sendToClient, broadcastInMemoryMenu }
+) {
   try {
+    // First remove from current menu if it exists
+    await menuService.removePastaTypeFromMenu(message.pastaTypeId);
+
+    // Then delete the pasta type completely
     await prisma.pastaType.delete({
       where: { id: message.pastaTypeId },
     });
@@ -65,6 +101,10 @@ async function handleDeletePastaType(message, ws, { sendToClient }) {
       type: "pastaTypeDeleted",
       pastaTypeId: message.pastaTypeId,
     });
+
+    // Refresh in-memory menu to reflect deletion
+    await menuService.refreshInMemoryMenu();
+    broadcastInMemoryMenu();
   } catch (error) {
     console.error("❌ Failed to delete pasta type:", error);
     sendToClient(ws, {
@@ -74,7 +114,11 @@ async function handleDeletePastaType(message, ws, { sendToClient }) {
   }
 }
 
-async function handleCreatePastaSauce(message, ws, { sendToClient }) {
+async function handleCreatePastaSauce(
+  message,
+  ws,
+  { sendToClient, broadcastInMemoryMenu }
+) {
   try {
     const newPastaSauce = await prisma.pastaSauce.create({
       data: {
@@ -89,6 +133,10 @@ async function handleCreatePastaSauce(message, ws, { sendToClient }) {
       type: "pastaSauceCreated",
       pastaSauce: newPastaSauce,
     });
+
+    // Refresh in-memory menu to include the new pasta sauce
+    await menuService.refreshInMemoryMenu();
+    broadcastInMemoryMenu();
   } catch (error) {
     console.error("❌ Failed to create pasta sauce:", error);
     sendToClient(ws, {
@@ -98,8 +146,16 @@ async function handleCreatePastaSauce(message, ws, { sendToClient }) {
   }
 }
 
-async function handleDeletePastaSauce(message, ws, { sendToClient }) {
+async function handleDeletePastaSauce(
+  message,
+  ws,
+  { sendToClient, broadcastInMemoryMenu }
+) {
   try {
+    // First remove from current menu if it exists
+    await menuService.removePastaSauceFromMenu(message.pastaSauceId);
+
+    // Then delete the pasta sauce completely
     await prisma.pastaSauce.delete({
       where: { id: message.pastaSauceId },
     });
@@ -109,6 +165,10 @@ async function handleDeletePastaSauce(message, ws, { sendToClient }) {
       type: "pastaSauceDeleted",
       pastaSauceId: message.pastaSauceId,
     });
+
+    // Refresh in-memory menu to reflect deletion
+    await menuService.refreshInMemoryMenu();
+    broadcastInMemoryMenu();
   } catch (error) {
     console.error("❌ Failed to delete pasta sauce:", error);
     sendToClient(ws, {
@@ -119,7 +179,11 @@ async function handleDeletePastaSauce(message, ws, { sendToClient }) {
 }
 
 // Color management handlers for pasta types and sauces
-async function handleUpdatePastaTypeColors(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+async function handleUpdatePastaTypeColors(
+  message,
+  ws,
+  { broadcastInMemoryMenu, sendToClient }
+) {
   try {
     const updatedPastaType = await prisma.pastaType.update({
       where: { id: message.pastaTypeId },
@@ -130,7 +194,7 @@ async function handleUpdatePastaTypeColors(message, ws, { broadcastInMemoryMenu,
     });
 
     console.log("✅ Updated pasta type colors:", updatedPastaType.name);
-    
+
     // Send confirmation response to the specific client
     sendToClient(ws, {
       type: "pastaTypeColorsUpdated",
@@ -139,7 +203,8 @@ async function handleUpdatePastaTypeColors(message, ws, { broadcastInMemoryMenu,
       textColor: message.textColor,
     });
 
-    // Broadcast updated menu to all clients
+    // Refresh in-memory menu to reflect color changes
+    await menuService.refreshInMemoryMenu();
     broadcastInMemoryMenu();
   } catch (error) {
     console.error("❌ Failed to update pasta type colors:", error);
@@ -150,7 +215,11 @@ async function handleUpdatePastaTypeColors(message, ws, { broadcastInMemoryMenu,
   }
 }
 
-async function handleResetPastaTypeColors(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+async function handleResetPastaTypeColors(
+  message,
+  ws,
+  { broadcastInMemoryMenu, sendToClient }
+) {
   try {
     const updatedPastaType = await prisma.pastaType.update({
       where: { id: message.pastaTypeId },
@@ -161,7 +230,7 @@ async function handleResetPastaTypeColors(message, ws, { broadcastInMemoryMenu, 
     });
 
     console.log("✅ Reset pasta type colors:", updatedPastaType.name);
-    
+
     // Send confirmation response to the specific client
     sendToClient(ws, {
       type: "pastaTypeColorsUpdated",
@@ -170,7 +239,8 @@ async function handleResetPastaTypeColors(message, ws, { broadcastInMemoryMenu, 
       textColor: null,
     });
 
-    // Broadcast updated menu to all clients
+    // Refresh in-memory menu to reflect color changes
+    await menuService.refreshInMemoryMenu();
     broadcastInMemoryMenu();
   } catch (error) {
     console.error("❌ Failed to reset pasta type colors:", error);
@@ -181,7 +251,11 @@ async function handleResetPastaTypeColors(message, ws, { broadcastInMemoryMenu, 
   }
 }
 
-async function handleUpdatePastaSauceColors(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+async function handleUpdatePastaSauceColors(
+  message,
+  ws,
+  { broadcastInMemoryMenu, sendToClient }
+) {
   try {
     const updatedPastaSauce = await prisma.pastaSauce.update({
       where: { id: message.pastaSauceId },
@@ -192,7 +266,7 @@ async function handleUpdatePastaSauceColors(message, ws, { broadcastInMemoryMenu
     });
 
     console.log("✅ Updated pasta sauce colors:", updatedPastaSauce.name);
-    
+
     // Send confirmation response to the specific client
     sendToClient(ws, {
       type: "pastaSauceColorsUpdated",
@@ -201,7 +275,8 @@ async function handleUpdatePastaSauceColors(message, ws, { broadcastInMemoryMenu
       textColor: message.textColor,
     });
 
-    // Broadcast updated menu to all clients
+    // Refresh in-memory menu to reflect color changes
+    await menuService.refreshInMemoryMenu();
     broadcastInMemoryMenu();
   } catch (error) {
     console.error("❌ Failed to update pasta sauce colors:", error);
@@ -212,7 +287,11 @@ async function handleUpdatePastaSauceColors(message, ws, { broadcastInMemoryMenu
   }
 }
 
-async function handleResetPastaSauceColors(message, ws, { broadcastInMemoryMenu, sendToClient }) {
+async function handleResetPastaSauceColors(
+  message,
+  ws,
+  { broadcastInMemoryMenu, sendToClient }
+) {
   try {
     const updatedPastaSauce = await prisma.pastaSauce.update({
       where: { id: message.pastaSauceId },
@@ -223,7 +302,7 @@ async function handleResetPastaSauceColors(message, ws, { broadcastInMemoryMenu,
     });
 
     console.log("✅ Reset pasta sauce colors:", updatedPastaSauce.name);
-    
+
     // Send confirmation response to the specific client
     sendToClient(ws, {
       type: "pastaSauceColorsUpdated",
@@ -232,7 +311,8 @@ async function handleResetPastaSauceColors(message, ws, { broadcastInMemoryMenu,
       textColor: null,
     });
 
-    // Broadcast updated menu to all clients
+    // Refresh in-memory menu to reflect color changes
+    await menuService.refreshInMemoryMenu();
     broadcastInMemoryMenu();
   } catch (error) {
     console.error("❌ Failed to reset pasta sauce colors:", error);
@@ -255,5 +335,5 @@ module.exports = {
   handleUpdatePastaTypeColors,
   handleResetPastaTypeColors,
   handleUpdatePastaSauceColors,
-  handleResetPastaSauceColors
+  handleResetPastaSauceColors,
 };
