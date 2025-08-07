@@ -43,6 +43,7 @@
   - ruoli
   - azioni specifiche in base ai ruoli
   - eventi dedicati a certe persone / ruoli
+- obbiettivi a lungo e breve termine
 
 - web app. Max 2 persone
 
